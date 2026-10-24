@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (S3 upload + event markers + daily summary)
 
-English | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+English | [中文](README.zh-CN.md) | [日本語](docs/README.ja.md) | [한국어](docs/README.ko.md) | [Español](docs/README.es.md) | [Français](docs/README.fr.md) | [Deutsch](docs/README.de.md) | [Português](docs/README.pt.md) | [Русский](docs/README.ru.md)
+
+**A replacement for a voice recorder pen:** your phone is always with you, recordings are auto-segmented and backed up to your own cloud, and event markers plus transcripts and a daily summary turn raw audio into something searchable — no cable transfers, no lost files.
 
 Muse itself cannot listen to the microphone continuously, so this setup has three parts:
 
@@ -60,4 +62,5 @@ Transcription, two options: set `OPENAI_API_KEY` (Whisper API), or `pip install 
 - `receiver/summarize_day.py`: transcription + report draft; `receiver/server.py` and `fetch_day_from_supabase.py` are archives of the old approach.
 - `build-apk.sh`: builds the APK directly with the Android SDK build-tools.
 - `.github/workflows/build.yml`: CI builds on every push to master and publishes two releases holding the same APK — a rolling `latest` release (always the newest build) and a versioned release per version (tag `vX.Y.Z`, kept forever). Download the newest build any time at https://github.com/skyvense/muse-recorder/releases/tag/latest
+- `docs/`: this README translated into Japanese, Korean, Spanish, French, German, Portuguese and Russian.
 - `muse-recorder.keystore` + `keystore-info.txt`: the signing key — **keep them safe**. Upgrades must be signed with the same key, or they cannot install over the old version. Encrypted copies live in `vault/` (AES-256-CBC + PBKDF2).

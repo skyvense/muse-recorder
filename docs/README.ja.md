@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2（S3 アップロード + イベントマーカー + デイリーサマリー）
 
-[English](README.md) | [中文](README.zh-CN.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+[English](../README.md) | [中文](../README.zh-CN.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+
+**ボイスレコーダーの代わりに：**スマートフォンはいつも身近にあり、録音は自動で分割され、自分のクラウドに自動バックアップされます。イベントマーカー、文字起こし、デイリーサマリーにより、録音は検索可能なものになります。ケーブル転送も紛失もありません。
 
 Muse 自体はマイクを常時聴き続けることができないため、この仕組みは 3 つの部分から成ります。
 

@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (S3 업로드 + 이벤트 마커 + 일일 요약)
 
-[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+[English](../README.md) | [中文](../README.zh-CN.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+
+**음성 녹음기를 대체합니다.** 휴대폰은 항상 곁에 있고, 녹음은 자동으로 나뉘어 자신의 클라우드에 자동 백업되며, 이벤트 마커와 전사, 일일 요약을 통해 녹음을 검색할 수 있습니다. 케이블 전송도, 분실도 없습니다.
 
 Muse 자체는 마이크를 계속 들을 수 없으므로, 이 구성은 세 부분으로 이루어집니다.
 

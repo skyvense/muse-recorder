@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (envio para S3 + marcadores de eventos + resumo diário)
 
-[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português | [Русский](README.ru.md)
+[English](../README.md) | [中文](../README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português | [Русский](README.ru.md)
+
+**Substitui um gravador de voz:** o telefone está sempre com você, as gravações são segmentadas e copiadas automaticamente para a sua própria nuvem, e os marcadores de eventos, as transcrições e o resumo diário tornam o áudio pesquisável — sem cabos nem arquivos perdidos.
 
 O Muse, por si só, não consegue ouvir o microfone continuamente, por isso esta solução tem três partes:
 

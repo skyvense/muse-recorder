@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (S3-Upload + Ereignismarkierungen + Tageszusammenfassung)
 
-[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português](README.pt.md) | [Русский](README.ru.md)
+[English](../README.md) | [中文](../README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português](README.pt.md) | [Русский](README.ru.md)
+
+**Ersatz für ein Diktiergerät:** Das Telefon ist immer dabei, Aufnahmen werden automatisch segmentiert und in die eigene Cloud gesichert, und Ereignismarkierungen, Transkripte und die Tageszusammenfassung machen Audio durchsuchbar — ohne Kabel, ohne verlorene Dateien.
 
 Muse selbst kann das Mikrofon nicht dauerhaft abhören, daher besteht diese Lösung aus drei Teilen:
 

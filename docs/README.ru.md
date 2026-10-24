@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (загрузка в S3 + маркеры событий + ежедневная сводка)
 
-[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | Русский
+[English](../README.md) | [中文](../README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | Русский
+
+**Замена диктофону:** телефон всегда с вами, записи автоматически нарезаются и копируются в ваше собственное облако, а маркеры событий, расшифровки и ежедневная сводка делают аудио доступным для поиска — без кабелей и потерянных файлов.
 
 Сам Muse не может слушать микрофон непрерывно, поэтому решение состоит из трёх частей:
 

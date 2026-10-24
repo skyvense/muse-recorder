@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2（S3 直传 + 事件标记 + 每日总结）
 
-[English](README.md) | 中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+[English](README.md) | 中文 | [日本語](docs/README.ja.md) | [한국어](docs/README.ko.md) | [Español](docs/README.es.md) | [Français](docs/README.fr.md) | [Deutsch](docs/README.de.md) | [Português](docs/README.pt.md) | [Русский](docs/README.ru.md)
+
+**可以代替录音笔：**手机随身带，录音自动分段、自动备份到自己的云端，再加上事件标记、转写和日报，录完就能查、能找，不用导线、不怕丢。
 
 Muse 本身没有持续监听麦克风的能力，所以这套方案由三部分组成：
 
@@ -60,4 +62,5 @@ python3 receiver/summarize_day.py   --date 2026-10-23
 - `receiver/summarize_day.py`：转写 + 日报草稿；`receiver/server.py`、`fetch_day_from_supabase.py` 为旧方案存档。
 - `build-apk.sh`：用 Android SDK build-tools 直接构建 APK。
 - `.github/workflows/build.yml`：CI 在每次推送到 master 后自动构建，并发布两份同样的 APK：一份是滚动更新的 `latest` release（永远是最新版），一份是按版本打 tag 的正式 release（`vX.Y.Z`，永久保留）。最新版随时在这里下载：https://github.com/skyvense/muse-recorder/releases/tag/latest
+- `docs/`：本 README 的日/韩/西/法/德/葡/俄译本。
 - `muse-recorder.keystore` + `keystore-info.txt`：签名密钥，**务必保留**，升级必须用它重新签名，否则无法覆盖安装。加密副本在 `vault/` 里（AES-256-CBC + PBKDF2）。

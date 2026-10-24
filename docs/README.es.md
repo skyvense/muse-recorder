@@ -1,6 +1,8 @@
 # Muse Daily Recorder v1.8.2 (subida a S3 + marcadores de eventos + resumen diario)
 
-[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | Español | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+[English](../README.md) | [中文](../README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | Español | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+
+**Sustituye a una grabadora de voz:** el teléfono siempre va contigo, las grabaciones se segmentan y se copian automáticamente en tu propia nube, y los marcadores de eventos, las transcripciones y el resumen diario hacen que el audio se pueda buscar — sin cables ni archivos perdidos.
 
 Muse por sí mismo no puede escuchar el micrófono de forma continua, así que esta solución tiene tres partes:
 
