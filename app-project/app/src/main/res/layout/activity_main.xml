@@ -19,20 +19,30 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <personal.muse.recorder.RecordButtonView
-                android:id="@+id/recordButton"
-                android:layout_width="92dp"
-                android:layout_height="92dp"
-                android:layout_gravity="center_horizontal"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <personal.muse.recorder.WaveformView
-                android:id="@+id/waveform"
+            <!-- Record row: button left-aligned, waveform filling the rest
+                 of the row at the same height (92dp). The waveform stays
+                 INVISIBLE (not GONE) when idle so the row never shifts. -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginTop="14dp"
-                android:visibility="invisible" />
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <personal.muse.recorder.RecordButtonView
+                    android:id="@+id/recordButton"
+                    android:layout_width="92dp"
+                    android:layout_height="92dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <personal.muse.recorder.WaveformView
+                    android:id="@+id/waveform"
+                    android:layout_width="0dp"
+                    android:layout_height="92dp"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:visibility="invisible" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/statusText"
