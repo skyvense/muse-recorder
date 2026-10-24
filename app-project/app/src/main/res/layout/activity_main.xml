@@ -4,32 +4,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Fixed header (pinned above the scrollable content, like the footer
-         below): only the help button lives here now that the title text
-         above the record button is gone. Same @id, so MainActivity's click
-         listener is untouched. paddingEnd matches the content's 20dp so the
-         button lines up with the right edge of the scroll area. -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingEnd="20dp">
-
-        <TextView
-            android:id="@+id/infoButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="@drawable/circle_info_bg"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:text="i"
-            android:textColor="#007AFF"
-            android:textSize="20sp"
-            android:textStyle="bold|italic" />
-    </RelativeLayout>
-
+    <!-- No custom header here: the system title bar (Theme.Material.Light
+         ActionBar) already shows the left-aligned "Muse Daily Recorder"
+         title, and the help button lives on it as an action-bar menu item
+         (see res/menu/main_menu.xml + MainActivity.onCreateOptionsMenu). -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

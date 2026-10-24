@@ -18,6 +18,8 @@ import android.os.PowerManager;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -152,9 +154,6 @@ public class MainActivity extends Activity {
         selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
         selfNoteButton.setTextColor(Color.WHITE);
         selfNoteButton.setAllCaps(false);
-
-        findViewById(R.id.infoButton).setOnClickListener(v ->
-                startActivity(new android.content.Intent(this, HelpActivity.class)));
 
         settingsToggleButton.setOnClickListener(v -> {
             boolean show = settingsContainer.getVisibility() != View.VISIBLE;
@@ -390,6 +389,24 @@ public class MainActivity extends Activity {
         stopSelfNote();
         ui.removeCallbacks(refresh);
         waveform.stopAnimating();
+    }
+
+    // Help button on the system title bar (ActionBar): the bar already shows
+    // the left-aligned "Muse Daily Recorder" title from the app label, so
+    // the ⓘ item sits on that same bar instead of floating in the content.
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_help) {
+            startActivity(new Intent(this, HelpActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void loadSettings() {
