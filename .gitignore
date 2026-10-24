@@ -1,0 +1,23 @@
+# Signing material — NEVER commit. Losing the keystore means future app
+# updates can no longer be installed over the existing app; leaking it
+# means anyone can sign apps as you. Keep both files backed up offline.
+muse-recorder.keystore
+keystore-info.txt
+
+# Build outputs
+*.apk
+*.idsig
+build-out/
+app-project/app/build/
+
+# Python env / caches (transcription venv lives here locally)
+venv/
+__pycache__/
+*.pyc
+
+# Local data that may sit next to the project
+*.env
+token.txt
+
+# Gradle local state
+.gradle/

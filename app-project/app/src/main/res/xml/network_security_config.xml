@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Personal-use app with a user-configured upload endpoint.
+     Cleartext is allowed so a private Tailscale/LAN address (http) can be used;
+     prefer an https endpoint (e.g. Cloudflare Tunnel) when possible.
+     Tailscale traffic is encrypted by WireGuard even over http. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
