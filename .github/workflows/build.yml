@@ -7,6 +7,12 @@
 # fingerprint (it must match the local builds' fingerprint), deletes the
 # plaintext keystore again, and uploads the signed APK as a run artifact.
 #
+# Releases: every build publishes TWO releases holding the same APK:
+#  - a versioned release tagged v<version> (e.g. v1.8.0), kept forever, so
+#    the release page accumulates a per-version history;
+#  - the rolling "latest" release, which always points at the newest build
+#    (old assets deleted, title updated) for a stable download link.
+#
 # Note: the runner image already ships an Android SDK, so this workflow
 # installs the needed packages with sdkmanager directly instead of the
 # setup-android action (whose license-acceptance step proved flaky).
@@ -17,7 +23,7 @@ on:
     branches: [master]
   workflow_dispatch:
 
-# Needed for gh release (create/update the rolling "latest" release).
+# Needed for gh release (create versioned releases, update "latest").
 permissions:
   contents: write
 
@@ -65,6 +71,21 @@ jobs:
         with:
           name: MuseRecorder
           path: MuseRecorder.apk
+
+      - name: Publish versioned release (tag v<version>, kept forever)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging MuseRecorder.apk | grep -oP "versionName='\K[^']+")
+          cp MuseRecorder.apk "MuseRecorder-$VERSION.apk"
+          # Idempotent: re-running the same version must not fail.
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "Release v$VERSION already exists, skipping."
+          else
+            gh release create "v$VERSION" --title "$VERSION" \
+              --notes "Muse 录音助手 $VERSION（签名证书 SHA-256：59e463a3e39d25667057982adf9d338711e0813c6bf75d0d29d81e84fe75d93f，与本地构建同一把签名，可直接覆盖安装）。" \
+              "MuseRecorder-$VERSION.apk"
+          fi
 
       - name: Publish versioned APK to rolling "latest" release
         env:
