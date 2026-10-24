@@ -21,7 +21,8 @@ sed 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<ma
 "$BT/aapt2" link -o "$OUT/app-unsigned.apk" -I "$AJAR" \
   --manifest "$OUT/AndroidManifest.xml" --java "$OUT/gen" \
   --min-sdk-version 26 --target-sdk-version 34 \
-  --version-code 13 --version-name 1.7.0 "$OUT/compiled.zip"
+  -A "$SRC/assets" \
+  --version-code 14 --version-name 1.7.1 "$OUT/compiled.zip"
 
 find "$SRC/java" "$OUT/gen" -name '*.java' > "$OUT/sources.txt"
 "$JAVABIN/javac" -encoding UTF-8 -cp "$AJAR" -d "$OUT/classes" @"$OUT/sources.txt"

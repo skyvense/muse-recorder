@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse 录音助手 · 使用帮助</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+         margin: 0; padding: 20px 18px 40px; color: #1c1c1e; line-height: 1.7; font-size: 15px; }
+  h1 { font-size: 22px; margin: 4px 0 16px; }
+  h2 { font-size: 17px; margin: 26px 0 6px; padding-top: 14px; border-top: 1px solid #e5e5ea; }
+  h2:first-of-type { border-top: none; padding-top: 0; }
+  p, li { margin: 6px 0; }
+  ul { padding-left: 20px; }
+  code { background: #f2f2f7; padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  .note { background: #fff8e1; border-left: 4px solid #f5a623; padding: 10px 12px;
+          border-radius: 6px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<h1>🎙 Muse 录音助手 · 使用帮助</h1>
+
+<h2>录音</h2>
+<ul>
+  <li>点顶部红色圆按钮开始录音，录音中按钮变成红色方块，再点一次停止。</li>
+  <li>录音按段切分（默认每段 60 分钟），状态行显示「剩余 X 分钟 · 已录 Y 分钟」。</li>
+  <li>录音在前台服务里进行，切换到别的 App、锁屏都不会停；通知栏有正在录音的提示。</li>
+  <li>打开「手机重启后自动恢复录音」后，开机也会自动续录。</li>
+</ul>
+
+<h2>上传（全自动，不用管）</h2>
+<ul>
+  <li>每段录完立刻上传；上传中途失败会每分钟自动重试；改完配置保存后也会立刻传一次。</li>
+  <li>只有连续失败超过半小时，才会出现「立即重试上传」手动按钮。</li>
+  <li>录音按天存进存储桶：<code>&lt;日期&gt;/rec_….m4a</code>；事件标记在 <code>markers/events-&lt;日期&gt;.jsonl</code> 里；自述录音同样按日期归档。</li>
+  <li>码率 48 kbps，音质够转写用，每小时约 21 MB，一天约 0.5 GB。</li>
+</ul>
+
+<h2>事件标记（底部固定栏）</h2>
+<ul>
+  <li>💬 <b>对话</b> / 👥 <b>会议</b>：点一下开始（卡片变色并显示已进行分钟数），再点一下结束。标记会写进当天的标记文件，转写总结时会按标记分段。</li>
+  <li>🎙 <b>自述录音</b>：按住说话、松开结束。正在录音时只记一对开始/结束标记；没在录音时按住，会单独录一段自述音频并上传。</li>
+</ul>
+
+<h2>配置（⚙️ 配置按钮）</h2>
+<ul>
+  <li>先选云厂商预置（默认 Cloudflare R2），会自动填好地址和区域，再按需手改。</li>
+  <li>Endpoint：R2 填 <code>https://&lt;AccountID&gt;.r2.cloudflarestorage.com</code>（不写 https:// 也会自动补）。</li>
+  <li>区域 Region：R2 填 <code>auto</code>，其他厂商填对应的区域代号。</li>
+  <li>存储桶 Bucket：腾讯云的桶名要带 <code>-APPID</code> 后缀。</li>
+  <li>虚拟主机风格：桶名放域名前面的厂商（阿里 / 腾讯 / AWS / 七牛）勾选，R2 / B2 不勾。</li>
+  <li>Access Key / Secret 只存在本机，不要发给任何人；Secret 输错会在上传状态行里看到服务器返回的错误。</li>
+  <li>每段时长默认 60 分钟；「仅在 Wi‑Fi 时上传」适合流量敏感时打开；「上传成功后删除本地片段」可以省手机空间。</li>
+  <li>如果通知或后台录音被系统杀掉，点「允许后台运行（关闭电池优化）」去系统设置里放行。</li>
+</ul>
+
+<h2>常见问题</h2>
+<ul>
+  <li>上传状态一直失败：先看状态行里的服务器错误文案，再核对 Endpoint、区域、桶名和密钥；R2 常见原因是桶名或 AccountID 写错。</li>
+  <li>待上传列表里还有文件：等一分钟自动重试，或等它在持续失败半小时后出现手动重试按钮。</li>
+  <li>换手机 / 重装：旧版 App 的签名密钥必须一致才能覆盖安装，备份好签名密钥再换设备。</li>
+</ul>
+
+<div class="note">⚠️ 隐私提醒：录音涉及他人对话时，请先征得对方同意。录音文件只上传到你自己配置的存储桶，不会发给任何第三方。</div>
+
+</body>
+</html>

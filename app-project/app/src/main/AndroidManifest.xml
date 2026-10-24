@@ -29,6 +29,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".HelpActivity"
+            android:exported="false"
+            android:label="使用帮助" />
+
         <service
             android:name=".RecordingService"
             android:exported="false"

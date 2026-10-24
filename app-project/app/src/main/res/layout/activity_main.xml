@@ -15,13 +15,33 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="Muse 录音助手"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Muse 录音助手"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/infoButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/circle_info_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="i"
+                    android:textColor="#007AFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold|italic" />
+            </RelativeLayout>
 
             <personal.muse.recorder.RecordButtonView
                 android:id="@+id/recordButton"
@@ -247,13 +267,6 @@
                     android:layout_marginTop="8dp"
                     android:text="允许后台运行（关闭电池优化）" />
             </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="说明：录音按天存进桶里（&lt;日期&gt;/rec_….m4a），事件标记在 markers/ 里。上传全自动：每段录完自动传、每分钟自动重试、改完配置立刻传；持续失败超过半小时会出现手动重试按钮。48 kbps 下每小时约 21 MB。录到与他人对话时请先征得同意。"
-                android:textSize="13sp" />
         </LinearLayout>
     </ScrollView>
 

@@ -133,6 +133,9 @@ public class MainActivity extends Activity {
         selfNoteButton.setTextColor(Color.WHITE);
         selfNoteButton.setAllCaps(false);
 
+        findViewById(R.id.infoButton).setOnClickListener(v ->
+                startActivity(new android.content.Intent(this, HelpActivity.class)));
+
         settingsToggleButton.setOnClickListener(v -> {
             boolean show = settingsContainer.getVisibility() != View.VISIBLE;
             settingsContainer.setVisibility(show ? View.VISIBLE : View.GONE);
