@@ -1,0 +1,53 @@
+# Automatic APK build on every push to master (and manual runs).
+#
+# The signing keystore is NOT in the repo in plaintext: vault/ holds only
+# AES-256 encrypted copies. This job decrypts them with the VAULT_PASS
+# repository secret (Settings -> Secrets and variables -> Actions), builds
+# with the same build-apk.sh used locally, deletes the plaintext keystore
+# again, and uploads the signed APK as a run artifact.
+name: Build APK
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install platform 34 and build-tools 34.0.0
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Restore signing keystore from vault/
+        env:
+          VAULT_PASS: ${{ secrets.VAULT_PASS }}
+        run: |
+          openssl enc -d -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in vault/muse-recorder.keystore.enc -out muse-recorder.keystore -pass env:VAULT_PASS
+          openssl enc -d -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in vault/keystore-info.txt.enc -out keystore-info.txt -pass env:VAULT_PASS
+
+      - name: Build APK
+        run: ./build-apk.sh
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f muse-recorder.keystore keystore-info.txt
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MuseRecorder
+          path: MuseRecorder.apk

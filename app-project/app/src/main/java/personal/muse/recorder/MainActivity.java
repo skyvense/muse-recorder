@@ -80,6 +80,7 @@ public class MainActivity extends Activity {
     private boolean noteActive = false;
 
     private final Handler ui = new Handler(Looper.getMainLooper());
+    private long lastIdleKickMs = 0;
     private final Runnable refresh = new Runnable() {
         @Override
         public void run() {
@@ -563,6 +564,16 @@ public class MainActivity extends Activity {
         retryUploadButton.setVisibility(
                 (!Uploader.isRunning() && (configJustSaved || failingLong) && pending.length > 0)
                         ? View.VISIBLE : View.GONE);
+
+        // Idle retry: the service only retries while recording, so when the
+        // app is open but idle, a failed pass used to sit frozen until the
+        // next rotation (onResume's kick). Retry once a minute here too,
+        // so the upload status refreshes on its own.
+        if (!recording && !Uploader.isRunning() && pending.length > 0
+                && nowMs - lastIdleKickMs >= 60_000L) {
+            lastIdleKickMs = nowMs;
+            Uploader.kick(this);
+        }
     }
 
     private void toast(String msg) {
