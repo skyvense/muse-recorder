@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Muse Recorder</string>
+    <string name="app_name">Muse Daily Recorder</string>
     <string name="status_tap_record">Нажмите красную кнопку, чтобы начать запись</string>
     <string name="status_tap_record_no_s3">Нажмите красную кнопку, чтобы начать запись (S3 ещё не настроен, записи останутся на телефоне)</string>
     <string name="files_title">Записи</string>

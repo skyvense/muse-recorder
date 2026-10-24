@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Muse Recorder</string>
+    <string name="app_name">Muse Daily Recorder</string>
     <string name="status_tap_record">빨간 버튼을 눌러 녹음을 시작하세요</string>
     <string name="status_tap_record_no_s3">빨간 버튼을 눌러 녹음을 시작하세요(S3가 설정되지 않아 녹음은 기기에 저장됩니다)</string>
     <string name="files_title">녹음 파일</string>

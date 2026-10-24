@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Default strings (English). Other locales live in values-<lang>/. -->
 <resources>
-    <string name="app_name">Muse Recorder</string>
+    <string name="app_name">Muse Daily Recorder</string>
     <string name="status_tap_record">Tap the red button to start recording</string>
     <string name="status_tap_record_no_s3">Tap the red button to start recording (S3 is not configured yet; recordings will stay on this phone)</string>
     <string name="files_title">Recordings</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Muse Recorder</string>
+    <string name="app_name">Muse Daily Recorder</string>
     <string name="status_tap_record">赤いボタンをタップして録音を開始</string>
     <string name="status_tap_record_no_s3">赤いボタンをタップして録音を開始（S3が未設定のため、録音は端末に保存されます）</string>
     <string name="files_title">録音ファイル</string>
