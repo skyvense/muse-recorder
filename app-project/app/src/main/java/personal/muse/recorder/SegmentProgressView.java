@@ -25,6 +25,8 @@ public class SegmentProgressView extends View {
     private long elapsedSec = 0;
     private long totalSec = 0;
     private String unit = "s";
+    /** Optional trailing text, e.g. "(1.5MB)" for the in-progress file row. */
+    private String suffix = "";
 
     public SegmentProgressView(Context ctx) {
         super(ctx);
@@ -53,11 +55,16 @@ public class SegmentProgressView extends View {
     }
 
     public void setProgress(long elapsedSec, long totalSec, String unit) {
+        setProgress(elapsedSec, totalSec, unit, "");
+    }
+
+    public void setProgress(long elapsedSec, long totalSec, String unit, String suffix) {
         if (this.elapsedSec != elapsedSec || this.totalSec != totalSec
-                || !unit.equals(this.unit)) {
+                || !unit.equals(this.unit) || !suffix.equals(this.suffix)) {
             this.elapsedSec = elapsedSec;
             this.totalSec = totalSec;
             this.unit = unit;
+            this.suffix = suffix;
             invalidate();
         }
     }
@@ -73,7 +80,7 @@ public class SegmentProgressView extends View {
 
         float frac = totalSec > 0 ? Math.min(1f, elapsedSec / (float) totalSec) : 0f;
         float fillW = w * frac;
-        String text = elapsedSec + "/" + totalSec + unit;
+        String text = elapsedSec + "/" + totalSec + unit + suffix;
         float x = w / 2f;
         float y = h / 2f - (textDarkPaint.descent() + textDarkPaint.ascent()) / 2f;
         canvas.drawText(text, x, y, textDarkPaint);

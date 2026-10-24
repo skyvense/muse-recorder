@@ -37,6 +37,8 @@
     <string name="status_remaining">%1$d min left · %2$d min recorded</string>
     <string name="card_active">In progress · %1$d min, tap to stop</string>
     <string name="row_recording">🔴 %1$s · %2$s MB · Recording</string>
+    <!-- Label for the in-progress row when its size is shown inside a progress bar instead. -->
+    <string name="row_recording_label">🔴 %1$s · Recording</string>
     <string name="row_note">%1$s note · %2$s MB · Pending upload</string>
     <string name="row_segment">%1$s segment · %2$s MB · Pending upload</string>
     <string name="no_pending_ok">No pending segments ✓</string>

@@ -77,7 +77,6 @@ public class MainActivity extends Activity {
     private RecordButtonView recordButton;
     private WaveformView waveform;
     private TextView statusText, lastEventText, filesTitle, uploadStatusText;
-    private SegmentProgressView segmentProgress;
     private LinearLayout convCard, meetingCard, pendingContainer;
     private TextView convCardTitle, convCardState, meetingCardTitle, meetingCardState;
     private Button selfNoteButton, retryUploadButton, settingsToggleButton;
@@ -124,7 +123,6 @@ public class MainActivity extends Activity {
         recordButton = findViewById(R.id.recordButton);
         waveform = findViewById(R.id.waveform);
         statusText = findViewById(R.id.statusText);
-        segmentProgress = findViewById(R.id.segmentProgress);
         lastEventText = findViewById(R.id.lastEventText);
         filesTitle = findViewById(R.id.filesTitle);
         uploadStatusText = findViewById(R.id.uploadStatusText);
@@ -550,23 +548,16 @@ public class MainActivity extends Activity {
             waveform.stopAnimating();
         }
         if (recording) {
-            // The minutes line becomes a full-width progress bar: elapsed /
-            // segment seconds overlaid on it (e.g. 120/600s, 120/600秒 in zh).
             long now = System.currentTimeMillis();
+            long totalMins = (now - RecordingService.recordingSinceMs) / 60000;
             long segMs = Prefs.segmentMinutes(this) * 60_000L;
             long segElapsed = RecordingService.currentSegmentStartMs > 0
                     ? now - RecordingService.currentSegmentStartMs : 0;
-            statusText.setVisibility(View.GONE);
-            segmentProgress.setVisibility(View.VISIBLE);
-            segmentProgress.setProgress(segElapsed / 1000, segMs / 1000,
-                    getString(R.string.seconds_short));
+            long remainMin = Math.max(0, (long) Math.ceil((segMs - segElapsed) / 60000.0));
+            statusText.setText(getString(R.string.status_remaining, remainMin, totalMins));
         } else if (noteActive) {
-            statusText.setVisibility(View.VISIBLE);
-            segmentProgress.setVisibility(View.GONE);
             statusText.setText(R.string.self_note_recording);
         } else {
-            statusText.setVisibility(View.VISIBLE);
-            segmentProgress.setVisibility(View.GONE);
             statusText.setText(Prefs.s3Configured(this)
                     ? getString(R.string.status_tap_record)
                     : getString(R.string.status_tap_record_no_s3));
@@ -586,11 +577,13 @@ public class MainActivity extends Activity {
         List<Boolean> rowIsRecording = new ArrayList<>();
         SimpleDateFormat hm = new SimpleDateFormat("HH:mm", Locale.US);
         File cur = RecordingService.currentSegmentFile;
+        String recLabel = null;
+        String recMb = null;
         if (recording && cur != null && cur.exists()) {
             String name = cur.getName();
-            String label = name.length() > 15 ? name.substring(4, 14) + " " + hm.format(new Date(cur.lastModified())) : name;
-            rows.add(getString(R.string.row_recording, label,
-                    String.format(Locale.US, "%.1f", cur.length() / 1_000_000.0)));
+            recLabel = name.length() > 15 ? name.substring(4, 14) + " " + hm.format(new Date(cur.lastModified())) : name;
+            recMb = String.format(Locale.US, "%.1f", cur.length() / 1_000_000.0);
+            rows.add(getString(R.string.row_recording, recLabel, recMb));
             rowIsRecording.add(true);
         }
         for (File f : pending) {
@@ -613,6 +606,33 @@ public class MainActivity extends Activity {
         // signature proved to be a staleness trap.
         pendingContainer.removeAllViews();
         for (int i = 0; i < rows.size(); i++) {
+            if (rowIsRecording.get(i) && recLabel != null) {
+                // In-progress row: label + progress bar in place of the
+                // ever-growing size text. The bar overlays elapsed/total
+                // seconds plus the current size, e.g. 256/600秒(1.5MB).
+                float density = getResources().getDisplayMetrics().density;
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                row.setPadding(0, 6, 0, 6);
+                TextView tv = new TextView(this);
+                tv.setText(getString(R.string.row_recording_label, recLabel));
+                tv.setTextSize(14);
+                tv.setTextColor(0xFFFF3B30);
+                row.addView(tv);
+                SegmentProgressView bar = new SegmentProgressView(this);
+                long segMs = Prefs.segmentMinutes(this) * 60_000L;
+                long segElapsed = RecordingService.currentSegmentStartMs > 0
+                        ? System.currentTimeMillis() - RecordingService.currentSegmentStartMs : 0;
+                bar.setProgress(segElapsed / 1000, segMs / 1000,
+                        getString(R.string.seconds_short), "(" + recMb + "MB)");
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        0, (int) (24 * density + 0.5f), 1f);
+                lp.setMarginStart((int) (8 * density + 0.5f));
+                row.addView(bar, lp);
+                pendingContainer.addView(row);
+                continue;
+            }
             TextView tv = new TextView(this);
             tv.setText(rows.get(i));
             tv.setTextSize(14);

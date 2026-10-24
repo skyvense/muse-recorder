@@ -34,6 +34,7 @@
     <string name="status_remaining">剩余 %1$d 分钟 · 已录 %2$d 分钟</string>
     <string name="card_active">进行中 · 已 %1$d 分钟，点一下结束</string>
     <string name="row_recording">🔴 %1$s · %2$s MB · 录音中</string>
+    <string name="row_recording_label">🔴 %1$s · 录音中</string>
     <string name="row_note">%1$s 的自述 · %2$s MB · 待上传</string>
     <string name="row_segment">%1$s 的片段 · %2$s MB · 待上传</string>
     <string name="no_pending_ok">没有待上传片段 ✓</string>
