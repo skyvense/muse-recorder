@@ -12,14 +12,27 @@ import android.view.View;
  * Live waveform fed by the recorder's real microphone amplitude.
  * Bars scroll right-to-left; amplitude is smoothed so speech looks alive
  * without jittering on every sample.
+ *
+ * The tick only samples and redraws while this view is actually on screen:
+ * when the window is hidden (app backgrounded, screen off, another activity
+ * on top) the loop stops outright, and when the view is scrolled off-screen
+ * inside its ScrollView it idles on a slow recheck instead of sampling and
+ * drawing. So a higher visible refresh rate costs nothing during an
+ * all-day recording the user is not watching.
  */
 public class WaveformView extends View {
     private static final int BARS = 42;
+    /** Visible refresh cadence (~25 fps: smooth without hammering the UI thread). */
+    private static final long VISIBLE_INTERVAL_MS = 40;
+    /** Idle recheck cadence while off-screen: no sampling, no drawing. */
+    private static final long HIDDEN_RECHECK_MS = 500;
     private final float[] bars = new float[BARS];
     private int head = 0;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean animating = false;
+    private final android.graphics.Rect visibleRect = new android.graphics.Rect();
+    private boolean wantAnimating = false;
+    private boolean tickScheduled = false;
     private float smoothed = 0f;
 
     /** Optional alternate amplitude source (e.g. a press-and-hold note recorder). */
@@ -28,11 +41,50 @@ public class WaveformView extends View {
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
+            tickScheduled = false;
+            if (!wantAnimating) return;
+            if (getWindowVisibility() != VISIBLE || !isShown()
+                    || !getGlobalVisibleRect(visibleRect)) {
+                // Not on screen: skip the amplitude poll and the redraw,
+                // just peek again later (scrolling back resumes full rate).
+                schedule(HIDDEN_RECHECK_MS);
+                return;
+            }
             pushSample();
             invalidate();
-            if (animating) handler.postDelayed(this, 90);
+            schedule(VISIBLE_INTERVAL_MS);
         }
     };
+
+    private void schedule(long delayMs) {
+        tickScheduled = true;
+        handler.postDelayed(tick, delayMs);
+    }
+
+    private void maybeStartTick() {
+        if (wantAnimating && !tickScheduled) {
+            tickScheduled = true;
+            handler.post(tick);
+        }
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        if (visibility == VISIBLE) {
+            maybeStartTick();
+        } else {
+            handler.removeCallbacks(tick);
+            tickScheduled = false;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        handler.removeCallbacks(tick);
+        tickScheduled = false;
+    }
 
     public WaveformView(Context ctx) {
         super(ctx);
@@ -51,15 +103,16 @@ public class WaveformView extends View {
     }
 
     public void startAnimating() {
-        if (!animating) {
-            animating = true;
-            handler.post(tick);
+        if (!wantAnimating) {
+            wantAnimating = true;
+            maybeStartTick();
         }
     }
 
     public void stopAnimating() {
-        animating = false;
+        wantAnimating = false;
         handler.removeCallbacks(tick);
+        tickScheduled = false;
     }
 
     private void pushSample() {
