@@ -75,8 +75,10 @@ jobs:
           gh release view latest > /dev/null 2>&1 || \
             gh release create latest --title "$VERSION" \
               --notes "自动构建的最新版 Muse 录音助手 APK。签名证书 SHA-256：59e463a3e39d25667057982adf9d338711e0813c6bf75d0d29d81e84fe75d93f（与本地构建同一把签名，可直接覆盖安装）。每次推代码后 CI 会自动更新这个 Release，始终是最新版。"
-          # Drop previous assets so the release holds only the current build
-          for asset_id in $(gh release view latest --json assets --jq '.assets[] | select(.name | startswith("MuseRecorder")) | .id'); do
+          # Drop previous assets so the release holds only the current build.
+          # NOTE: gh release view reports the GraphQL node id, but the REST
+          # delete endpoint needs the numeric id from the asset's apiUrl.
+          for asset_id in $(gh release view latest --json assets --jq '.assets[] | select(.name | startswith("MuseRecorder")) | .apiUrl | split("/") | .[-1]'); do
             gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}"
           done
           gh release edit latest --title "$VERSION"
