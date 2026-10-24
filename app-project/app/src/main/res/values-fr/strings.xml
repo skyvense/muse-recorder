@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Touchez le bouton rouge pour lancer l’enregistrement</string>
+    <string name="status_tap_record_no_s3">Touchez le bouton rouge pour lancer l’enregistrement (S3 n’est pas encore configuré ; les enregistrements resteront sur le téléphone)</string>
+    <string name="files_title">Enregistrements</string>
+    <string name="files_title_pending">Enregistrements (%1$d en attente · %2$s Mo)</string>
+    <string name="retry_upload">Réessayer l’envoi maintenant</string>
+    <string name="settings_button">⚙️ Réglages (S3 et enregistrement)</string>
+    <string name="settings_collapse">Masquer les réglages</string>
+    <string name="settings_s3_title">Réglages du stockage S3 (l’enregistrement part immédiatement après l’enregistrement des réglages)</string>
+    <string name="preset_label">Fournisseur prédéfini (le choix remplit l’adresse et la région ; vous pouvez encore les modifier)</string>
+    <string name="endpoint_label">Endpoint (pour R2 : https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Région (R2 utilise « auto » ; les autres fournisseurs utilisent leur code de région)</string>
+    <string name="bucket_label">Bucket (les buckets Tencent Cloud doivent porter le suffixe -APPID)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (stockée uniquement sur ce téléphone — ne la partagez avec personne)</string>
+    <string name="virtual_style_label">Style hôte virtuel (le bucket devant le domaine ; à cocher pour Alibaba / Tencent / AWS / Qiniu, pas pour R2 / B2)</string>
+    <string name="segment_minutes_label">Durée d’un segment (minutes, 60 par défaut)</string>
+    <string name="wifi_only_label">Envoyer uniquement en Wi‑Fi / sur un réseau non facturé au volume</string>
+    <string name="delete_after_label">Supprimer les segments locaux après un envoi réussi (gagne de la place)</string>
+    <string name="auto_resume_label">Reprendre l’enregistrement automatiquement après un redémarrage du téléphone</string>
+    <string name="save_settings">Enregistrer les réglages</string>
+    <string name="battery_button">Autoriser l’exécution en arrière-plan (désactiver l’optimisation de la batterie)</string>
+    <string name="events_title">Marqueurs d’événements</string>
+    <string name="no_events_yet">Aucun marqueur pour le moment</string>
+    <string name="conv_card">💬 Conversation</string>
+    <string name="meeting_card">👥 Réunion</string>
+    <string name="tap_to_start">Touchez pour démarrer</string>
+    <string name="self_note_button">🎙 Note vocale · Maintenez pour parler, relâchez pour terminer</string>
+    <string name="self_note_active">Note vocale en cours… relâchez pour terminer</string>
+    <string name="self_note_recording">Note vocale en cours… relâchez pour terminer</string>
+    <string name="status_remaining">%1$d min restantes · %2$d min enregistrées</string>
+    <string name="card_active">En cours · %1$d min, touchez pour terminer</string>
+    <string name="row_recording">🔴 %1$s · %2$s Mo · Enregistrement</string>
+    <string name="row_note">Note vocale du %1$s · %2$s Mo · En attente d’envoi</string>
+    <string name="row_segment">Segment du %1$s · %2$s Mo · En attente d’envoi</string>
+    <string name="no_pending_ok">Aucun segment en attente ✓</string>
+    <string name="no_files_yet">Aucun enregistrement pour le moment</string>
+    <string name="events_pending_row">Marqueurs d’événements · En attente de synchronisation</string>
+    <string name="uploading">Envoi %1$d/%2$d : %3$s · %4$d%%</string>
+    <string name="last_upload">Dernier envoi (%1$s) : %2$s</string>
+    <string name="failing_warning">⚠️ Les envois échouent depuis plus de 30 minutes ; vérifiez les réglages et le réseau\n%1$s</string>
+    <string name="toast_stopped">Arrêté</string>
+    <string name="toast_retry_started">Nouvel essai d’envoi…</string>
+    <string name="toast_settings_saved">Réglages enregistrés, envoi en cours</string>
+    <string name="toast_note_start_failed">Impossible de démarrer la note vocale</string>
+    <string name="toast_note_saved">Note vocale enregistrée, elle sera envoyée automatiquement</string>
+    <string name="toast_note_too_short">Trop courte, non enregistrée</string>
+    <string name="toast_mic_permission">Autorisez d’abord le microphone, puis touchez à nouveau le bouton</string>
+    <string name="toast_battery_already">L’exécution en arrière-plan est déjà autorisée</string>
+    <string name="toast_battery_open_failed">Impossible d’ouvrir les réglages de la batterie ; autorisez manuellement cette appli à s’exécuter en arrière-plan dans les réglages système</string>
+    <string name="event_conv_start">Conversation démarrée</string>
+    <string name="event_conv_end">Conversation terminée</string>
+    <string name="event_meeting_start">Réunion démarrée</string>
+    <string name="event_meeting_end">Réunion terminée</string>
+    <string name="event_self_note">Note vocale</string>
+    <string name="last_event">Dernier marqueur : %1$s · %2$s</string>
+    <string name="marked_toast">Marqué : %1$s %2$s</string>
+    <string name="help_title">Aide</string>
+    <string name="record_button_desc">Bouton d’enregistrement</string>
+    <string name="notif_preparing">Préparation de l’enregistrement…</string>
+    <string name="notif_recording">Enregistrement : %1$s</string>
+    <string name="notif_start_failed">Échec du démarrage de l’enregistrement : %1$s</string>
+    <string name="channel_name">État de l’enregistrement</string>
+    <string name="channel_desc">Notification permanente pendant l’enregistrement</string>
+    <string name="notif_stop">Arrêter l’enregistrement</string>
+    <string name="up_style_virtual">Hôte virtuel</string>
+    <string name="up_style_path">Chemin</string>
+    <string name="up_target_info">\nRequête réelle : bucket « %1$s » @ %2$s (style %3$s, région %4$s)</string>
+    <string name="up_err_placeholder">Non envoyé : l’Endpoint contient encore l’espace réservé &lt;AccountID&gt; ; remplacez-le par votre vrai Account ID R2</string>
+    <string name="up_err_not_configured">Non envoyé : les réglages S3 sont incomplets (vérifiez l’Endpoint, le bucket et les deux clés dans Réglages)</string>
+    <string name="up_err_wifi_only">Non envoyé : « Envoi Wi‑Fi uniquement » est activé et le réseau actuel est facturé au volume</string>
+    <string name="up_no_valid_segments">Aucun segment valide en attente (segments vides nettoyés : %1$d)</string>
+    <string name="up_no_pending_files">Aucun fichier en attente d’envoi</string>
+    <string name="up_failed">Échec de l’envoi : %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Enregistrements envoyés, mais la synchronisation des marqueurs a échoué ; nouvel essai plus tard (%1$d segments envoyés)</string>
+    <string name="up_done">Envoi terminé ✓ %1$d segments</string>
+    <string name="up_events_synced">, marqueurs synchronisés</string>
+    <string name="up_stubs_cleaned">, segments vides nettoyés : %1$d</string>
+    <string name="up_events_suffix">(marqueurs d’événements)</string>
+    <string name="language_label">Langue</string>
+
+    <string-array name="language_names">
+        <item>Suivre le système</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · Ouest des États-Unis</item>
+        <item>Backblaze B2 · Est des États-Unis</item>
+        <item>Backblaze B2 · Europe</item>
+        <item>Alibaba Cloud OSS · Hangzhou (compatible S3)</item>
+        <item>Alibaba Cloud OSS · Shanghai (compatible S3)</item>
+        <item>Alibaba Cloud OSS · Pékin (compatible S3)</item>
+        <item>Alibaba Cloud OSS · Shenzhen (compatible S3)</item>
+        <item>Tencent Cloud COS · Guangzhou (compatible S3)</item>
+        <item>Tencent Cloud COS · Shanghai (compatible S3)</item>
+        <item>Tencent Cloud COS · Pékin (compatible S3)</item>
+        <item>AWS S3 · Est des États-Unis</item>
+        <item>AWS S3 · Singapour</item>
+        <item>Qiniu Kodo · Chine de l’Est (compatible S3)</item>
+        <item>Personnalisé</item>
+    </string-array>
+</resources>

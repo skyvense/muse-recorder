@@ -30,6 +30,11 @@ import java.util.Locale;
  * Recording state is exposed via static fields so MainActivity can poll it.
  */
 public class RecordingService extends Service {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
     private static final String TAG = "MuseRecordingService";
     private static final String CHANNEL_ID = "muse_recording";
     private static final int NOTIFICATION_ID = 1001;
@@ -103,7 +108,7 @@ public class RecordingService extends Service {
     }
 
     private void startRecording() {
-        Notification n = buildNotification("正在准备录音…");
+        Notification n = buildNotification(getString(R.string.notif_preparing));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             startForeground(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
         } else {
@@ -164,12 +169,12 @@ public class RecordingService extends Service {
             recorder.prepare();
             recorder.start();
             activeRecorder = recorder;
-            updateNotification("正在录音：" + name);
+            updateNotification(getString(R.string.notif_recording, name));
             long segMs = Prefs.segmentMinutes(this) * 60_000L;
             handler.postDelayed(rotateTask, segMs);
         } catch (IOException | RuntimeException e) {
             Log.e(TAG, "Failed to start segment", e);
-            updateNotification("录音启动失败：" + e.getMessage());
+            updateNotification(getString(R.string.notif_start_failed, e.getMessage()));
         }
     }
 
@@ -237,8 +242,8 @@ public class RecordingService extends Service {
     private void createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel ch = new NotificationChannel(
-                    CHANNEL_ID, "录音状态", NotificationManager.IMPORTANCE_LOW);
-            ch.setDescription("录音进行中的常驻通知");
+                    CHANNEL_ID, getString(R.string.channel_name), NotificationManager.IMPORTANCE_LOW);
+            ch.setDescription(getString(R.string.channel_desc));
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm != null) nm.createNotificationChannel(ch);
         }
@@ -252,12 +257,12 @@ public class RecordingService extends Service {
         PendingIntent stopPi = PendingIntent.getService(
                 this, 1, stop, PendingIntent.FLAG_IMMUTABLE);
         return new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle("Muse 录音助手")
+                .setContentTitle(getString(R.string.app_name))
                 .setContentText(text)
                 .setSmallIcon(R.drawable.ic_mic)
                 .setContentIntent(pi)
                 .setOngoing(true)
-                .addAction(0, "停止录音", stopPi)
+                .addAction(0, getString(R.string.notif_stop), stopPi)
                 .build();
     }
 

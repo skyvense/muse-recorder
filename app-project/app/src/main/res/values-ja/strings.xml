@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">赤いボタンをタップして録音を開始</string>
+    <string name="status_tap_record_no_s3">赤いボタンをタップして録音を開始（S3が未設定のため、録音は端末に保存されます）</string>
+    <string name="files_title">録音ファイル</string>
+    <string name="files_title_pending">録音ファイル（未アップロード %1$d 件 · %2$s MB）</string>
+    <string name="retry_upload">今すぐ再アップロード</string>
+    <string name="settings_button">⚙️ 設定（S3と録音）</string>
+    <string name="settings_collapse">設定を閉じる</string>
+    <string name="settings_s3_title">S3ストレージ設定（保存するとすぐにアップロードします）</string>
+    <string name="preset_label">クラウドプリセット（選択するとアドレスとリージョンが自動入力されます。手動で修正も可能です）</string>
+    <string name="endpoint_label">Endpoint（R2の場合：https://&lt;AccountID&gt;.r2.cloudflarestorage.com）</string>
+    <string name="region_label">リージョン（R2は「auto」、他社はリージョンコード）</string>
+    <string name="bucket_label">バケット（Tencent Cloudはバケット名に -APPID サフィックスが必要です）</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key（端末にのみ保存されます。他人と共有しないでください）</string>
+    <string name="virtual_style_label">バーチャルホスト形式（バケット名をホスト名の前に置く形式。Alibaba / Tencent / AWS / Qiniuはオン、R2 / B2はオフ）</string>
+    <string name="segment_minutes_label">1セグメントの長さ（分、既定は60）</string>
+    <string name="wifi_only_label">Wi‑Fi / 従量制でないネットワークでのみアップロード</string>
+    <string name="delete_after_label">アップロード成功後に端末のセグメントを削除（容量節約）</string>
+    <string name="auto_resume_label">端末の再起動後に録音を自動再開</string>
+    <string name="save_settings">設定を保存</string>
+    <string name="battery_button">バックグラウンド実行を許可（電池の最適化を無効化）</string>
+    <string name="events_title">イベントマーカー</string>
+    <string name="no_events_yet">マーカーはまだありません</string>
+    <string name="conv_card">💬 会話</string>
+    <string name="meeting_card">👥 会議</string>
+    <string name="tap_to_start">タップして開始</string>
+    <string name="self_note_button">🎙 ボイスメモ · 長押しで話す、離すと終了</string>
+    <string name="self_note_active">ボイスメモ録音中…離すと終了</string>
+    <string name="self_note_recording">ボイスメモ録音中…離すと終了</string>
+    <string name="status_remaining">残り %1$d 分 · 録音済み %2$d 分</string>
+    <string name="card_active">進行中 · %1$d 分経過、タップで終了</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · 録音中</string>
+    <string name="row_note">%1$s のボイスメモ · %2$s MB · 未アップロード</string>
+    <string name="row_segment">%1$s のセグメント · %2$s MB · 未アップロード</string>
+    <string name="no_pending_ok">未アップロードのセグメントはありません ✓</string>
+    <string name="no_files_yet">録音ファイルはまだありません</string>
+    <string name="events_pending_row">イベントマーカー · 同期待ち</string>
+    <string name="uploading">アップロード中 %1$d/%2$d：%3$s · %4$d%%</string>
+    <string name="last_upload">前回のアップロード（%1$s）：%2$s</string>
+    <string name="failing_warning">⚠️ アップロードの失敗が30分以上続いています。設定とネットワークを確認してください\n%1$s</string>
+    <string name="toast_stopped">停止しました</string>
+    <string name="toast_retry_started">アップロードを再試行しています…</string>
+    <string name="toast_settings_saved">設定を保存し、アップロードを開始します</string>
+    <string name="toast_note_start_failed">ボイスメモの開始に失敗しました</string>
+    <string name="toast_note_saved">ボイスメモを保存しました。自動でアップロードされます</string>
+    <string name="toast_note_too_short">短すぎるため保存しませんでした</string>
+    <string name="toast_mic_permission">まずマイクの許可を与えてから、もう一度ボタンをタップしてください</string>
+    <string name="toast_battery_already">バックグラウンド実行はすでに許可されています</string>
+    <string name="toast_battery_open_failed">電池設定を開けませんでした。システム設定でこのアプリのバックグラウンド実行を手動で許可してください</string>
+    <string name="event_conv_start">会話開始</string>
+    <string name="event_conv_end">会話終了</string>
+    <string name="event_meeting_start">会議開始</string>
+    <string name="event_meeting_end">会議終了</string>
+    <string name="event_self_note">ボイスメモ</string>
+    <string name="last_event">最新のマーカー：%1$s · %2$s</string>
+    <string name="marked_toast">マークしました：%1$s %2$s</string>
+    <string name="help_title">ヘルプ</string>
+    <string name="record_button_desc">録音ボタン</string>
+    <string name="notif_preparing">録音を準備しています…</string>
+    <string name="notif_recording">録音中：%1$s</string>
+    <string name="notif_start_failed">録音の開始に失敗しました：%1$s</string>
+    <string name="channel_name">録音ステータス</string>
+    <string name="channel_desc">録音中の常駐通知</string>
+    <string name="notif_stop">録音を停止</string>
+    <string name="up_style_virtual">バーチャルホスト</string>
+    <string name="up_style_path">パス</string>
+    <string name="up_target_info">\n実際のリクエスト：バケット「%1$s」@ %2$s（%3$s形式、リージョン %4$s）</string>
+    <string name="up_err_placeholder">未アップロード：Endpointに &lt;AccountID&gt; のプレースホルダーが残っています。実際のR2 Account IDに置き換えてください</string>
+    <string name="up_err_not_configured">未アップロード：S3設定が不完全です（設定でEndpoint、バケット、2つのキーを確認してください）</string>
+    <string name="up_err_wifi_only">未アップロード：「Wi‑Fiのみアップロード」がオンで、現在のネットワークは従量制です</string>
+    <string name="up_no_valid_segments">有効な未アップロードセグメントがありません（空のセグメント %1$d 件を整理しました）</string>
+    <string name="up_no_pending_files">アップロード待ちのファイルはありません</string>
+    <string name="up_failed">アップロード失敗：%1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">録音はアップロード済みですが、イベントマーカーの同期に失敗しました。次回再試行します（%1$d 件成功）</string>
+    <string name="up_done">アップロード完了 ✓ %1$d 件成功</string>
+    <string name="up_events_synced">、イベントマーカーを同期済み</string>
+    <string name="up_stubs_cleaned">、空のセグメント %1$d 件を整理</string>
+    <string name="up_events_suffix">（イベントマーカー）</string>
+    <string name="language_label">言語</string>
+
+    <string-array name="language_names">
+        <item>システム設定に従う</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · 米国西部</item>
+        <item>Backblaze B2 · 米国東部</item>
+        <item>Backblaze B2 · ヨーロッパ</item>
+        <item>Alibaba Cloud OSS · 杭州（S3互換）</item>
+        <item>Alibaba Cloud OSS · 上海（S3互換）</item>
+        <item>Alibaba Cloud OSS · 北京（S3互換）</item>
+        <item>Alibaba Cloud OSS · 深圳（S3互換）</item>
+        <item>Tencent Cloud COS · 広州（S3互換）</item>
+        <item>Tencent Cloud COS · 上海（S3互換）</item>
+        <item>Tencent Cloud COS · 北京（S3互換）</item>
+        <item>AWS S3 · 米国東部</item>
+        <item>AWS S3 · シンガポール</item>
+        <item>Qiniu Kodo · 華東（S3互換）</item>
+        <item>カスタム</item>
+    </string-array>
+</resources>

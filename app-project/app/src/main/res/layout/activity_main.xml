@@ -23,7 +23,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Muse 录音助手"
+                    android:text="@string/app_name"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text="点红色按钮开始录音"
+                android:text="@string/status_tap_record"
                 android:textSize="15sp" />
 
             <TextView
@@ -73,7 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
-                android:text="录音文件"
+                android:text="@string/files_title"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -107,7 +107,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="立即重试上传"
+                android:text="@string/retry_upload"
                 android:visibility="gone" />
 
             <Button
@@ -115,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="⚙️ 配置（S3 与录音设置）" />
+                android:text="@string/settings_button" />
 
             <LinearLayout
                 android:id="@+id/settingsContainer"
@@ -128,14 +128,27 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="S3 存储设置（改完点保存，会自动上传一次）"
+                    android:text="@string/language_label"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/languageSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/settings_s3_title"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="云厂商预置（选中自动填好地址和区域，可再手改）" />
+                    android:text="@string/preset_label" />
 
                 <Spinner
                     android:id="@+id/presetSpinner"
@@ -147,7 +160,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Endpoint（如 R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com）" />
+                    android:text="@string/endpoint_label" />
 
                 <EditText
                     android:id="@+id/endpointInput"
@@ -161,7 +174,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="区域 Region（R2 填 auto，B2/阿里/腾讯填对应的区域代号）" />
+                    android:text="@string/region_label" />
 
                 <EditText
                     android:id="@+id/regionInput"
@@ -175,7 +188,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="存储桶 Bucket（腾讯云的桶名要带 -APPID 后缀）" />
+                    android:text="@string/bucket_label" />
 
                 <EditText
                     android:id="@+id/bucketInput"
@@ -189,7 +202,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Access Key ID" />
+                    android:text="@string/access_key_label" />
 
                 <EditText
                     android:id="@+id/accessKeyInput"
@@ -203,7 +216,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Secret Access Key（只存在本机，不要发给任何人）" />
+                    android:text="@string/secret_label" />
 
                 <EditText
                     android:id="@+id/secretKeyInput"
@@ -218,13 +231,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="虚拟主机风格（桶名放域名前；阿里/腾讯/AWS/七牛勾选，R2/B2 不勾）" />
+                    android:text="@string/virtual_style_label" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="每段时长（分钟，默认 60）" />
+                    android:text="@string/segment_minutes_label" />
 
                 <EditText
                     android:id="@+id/segmentMinutesInput"
@@ -239,33 +252,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="仅在 Wi‑Fi / 不计流量网络时上传" />
+                    android:text="@string/wifi_only_label" />
 
                 <CheckBox
                     android:id="@+id/deleteAfterUploadCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="上传成功后删除本地片段（省空间）" />
+                    android:text="@string/delete_after_label" />
 
                 <CheckBox
                     android:id="@+id/autoResumeCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="手机重启后自动恢复录音" />
+                    android:text="@string/auto_resume_label" />
 
                 <Button
                     android:id="@+id/saveSettingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="保存设置" />
+                    android:text="@string/save_settings" />
 
                 <Button
                     android:id="@+id/batteryButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="允许后台运行（关闭电池优化）" />
+                    android:text="@string/battery_button" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
@@ -290,7 +303,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="事件标记"
+                android:text="@string/events_title"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
@@ -300,7 +313,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:text="还没有标记"
+                android:text="@string/no_events_yet"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -324,7 +337,7 @@
                     android:id="@+id/convCardTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="💬 对话"
+                    android:text="@string/conv_card"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -333,7 +346,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="点一下开始"
+                    android:text="@string/tap_to_start"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -355,7 +368,7 @@
                     android:id="@+id/meetingCardTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="👥 会议"
+                    android:text="@string/meeting_card"
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
@@ -364,7 +377,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
-                    android:text="点一下开始"
+                    android:text="@string/tap_to_start"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
@@ -374,6 +387,6 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="10dp"
-            android:text="🎙 自述录音 · 按住说话，松开结束" />
+            android:text="@string/self_note_button" />
     </LinearLayout>
 </LinearLayout>

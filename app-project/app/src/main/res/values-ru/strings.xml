@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Нажмите красную кнопку, чтобы начать запись</string>
+    <string name="status_tap_record_no_s3">Нажмите красную кнопку, чтобы начать запись (S3 ещё не настроен, записи останутся на телефоне)</string>
+    <string name="files_title">Записи</string>
+    <string name="files_title_pending">Записи (ожидают отправки: %1$d · %2$s МБ)</string>
+    <string name="retry_upload">Повторить отправку</string>
+    <string name="settings_button">⚙️ Настройки (S3 и запись)</string>
+    <string name="settings_collapse">Свернуть настройки</string>
+    <string name="settings_s3_title">Настройки хранилища S3 (после сохранения сразу будет выполнена отправка)</string>
+    <string name="preset_label">Предустановка провайдера (при выборе адрес и регион подставятся автоматически, их можно изменить)</string>
+    <string name="endpoint_label">Endpoint (для R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Регион (для R2 — «auto», для остальных — код региона)</string>
+    <string name="bucket_label">Бакет (для Tencent Cloud к имени бакета нужен суффикс -APPID)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (хранится только на этом телефоне — никому не сообщайте)</string>
+    <string name="virtual_style_label">Стиль виртуального хоста (бакет перед доменом; включите для Alibaba / Tencent / AWS / Qiniu, для R2 / B2 — нет)</string>
+    <string name="segment_minutes_label">Длина сегмента (минут, по умолчанию 60)</string>
+    <string name="wifi_only_label">Отправлять только по Wi‑Fi / безлимитным сетям</string>
+    <string name="delete_after_label">Удалять локальные сегменты после успешной отправки (экономит место)</string>
+    <string name="auto_resume_label">Автоматически продолжать запись после перезагрузки телефона</string>
+    <string name="save_settings">Сохранить настройки</string>
+    <string name="battery_button">Разрешить работу в фоне (отключить оптимизацию батареи)</string>
+    <string name="events_title">Метки событий</string>
+    <string name="no_events_yet">Меток пока нет</string>
+    <string name="conv_card">💬 Разговор</string>
+    <string name="meeting_card">👥 Встреча</string>
+    <string name="tap_to_start">Нажмите, чтобы начать</string>
+    <string name="self_note_button">🎙 Голосовая заметка · Удерживайте, чтобы говорить, отпустите, чтобы закончить</string>
+    <string name="self_note_active">Идёт голосовая заметка… отпустите, чтобы закончить</string>
+    <string name="self_note_recording">Идёт голосовая заметка… отпустите, чтобы закончить</string>
+    <string name="status_remaining">Осталось %1$d мин · Записано %2$d мин</string>
+    <string name="card_active">Идёт · %1$d мин, нажмите, чтобы завершить</string>
+    <string name="row_recording">🔴 %1$s · %2$s МБ · Идёт запись</string>
+    <string name="row_note">Голосовая заметка %1$s · %2$s МБ · Ожидает отправки</string>
+    <string name="row_segment">Сегмент %1$s · %2$s МБ · Ожидает отправки</string>
+    <string name="no_pending_ok">Нет сегментов, ожидающих отправки ✓</string>
+    <string name="no_files_yet">Записей пока нет</string>
+    <string name="events_pending_row">Метки событий · Ожидают синхронизации</string>
+    <string name="uploading">Отправка %1$d/%2$d: %3$s · %4$d%%</string>
+    <string name="last_upload">Последняя отправка (%1$s): %2$s</string>
+    <string name="failing_warning">⚠️ Отправка не удаётся уже больше 30 минут — проверьте настройки и сеть\n%1$s</string>
+    <string name="toast_stopped">Остановлено</string>
+    <string name="toast_retry_started">Повторная отправка…</string>
+    <string name="toast_settings_saved">Настройки сохранены, идёт отправка</string>
+    <string name="toast_note_start_failed">Не удалось начать голосовую заметку</string>
+    <string name="toast_note_saved">Голосовая заметка сохранена, отправится автоматически</string>
+    <string name="toast_note_too_short">Слишком короткая, не сохранена</string>
+    <string name="toast_mic_permission">Сначала разрешите доступ к микрофону, затем нажмите кнопку ещё раз</string>
+    <string name="toast_battery_already">Работа в фоне уже разрешена</string>
+    <string name="toast_battery_open_failed">Не удалось открыть настройки батареи — разрешите этому приложению работу в фоне вручную в системных настройках</string>
+    <string name="event_conv_start">Разговор начат</string>
+    <string name="event_conv_end">Разговор завершён</string>
+    <string name="event_meeting_start">Встреча начата</string>
+    <string name="event_meeting_end">Встреча завершена</string>
+    <string name="event_self_note">Голосовая заметка</string>
+    <string name="last_event">Последняя метка: %1$s · %2$s</string>
+    <string name="marked_toast">Отмечено: %1$s %2$s</string>
+    <string name="help_title">Справка</string>
+    <string name="record_button_desc">Кнопка записи</string>
+    <string name="notif_preparing">Подготовка записи…</string>
+    <string name="notif_recording">Идёт запись: %1$s</string>
+    <string name="notif_start_failed">Не удалось начать запись: %1$s</string>
+    <string name="channel_name">Статус записи</string>
+    <string name="channel_desc">Постоянное уведомление во время записи</string>
+    <string name="notif_stop">Остановить запись</string>
+    <string name="up_style_virtual">Виртуальный хост</string>
+    <string name="up_style_path">Путь</string>
+    <string name="up_target_info">\nФактический запрос: бакет «%1$s» @ %2$s (стиль %3$s, регион %4$s)</string>
+    <string name="up_err_placeholder">Не отправлено: в Endpoint всё ещё стоит заполнитель &lt;AccountID&gt; — замените его на ваш настоящий R2 Account ID</string>
+    <string name="up_err_not_configured">Не отправлено: настройки S3 неполные (проверьте Endpoint, бакет и оба ключа в Настройках)</string>
+    <string name="up_err_wifi_only">Не отправлено: включён режим «Только Wi‑Fi», а текущая сеть — лимитная</string>
+    <string name="up_no_valid_segments">Нет действительных сегментов для отправки (пустых сегментов очищено: %1$d)</string>
+    <string name="up_no_pending_files">Нет файлов для отправки</string>
+    <string name="up_failed">Ошибка отправки: %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Записи отправлены, но метки не синхронизировались — попробуем позже (отправлено сегментов: %1$d)</string>
+    <string name="up_done">Отправка завершена ✓ Сегментов: %1$d</string>
+    <string name="up_events_synced">, метки синхронизированы</string>
+    <string name="up_stubs_cleaned">, пустых сегментов очищено: %1$d</string>
+    <string name="up_events_suffix">(метки событий)</string>
+    <string name="language_label">Язык</string>
+
+    <string-array name="language_names">
+        <item>Как в системе</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · Запад США</item>
+        <item>Backblaze B2 · Восток США</item>
+        <item>Backblaze B2 · Европа</item>
+        <item>Alibaba Cloud OSS · Ханчжоу (совместим с S3)</item>
+        <item>Alibaba Cloud OSS · Шанхай (совместим с S3)</item>
+        <item>Alibaba Cloud OSS · Пекин (совместим с S3)</item>
+        <item>Alibaba Cloud OSS · Шэньчжэнь (совместим с S3)</item>
+        <item>Tencent Cloud COS · Гуанчжоу (совместим с S3)</item>
+        <item>Tencent Cloud COS · Шанхай (совместим с S3)</item>
+        <item>Tencent Cloud COS · Пекин (совместим с S3)</item>
+        <item>AWS S3 · Восток США</item>
+        <item>AWS S3 · Сингапур</item>
+        <item>Qiniu Kodo · Восточный Китай (совместим с S3)</item>
+        <item>Свой вариант</item>
+    </string-array>
+</resources>

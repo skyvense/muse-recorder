@@ -32,7 +32,7 @@ public class RecordButtonView extends View {
         ringPaint.setColor(0xFFC7C7CC);
         fillPaint.setStyle(Paint.Style.FILL);
         fillPaint.setColor(0xFFFF3B30);
-        setContentDescription("录音按钮");
+        setContentDescription(getContext().getString(R.string.record_button_desc));
     }
 
     public void setRecording(boolean recording) {

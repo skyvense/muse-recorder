@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse 录音助手</string>
+    <string name="status_tap_record">点红色按钮开始录音</string>
+    <string name="status_tap_record_no_s3">点红色按钮开始录音（S3 还没配置好，录音会先存手机里）</string>
+    <string name="files_title">录音文件</string>
+    <string name="files_title_pending">录音文件（待上传 %1$d 段 · %2$s MB）</string>
+    <string name="retry_upload">立即重试上传</string>
+    <string name="settings_button">⚙️ 配置（S3 与录音设置）</string>
+    <string name="settings_collapse">收起配置</string>
+    <string name="settings_s3_title">S3 存储设置（改完点保存，会自动上传一次）</string>
+    <string name="preset_label">云厂商预置（选中自动填好地址和区域，可再手改）</string>
+    <string name="endpoint_label">Endpoint（如 R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com）</string>
+    <string name="region_label">区域 Region（R2 填 auto，B2/阿里/腾讯填对应的区域代号）</string>
+    <string name="bucket_label">存储桶 Bucket（腾讯云的桶名要带 -APPID 后缀）</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key（只存在本机，不要发给任何人）</string>
+    <string name="virtual_style_label">虚拟主机风格（桶名放域名前；阿里/腾讯/AWS/七牛勾选，R2/B2 不勾）</string>
+    <string name="segment_minutes_label">每段时长（分钟，默认 60）</string>
+    <string name="wifi_only_label">仅在 Wi‑Fi / 不计流量网络时上传</string>
+    <string name="delete_after_label">上传成功后删除本地片段（省空间）</string>
+    <string name="auto_resume_label">手机重启后自动恢复录音</string>
+    <string name="save_settings">保存设置</string>
+    <string name="battery_button">允许后台运行（关闭电池优化）</string>
+    <string name="events_title">事件标记</string>
+    <string name="no_events_yet">还没有标记</string>
+    <string name="conv_card">💬 对话</string>
+    <string name="meeting_card">👥 会议</string>
+    <string name="tap_to_start">点一下开始</string>
+    <string name="self_note_button">🎙 自述录音 · 按住说话，松开结束</string>
+    <string name="self_note_active">正在自述…松开结束</string>
+    <string name="self_note_recording">自述录音中…松开按钮结束</string>
+    <string name="status_remaining">剩余 %1$d 分钟 · 已录 %2$d 分钟</string>
+    <string name="card_active">进行中 · 已 %1$d 分钟，点一下结束</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · 录音中</string>
+    <string name="row_note">%1$s 的自述 · %2$s MB · 待上传</string>
+    <string name="row_segment">%1$s 的片段 · %2$s MB · 待上传</string>
+    <string name="no_pending_ok">没有待上传片段 ✓</string>
+    <string name="no_files_yet">还没有录音文件</string>
+    <string name="events_pending_row">事件标记 · 待同步</string>
+    <string name="uploading">正在上传 第 %1$d/%2$d 个：%3$s · %4$d%%</string>
+    <string name="last_upload">上次上传（%1$s）：%2$s</string>
+    <string name="failing_warning">⚠️ 上传已持续失败超过 30 分钟，请检查配置与网络\n%1$s</string>
+    <string name="toast_stopped">已停止</string>
+    <string name="toast_retry_started">开始重试上传…</string>
+    <string name="toast_settings_saved">设置已保存，开始上传</string>
+    <string name="toast_note_start_failed">自述录音启动失败</string>
+    <string name="toast_note_saved">自述已保存，会自动上传</string>
+    <string name="toast_note_too_short">太短了，没保存</string>
+    <string name="toast_mic_permission">请先允许麦克风权限，然后再点一次按钮</string>
+    <string name="toast_battery_already">已经允许后台运行了</string>
+    <string name="toast_battery_open_failed">打不开电池设置，请到系统设置里手动允许本应用后台运行</string>
+    <string name="event_conv_start">对话开始</string>
+    <string name="event_conv_end">对话结束</string>
+    <string name="event_meeting_start">会议开始</string>
+    <string name="event_meeting_end">会议结束</string>
+    <string name="event_self_note">自述录音</string>
+    <string name="last_event">最近标记：%1$s · %2$s</string>
+    <string name="marked_toast">已标记：%1$s %2$s</string>
+    <string name="help_title">使用帮助</string>
+    <string name="record_button_desc">录音按钮</string>
+    <string name="notif_preparing">正在准备录音…</string>
+    <string name="notif_recording">正在录音：%1$s</string>
+    <string name="notif_start_failed">录音启动失败：%1$s</string>
+    <string name="channel_name">录音状态</string>
+    <string name="channel_desc">录音进行中的常驻通知</string>
+    <string name="notif_stop">停止录音</string>
+    <string name="up_style_virtual">虚拟主机</string>
+    <string name="up_style_path">路径</string>
+    <string name="up_target_info">\n实际请求：桶「%1$s」@ %2$s（%3$s风格，区域 %4$s）</string>
+    <string name="up_err_placeholder">未上传：Endpoint 里还是占位符 &lt;AccountID&gt;，请换成你的真实 R2 Account ID</string>
+    <string name="up_err_not_configured">未上传：S3 设置还没填完整（点“配置”检查 Endpoint、桶名和两个 Key）</string>
+    <string name="up_err_wifi_only">未上传：已开启“仅 Wi‑Fi 上传”，当前网络是计流量网络</string>
+    <string name="up_no_valid_segments">没有有效的待上传片段（已清理 %1$d 个空片段）</string>
+    <string name="up_no_pending_files">没有待上传的文件</string>
+    <string name="up_failed">上传失败：%1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">录音已传完，但事件标记同步失败，下次会重试（已成功 %1$d 段）</string>
+    <string name="up_done">上传完成 ✓ 成功 %1$d 段</string>
+    <string name="up_events_synced">，事件标记已同步</string>
+    <string name="up_stubs_cleaned">，已清理空片段 %1$d 个</string>
+    <string name="up_events_suffix">（事件标记）</string>
+    <string name="language_label">语言</string>
+
+    <string-array name="language_names">
+        <item>跟随系统</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · 美西</item>
+        <item>Backblaze B2 · 美东</item>
+        <item>Backblaze B2 · 欧洲</item>
+        <item>阿里云 OSS · 杭州（S3兼容）</item>
+        <item>阿里云 OSS · 上海（S3兼容）</item>
+        <item>阿里云 OSS · 北京（S3兼容）</item>
+        <item>阿里云 OSS · 深圳（S3兼容）</item>
+        <item>腾讯云 COS · 广州（S3兼容）</item>
+        <item>腾讯云 COS · 上海（S3兼容）</item>
+        <item>腾讯云 COS · 北京（S3兼容）</item>
+        <item>AWS S3 · 美东</item>
+        <item>AWS S3 · 新加坡</item>
+        <item>七牛云 Kodo · 华东（S3兼容）</item>
+        <item>自定义</item>
+    </string-array>
+</resources>

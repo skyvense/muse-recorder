@@ -21,6 +21,7 @@ public final class Prefs {
     public static final String KEY_SB_BUCKET = "supabase_bucket";
     public static final String KEY_SB_KEY = "supabase_key";
     // v1.2: S3-only mode
+    public static final String KEY_APP_LANGUAGE = "app_language"; // "system" or a language code
     public static final String KEY_S3_PRESET = "s3_preset";
     public static final String KEY_S3_ENDPOINT = "s3_endpoint";
     public static final String KEY_S3_REGION = "s3_region";

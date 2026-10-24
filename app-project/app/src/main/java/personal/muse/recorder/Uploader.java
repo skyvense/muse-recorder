@@ -71,15 +71,16 @@ public final class Uploader {
     }
 
     /** Shows exactly what was addressed, so config mismatches are obvious. */
-    private static String targetInfo(S3.Config cfg) {
+    private static String targetInfo(Context ctx, S3.Config cfg) {
         String host;
         try {
             host = new java.net.URL(cfg.endpoint).getHost();
         } catch (Exception e) {
             host = cfg.endpoint;
         }
-        return "\n实际请求：桶「" + cfg.bucket + "」@ " + host
-                + "（" + (cfg.virtualStyle ? "虚拟主机" : "路径") + "风格，区域 " + cfg.region + "）";
+        return ctx.getString(R.string.up_target_info, cfg.bucket, host,
+                ctx.getString(cfg.virtualStyle ? R.string.up_style_virtual : R.string.up_style_path),
+                cfg.region);
     }
 
     private static String trimErr(Exception e) {
@@ -169,20 +170,23 @@ public final class Uploader {
     }
 
     private static void uploadPending(Context app) {
+        // Build user-facing texts in the app language, not the device's:
+        // this runs on the service's application context.
+        Context ctx = LocaleHelper.wrap(app);
         String rawEndpoint = Prefs.get(app).getString(Prefs.KEY_S3_ENDPOINT, "");
         if (rawEndpoint != null && (rawEndpoint.contains("<") || rawEndpoint.contains(">"))) {
-            setResult("未上传：Endpoint 里还是占位符 <你的AccountID>，请换成你的真实 R2 Account ID");
+            setResult(ctx.getString(R.string.up_err_placeholder));
             return;
         }
         if (!Prefs.s3Configured(app)) {
             Log.i(TAG, "S3 not fully configured; keeping files on device.");
-            setResult("未上传：S3 设置还没填完整（点“配置”检查 Endpoint、桶名和两个 Key）");
+            setResult(ctx.getString(R.string.up_err_not_configured));
             markFail();
             return;
         }
         if (Prefs.wifiOnly(app) && !isUnmetered(app)) {
             Log.i(TAG, "Wi-Fi-only is on and network is metered; postponing upload.");
-            setResult("未上传：已开启“仅 Wi‑Fi 上传”，当前网络是计流量网络");
+            setResult(ctx.getString(R.string.up_err_wifi_only));
             markFail();
             return;
         }
@@ -208,8 +212,8 @@ public final class Uploader {
         runDone = 0;
         if (pending.length == 0 && !hadEvents) {
             setResult(stubCount > 0
-                    ? "没有有效的待上传片段（已清理 " + stubCount + " 个空片段）"
-                    : "没有待上传的文件");
+                    ? ctx.getString(R.string.up_no_valid_segments, stubCount)
+                    : ctx.getString(R.string.up_no_pending_files));
             markOk();
             return;
         }
@@ -230,18 +234,19 @@ public final class Uploader {
                 Log.i(TAG, "Uploaded " + name);
             } catch (Exception e) {
                 Log.w(TAG, "Upload failed, will retry later: " + name + " (" + e.getMessage() + ")");
-                setResult("上传失败：" + name + " — " + trimErr(e) + targetInfo(cfg));
+                setResult(ctx.getString(R.string.up_failed, name, trimErr(e), targetInfo(ctx, cfg)));
                 markFail();
                 return; // stop this pass; a dead endpoint should not be hammered
             }
         }
         if (!syncEvents(app, cfg) && hadEvents) {
-            setResult("录音已传完，但事件标记同步失败，下次会重试（已成功 " + runDone + " 段）");
+            setResult(ctx.getString(R.string.up_events_sync_failed, runDone));
             markFail();
             return;
         }
-        setResult("上传完成 ✓ 成功 " + runDone + " 段" + (hadEvents ? "，事件标记已同步" : "")
-                + (stubCount > 0 ? "，已清理空片段 " + stubCount + " 个" : ""));
+        setResult(ctx.getString(R.string.up_done, runDone)
+                + (hadEvents ? ctx.getString(R.string.up_events_synced) : "")
+                + (stubCount > 0 ? ctx.getString(R.string.up_stubs_cleaned, stubCount) : ""));
         markOk();
     }
 
@@ -255,13 +260,14 @@ public final class Uploader {
 
     /** Returns false when an events file failed to sync. */
     private static boolean syncEvents(Context app, S3.Config cfg) {
+        Context ctx = LocaleHelper.wrap(app);
         File dir = Prefs.markersDir(app);
         File[] files = dir.listFiles((d, name) -> name.startsWith("events-") && name.endsWith(".jsonl"));
         if (files == null) return true;
         Arrays.sort(files);
         for (File f : files) {
             if (f.length() == syncedLength(f)) continue;
-            currentFileName = f.getName() + "（事件标记）";
+            currentFileName = f.getName() + ctx.getString(R.string.up_events_suffix);
             currentSent = 0;
             currentTotal = f.length();
             try {

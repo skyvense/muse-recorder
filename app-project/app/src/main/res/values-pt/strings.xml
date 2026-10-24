@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Toque no botão vermelho para começar a gravar</string>
+    <string name="status_tap_record_no_s3">Toque no botão vermelho para começar a gravar (o S3 ainda não está configurado; as gravações ficarão no telefone)</string>
+    <string name="files_title">Gravações</string>
+    <string name="files_title_pending">Gravações (%1$d pendentes · %2$s MB)</string>
+    <string name="retry_upload">Tentar envio agora</string>
+    <string name="settings_button">⚙️ Ajustes (S3 e gravação)</string>
+    <string name="settings_collapse">Ocultar ajustes</string>
+    <string name="settings_s3_title">Ajustes de armazenamento S3 (ao salvar, envia uma vez na hora)</string>
+    <string name="preset_label">Provedor predefinido (ao escolher, preenche o endereço e a região; você ainda pode editá-los)</string>
+    <string name="endpoint_label">Endpoint (para R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Região (a R2 usa “auto”; outros provedores usam seu código de região)</string>
+    <string name="bucket_label">Bucket (os buckets da Tencent Cloud precisam do sufixo -APPID)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (guardada só neste telefone — não compartilhe com ninguém)</string>
+    <string name="virtual_style_label">Estilo host virtual (o bucket vai antes do domínio; marque para Alibaba / Tencent / AWS / Qiniu, não para R2 / B2)</string>
+    <string name="segment_minutes_label">Duração do segmento (minutos, padrão 60)</string>
+    <string name="wifi_only_label">Enviar só no Wi‑Fi / redes sem franquia de dados</string>
+    <string name="delete_after_label">Excluir segmentos locais após um envio bem-sucedido (economiza espaço)</string>
+    <string name="auto_resume_label">Retomar a gravação automaticamente após reiniciar o telefone</string>
+    <string name="save_settings">Salvar ajustes</string>
+    <string name="battery_button">Permitir execução em segundo plano (desativar otimização de bateria)</string>
+    <string name="events_title">Marcadores de eventos</string>
+    <string name="no_events_yet">Ainda não há marcadores</string>
+    <string name="conv_card">💬 Conversa</string>
+    <string name="meeting_card">👥 Reunião</string>
+    <string name="tap_to_start">Toque para começar</string>
+    <string name="self_note_button">🎙 Nota de voz · Segure para falar, solte para terminar</string>
+    <string name="self_note_active">Gravando nota de voz… solte para terminar</string>
+    <string name="self_note_recording">Gravando nota de voz… solte para terminar</string>
+    <string name="status_remaining">Faltam %1$d min · Gravados %2$d min</string>
+    <string name="card_active">Em andamento · %1$d min, toque para terminar</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · Gravando</string>
+    <string name="row_note">Nota de voz de %1$s · %2$s MB · Envio pendente</string>
+    <string name="row_segment">Segmento de %1$s · %2$s MB · Envio pendente</string>
+    <string name="no_pending_ok">Nenhum segmento pendente ✓</string>
+    <string name="no_files_yet">Ainda não há gravações</string>
+    <string name="events_pending_row">Marcadores de eventos · Sincronização pendente</string>
+    <string name="uploading">Enviando %1$d/%2$d: %3$s · %4$d%%</string>
+    <string name="last_upload">Último envio (%1$s): %2$s</string>
+    <string name="failing_warning">⚠️ Os envios estão falhando há mais de 30 minutos; verifique os ajustes e a rede\n%1$s</string>
+    <string name="toast_stopped">Parado</string>
+    <string name="toast_retry_started">Tentando envio novamente…</string>
+    <string name="toast_settings_saved">Ajustes salvos, enviando agora</string>
+    <string name="toast_note_start_failed">Não foi possível iniciar a nota de voz</string>
+    <string name="toast_note_saved">Nota de voz salva, será enviada automaticamente</string>
+    <string name="toast_note_too_short">Curta demais, não foi salva</string>
+    <string name="toast_mic_permission">Primeiro permita o microfone e depois toque no botão novamente</string>
+    <string name="toast_battery_already">A execução em segundo plano já está permitida</string>
+    <string name="toast_battery_open_failed">Não foi possível abrir os ajustes de bateria; permita manualmente que este app rode em segundo plano nos ajustes do sistema</string>
+    <string name="event_conv_start">Conversa iniciada</string>
+    <string name="event_conv_end">Conversa terminada</string>
+    <string name="event_meeting_start">Reunião iniciada</string>
+    <string name="event_meeting_end">Reunião terminada</string>
+    <string name="event_self_note">Nota de voz</string>
+    <string name="last_event">Último marcador: %1$s · %2$s</string>
+    <string name="marked_toast">Marcado: %1$s %2$s</string>
+    <string name="help_title">Ajuda</string>
+    <string name="record_button_desc">Botão de gravação</string>
+    <string name="notif_preparing">Preparando gravação…</string>
+    <string name="notif_recording">Gravando: %1$s</string>
+    <string name="notif_start_failed">Falha ao iniciar a gravação: %1$s</string>
+    <string name="channel_name">Status da gravação</string>
+    <string name="channel_desc">Notificação permanente durante a gravação</string>
+    <string name="notif_stop">Parar gravação</string>
+    <string name="up_style_virtual">Host virtual</string>
+    <string name="up_style_path">Caminho</string>
+    <string name="up_target_info">\nRequisição real: bucket “%1$s” @ %2$s (estilo %3$s, região %4$s)</string>
+    <string name="up_err_placeholder">Não enviado: o Endpoint ainda contém o marcador &lt;AccountID&gt;; substitua pelo seu Account ID real da R2</string>
+    <string name="up_err_not_configured">Não enviado: os ajustes do S3 estão incompletos (verifique Endpoint, bucket e as duas chaves em Ajustes)</string>
+    <string name="up_err_wifi_only">Não enviado: “Enviar só no Wi‑Fi” está ativado e a rede atual tem franquia de dados</string>
+    <string name="up_no_valid_segments">Nenhum segmento pendente válido (segmentos vazios limpos: %1$d)</string>
+    <string name="up_no_pending_files">Nenhum arquivo pendente de envio</string>
+    <string name="up_failed">Falha no envio: %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Gravações enviadas, mas os marcadores não sincronizaram; nova tentativa depois (%1$d segmentos enviados)</string>
+    <string name="up_done">Envio concluído ✓ %1$d segmentos</string>
+    <string name="up_events_synced">, marcadores sincronizados</string>
+    <string name="up_stubs_cleaned">, segmentos vazios limpos: %1$d</string>
+    <string name="up_events_suffix">(marcadores de eventos)</string>
+    <string name="language_label">Idioma</string>
+
+    <string-array name="language_names">
+        <item>Seguir o sistema</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · Oeste dos EUA</item>
+        <item>Backblaze B2 · Leste dos EUA</item>
+        <item>Backblaze B2 · Europa</item>
+        <item>Alibaba Cloud OSS · Hangzhou (compatível com S3)</item>
+        <item>Alibaba Cloud OSS · Xangai (compatível com S3)</item>
+        <item>Alibaba Cloud OSS · Pequim (compatível com S3)</item>
+        <item>Alibaba Cloud OSS · Shenzhen (compatível com S3)</item>
+        <item>Tencent Cloud COS · Guangzhou (compatível com S3)</item>
+        <item>Tencent Cloud COS · Xangai (compatível com S3)</item>
+        <item>Tencent Cloud COS · Pequim (compatível com S3)</item>
+        <item>AWS S3 · Leste dos EUA</item>
+        <item>AWS S3 · Singapura</item>
+        <item>Qiniu Kodo · Leste da China (compatível com S3)</item>
+        <item>Personalizado</item>
+    </string-array>
+</resources>

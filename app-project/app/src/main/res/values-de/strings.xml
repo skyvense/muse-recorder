@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Tippe auf den roten Knopf, um die Aufnahme zu starten</string>
+    <string name="status_tap_record_no_s3">Tippe auf den roten Knopf, um die Aufnahme zu starten (S3 ist noch nicht eingerichtet; Aufnahmen bleiben auf dem Telefon)</string>
+    <string name="files_title">Aufnahmen</string>
+    <string name="files_title_pending">Aufnahmen (%1$d ausstehend · %2$s MB)</string>
+    <string name="retry_upload">Jetzt erneut hochladen</string>
+    <string name="settings_button">⚙️ Einstellungen (S3 &amp; Aufnahme)</string>
+    <string name="settings_collapse">Einstellungen ausblenden</string>
+    <string name="settings_s3_title">S3-Speichereinstellungen (beim Speichern wird sofort einmal hochgeladen)</string>
+    <string name="preset_label">Cloud-Voreinstellung (füllt Adresse und Region automatisch aus; du kannst sie danach noch ändern)</string>
+    <string name="endpoint_label">Endpoint (für R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Region (R2 nutzt „auto“, andere Anbieter ihren Regionscode)</string>
+    <string name="bucket_label">Bucket (Tencent-Cloud-Buckets brauchen das Suffix -APPID)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (nur auf diesem Telefon gespeichert – mit niemandem teilen)</string>
+    <string name="virtual_style_label">Virtual-Host-Stil (Bucket vor dem Domainnamen; für Alibaba / Tencent / AWS / Qiniu anhaken, für R2 / B2 nicht)</string>
+    <string name="segment_minutes_label">Segmentlänge (Minuten, Standard 60)</string>
+    <string name="wifi_only_label">Nur über WLAN / nicht volumenbasierte Netze hochladen</string>
+    <string name="delete_after_label">Lokale Segmente nach erfolgreichem Upload löschen (spart Platz)</string>
+    <string name="auto_resume_label">Aufnahme nach einem Neustart des Telefons automatisch fortsetzen</string>
+    <string name="save_settings">Einstellungen speichern</string>
+    <string name="battery_button">Ausführung im Hintergrund erlauben (Akkuoptimierung deaktivieren)</string>
+    <string name="events_title">Ereignismarkierungen</string>
+    <string name="no_events_yet">Noch keine Markierungen</string>
+    <string name="conv_card">💬 Gespräch</string>
+    <string name="meeting_card">👥 Besprechung</string>
+    <string name="tap_to_start">Tippen zum Starten</string>
+    <string name="self_note_button">🎙 Sprachnotiz · Halten zum Sprechen, loslassen zum Beenden</string>
+    <string name="self_note_active">Sprachnotiz läuft… loslassen zum Beenden</string>
+    <string name="self_note_recording">Sprachnotiz läuft… loslassen zum Beenden</string>
+    <string name="status_remaining">Noch %1$d Min · %2$d Min aufgenommen</string>
+    <string name="card_active">Läuft · %1$d Min, tippen zum Beenden</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · Aufnahme läuft</string>
+    <string name="row_note">Sprachnotiz vom %1$s · %2$s MB · Ausstehend</string>
+    <string name="row_segment">Segment vom %1$s · %2$s MB · Ausstehend</string>
+    <string name="no_pending_ok">Keine ausstehenden Segmente ✓</string>
+    <string name="no_files_yet">Noch keine Aufnahmen</string>
+    <string name="events_pending_row">Ereignismarkierungen · Sync ausstehend</string>
+    <string name="uploading">Hochladen %1$d/%2$d: %3$s · %4$d%%</string>
+    <string name="last_upload">Letzter Upload (%1$s): %2$s</string>
+    <string name="failing_warning">⚠️ Uploads schlagen seit über 30 Minuten fehl – bitte Einstellungen und Netz prüfen\n%1$s</string>
+    <string name="toast_stopped">Gestoppt</string>
+    <string name="toast_retry_started">Upload wird wiederholt…</string>
+    <string name="toast_settings_saved">Einstellungen gespeichert, Upload läuft</string>
+    <string name="toast_note_start_failed">Sprachnotiz konnte nicht gestartet werden</string>
+    <string name="toast_note_saved">Sprachnotiz gespeichert, wird automatisch hochgeladen</string>
+    <string name="toast_note_too_short">Zu kurz, nicht gespeichert</string>
+    <string name="toast_mic_permission">Bitte erst die Mikrofonberechtigung erlauben und dann erneut tippen</string>
+    <string name="toast_battery_already">Ausführung im Hintergrund ist bereits erlaubt</string>
+    <string name="toast_battery_open_failed">Akkueinstellungen konnten nicht geöffnet werden – bitte in den Systemeinstellungen manuell erlauben, dass diese App im Hintergrund läuft</string>
+    <string name="event_conv_start">Gespräch gestartet</string>
+    <string name="event_conv_end">Gespräch beendet</string>
+    <string name="event_meeting_start">Besprechung gestartet</string>
+    <string name="event_meeting_end">Besprechung beendet</string>
+    <string name="event_self_note">Sprachnotiz</string>
+    <string name="last_event">Letzte Markierung: %1$s · %2$s</string>
+    <string name="marked_toast">Markiert: %1$s %2$s</string>
+    <string name="help_title">Hilfe</string>
+    <string name="record_button_desc">Aufnahmeknopf</string>
+    <string name="notif_preparing">Aufnahme wird vorbereitet…</string>
+    <string name="notif_recording">Aufnahme: %1$s</string>
+    <string name="notif_start_failed">Aufnahme konnte nicht gestartet werden: %1$s</string>
+    <string name="channel_name">Aufnahmestatus</string>
+    <string name="channel_desc">Dauerbenachrichtigung während der Aufnahme</string>
+    <string name="notif_stop">Aufnahme stoppen</string>
+    <string name="up_style_virtual">Virtual-Host</string>
+    <string name="up_style_path">Pfad</string>
+    <string name="up_target_info">\nTatsächliche Anfrage: Bucket „%1$s“ @ %2$s (Stil %3$s, Region %4$s)</string>
+    <string name="up_err_placeholder">Nicht hochgeladen: Im Endpoint steht noch der Platzhalter &lt;AccountID&gt; – bitte durch deine echte R2-Account-ID ersetzen</string>
+    <string name="up_err_not_configured">Nicht hochgeladen: S3-Einstellungen unvollständig (bitte Endpoint, Bucket und beide Keys in den Einstellungen prüfen)</string>
+    <string name="up_err_wifi_only">Nicht hochgeladen: „Nur WLAN-Upload“ ist an und das aktuelle Netz ist volumenbasiert</string>
+    <string name="up_no_valid_segments">Keine gültigen ausstehenden Segmente (leere Segmente bereinigt: %1$d)</string>
+    <string name="up_no_pending_files">Keine Dateien zum Hochladen</string>
+    <string name="up_failed">Upload fehlgeschlagen: %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Aufnahmen hochgeladen, aber Markierungen konnten nicht synchronisiert werden – später erneut versucht (%1$d Segmente geschafft)</string>
+    <string name="up_done">Upload abgeschlossen ✓ %1$d Segmente</string>
+    <string name="up_events_synced">, Markierungen synchronisiert</string>
+    <string name="up_stubs_cleaned">, leere Segmente bereinigt: %1$d</string>
+    <string name="up_events_suffix">(Ereignismarkierungen)</string>
+    <string name="language_label">Sprache</string>
+
+    <string-array name="language_names">
+        <item>Systemsprache verwenden</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · US-West</item>
+        <item>Backblaze B2 · US-Ost</item>
+        <item>Backblaze B2 · Europa</item>
+        <item>Alibaba Cloud OSS · Hangzhou (S3-kompatibel)</item>
+        <item>Alibaba Cloud OSS · Shanghai (S3-kompatibel)</item>
+        <item>Alibaba Cloud OSS · Peking (S3-kompatibel)</item>
+        <item>Alibaba Cloud OSS · Shenzhen (S3-kompatibel)</item>
+        <item>Tencent Cloud COS · Guangzhou (S3-kompatibel)</item>
+        <item>Tencent Cloud COS · Shanghai (S3-kompatibel)</item>
+        <item>Tencent Cloud COS · Peking (S3-kompatibel)</item>
+        <item>AWS S3 · US-Ost</item>
+        <item>AWS S3 · Singapur</item>
+        <item>Qiniu Kodo · Ostchina (S3-kompatibel)</item>
+        <item>Benutzerdefiniert</item>
+    </string-array>
+</resources>

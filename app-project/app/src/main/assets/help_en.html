@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse Recorder · Help</title>
+<style>
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+         margin: 0; padding: 20px 18px 40px; color: #1c1c1e; line-height: 1.7; font-size: 15px; }
+  h1 { font-size: 22px; margin: 4px 0 16px; }
+  h2 { font-size: 17px; margin: 26px 0 6px; padding-top: 14px; border-top: 1px solid #e5e5ea; }
+  h2:first-of-type { border-top: none; padding-top: 0; }
+  p, li { margin: 6px 0; }
+  ul { padding-left: 20px; }
+  code { background: #f2f2f7; padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  .note { background: #fff8e1; border-left: 4px solid #f5a623; padding: 10px 12px;
+          border-radius: 6px; margin: 14px 0; }
+</style>
+</head>
+<body>
+<h1>🎙 Muse Recorder · Help</h1>
+
+<h2>Recording</h2>
+<ul>
+  <li>Tap the big red round button to start recording; while recording it becomes a red square — tap again to stop.</li>
+  <li>Recordings are split into segments (60 minutes by default). The status line shows “X min left · Y min recorded”.</li>
+  <li>Recording runs in a foreground service, so switching apps or locking the screen never stops it; a persistent notification shows while recording.</li>
+  <li>With “Auto-resume after restart” on, recording resumes automatically after the phone reboots.</li>
+</ul>
+
+<h2>Upload (fully automatic)</h2>
+<ul>
+  <li>Each finished segment uploads immediately; failures retry every minute; saving settings triggers an upload right away.</li>
+  <li>A manual “Retry upload now” button only appears after a settings change without a successful upload, or after 30+ minutes of continuous failure.</li>
+  <li>Files land in your bucket by day: <code>&lt;date&gt;/rec_….m4a</code>; event markers go to <code>markers/events-&lt;date&gt;.jsonl</code>; voice notes are filed by date the same way.</li>
+  <li>At 48 kbps the quality is plenty for transcription: about 21 MB per hour, ~0.5 GB per day.</li>
+</ul>
+
+<h2>Event markers (bottom bar)</h2>
+<ul>
+  <li>💬 <b>Conversation</b> / 👥 <b>Meeting</b>: tap once to start (the card changes color and shows elapsed minutes), tap again to stop. Markers are written to the day’s marker file and used to structure the transcription summary.</li>
+  <li>🎙 <b>Voice note</b>: hold to talk, release to stop. While recording it only writes a start/end marker pair; when idle, holding records a standalone voice-note clip that uploads like any other segment.</li>
+</ul>
+
+<h2>Settings (⚙️ button)</h2>
+<ul>
+  <li>Pick a cloud preset first (Cloudflare R2 by default) — it fills in the endpoint and region, which you can still edit by hand.</li>
+  <li>Endpoint: for R2 use <code>https://&lt;AccountID&gt;.r2.cloudflarestorage.com</code> (the https:// prefix is added automatically if you omit it).</li>
+  <li>Region: R2 uses <code>auto</code>; other providers use their region code.</li>
+  <li>Bucket: Tencent Cloud bucket names need the <code>-APPID</code> suffix.</li>
+  <li>Virtual-host style: check it for providers that put the bucket in the hostname (Alibaba / Tencent / AWS / Qiniu); leave it off for R2 / B2.</li>
+  <li>Access Key / Secret live only on this phone — never share them. A wrong secret shows up as the server’s error in the upload status line.</li>
+  <li>Segment length defaults to 60 minutes; “Wi‑Fi only upload” is for metered connections; “Delete local segments after upload” saves phone storage.</li>
+  <li>If notifications or background recording get killed by the system, use “Allow background running” to whitelist the app in battery settings.</li>
+  <li>Language: at the top of Settings you can pick a language or follow the system language; the app restarts its UI in the new language immediately.</li>
+</ul>
+
+<h2>Common issues</h2>
+<ul>
+  <li>Uploads keep failing: read the server error in the status line first, then double-check endpoint, region, bucket and keys. With R2 the usual cause is a wrong bucket name or Account ID.</li>
+  <li>Files still pending: they retry automatically every minute; after 30 minutes of continuous failure a manual retry button appears.</li>
+  <li>Switching phones / reinstalling: the new APK must be signed with the same keystore to install over the old version — keep your signing key backed up before moving devices.</li>
+</ul>
+
+<div class="note">⚠️ Privacy: when a recording includes other people’s conversation, get their consent first. Recordings only go to the storage bucket you configured — never to any third party.</div>
+
+</body>
+</html>

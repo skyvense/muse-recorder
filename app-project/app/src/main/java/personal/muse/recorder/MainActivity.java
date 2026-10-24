@@ -2,6 +2,7 @@ package personal.muse.recorder;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -41,23 +42,34 @@ import java.util.Locale;
 public class MainActivity extends Activity {
     private static final int REQ_PERMS = 42;
 
-    // Presets: name, endpoint, region, virtualStyle
+    // Presets: endpoint, region, virtualStyle. Display names live in the
+    // preset_names string-array so they follow the app language.
     private static final String[][] PRESETS = {
-        {"Cloudflare R2", "https://<你的AccountID>.r2.cloudflarestorage.com", "auto", "path"},
-        {"Backblaze B2 · 美西", "https://s3.us-west-004.backblazeb2.com", "us-west-004", "path"},
-        {"Backblaze B2 · 美东", "https://s3.us-east-005.backblazeb2.com", "us-east-005", "path"},
-        {"Backblaze B2 · 欧洲", "https://s3.eu-central-003.backblazeb2.com", "eu-central-003", "path"},
-        {"阿里云 OSS · 杭州（S3兼容）", "https://oss-cn-hangzhou.aliyuncs.com", "cn-hangzhou", "virtual"},
-        {"阿里云 OSS · 上海（S3兼容）", "https://oss-cn-shanghai.aliyuncs.com", "cn-shanghai", "virtual"},
-        {"阿里云 OSS · 北京（S3兼容）", "https://oss-cn-beijing.aliyuncs.com", "cn-beijing", "virtual"},
-        {"阿里云 OSS · 深圳（S3兼容）", "https://oss-cn-shenzhen.aliyuncs.com", "cn-shenzhen", "virtual"},
-        {"腾讯云 COS · 广州（S3兼容）", "https://cos.ap-guangzhou.myqcloud.com", "ap-guangzhou", "virtual"},
-        {"腾讯云 COS · 上海（S3兼容）", "https://cos.ap-shanghai.myqcloud.com", "ap-shanghai", "virtual"},
-        {"腾讯云 COS · 北京（S3兼容）", "https://cos.ap-beijing.myqcloud.com", "ap-beijing", "virtual"},
-        {"AWS S3 · 美东", "https://s3.us-east-1.amazonaws.com", "us-east-1", "virtual"},
-        {"AWS S3 · 新加坡", "https://s3.ap-southeast-1.amazonaws.com", "ap-southeast-1", "virtual"},
-        {"七牛云 Kodo · 华东（S3兼容）", "https://s3.cn-east-1.qiniucs.com", "cn-east-1", "virtual"},
-        {"自定义", "", "", "path"},
+        {"https://<AccountID>.r2.cloudflarestorage.com", "auto", "path"},
+        {"https://s3.us-west-004.backblazeb2.com", "us-west-004", "path"},
+        {"https://s3.us-east-005.backblazeb2.com", "us-east-005", "path"},
+        {"https://s3.eu-central-003.backblazeb2.com", "eu-central-003", "path"},
+        {"https://oss-cn-hangzhou.aliyuncs.com", "cn-hangzhou", "virtual"},
+        {"https://oss-cn-shanghai.aliyuncs.com", "cn-shanghai", "virtual"},
+        {"https://oss-cn-beijing.aliyuncs.com", "cn-beijing", "virtual"},
+        {"https://oss-cn-shenzhen.aliyuncs.com", "cn-shenzhen", "virtual"},
+        {"https://cos.ap-guangzhou.myqcloud.com", "ap-guangzhou", "virtual"},
+        {"https://cos.ap-shanghai.myqcloud.com", "ap-shanghai", "virtual"},
+        {"https://cos.ap-beijing.myqcloud.com", "ap-beijing", "virtual"},
+        {"https://s3.us-east-1.amazonaws.com", "us-east-1", "virtual"},
+        {"https://s3.ap-southeast-1.amazonaws.com", "ap-southeast-1", "virtual"},
+        {"https://s3.cn-east-1.qiniucs.com", "cn-east-1", "virtual"},
+        {"", "", "path"},
+    };
+
+    // Pre-localization preset names (always Chinese): old installs saved the
+    // preset by display name, so loadSettings still recognizes those values.
+    private static final String[] LEGACY_PRESET_NAMES = {
+        "Cloudflare R2", "Backblaze B2 · 美西", "Backblaze B2 · 美东", "Backblaze B2 · 欧洲",
+        "阿里云 OSS · 杭州（S3兼容）", "阿里云 OSS · 上海（S3兼容）", "阿里云 OSS · 北京（S3兼容）",
+        "阿里云 OSS · 深圳（S3兼容）", "腾讯云 COS · 广州（S3兼容）", "腾讯云 COS · 上海（S3兼容）",
+        "腾讯云 COS · 北京（S3兼容）", "AWS S3 · 美东", "AWS S3 · 新加坡",
+        "七牛云 Kodo · 华东（S3兼容）", "自定义",
     };
 
     private RecordButtonView recordButton;
@@ -68,11 +80,12 @@ public class MainActivity extends Activity {
     private Button selfNoteButton, retryUploadButton, settingsToggleButton;
     private ProgressBar uploadProgress;
     private View settingsContainer;
-    private Spinner presetSpinner;
+    private Spinner presetSpinner, languageSpinner;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
     private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
     private boolean spinnerTouched = false;
+    private boolean languageTouched = false;
     private long lastConfigSavedAt = 0;
     // Press-and-hold self-note state
     private MediaRecorder noteRecorder = null;
@@ -96,6 +109,11 @@ public class MainActivity extends Activity {
     };
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -117,6 +135,7 @@ public class MainActivity extends Activity {
         pendingContainer = findViewById(R.id.pendingContainer);
         uploadProgress = findViewById(R.id.uploadProgress);
         presetSpinner = findViewById(R.id.presetSpinner);
+        languageSpinner = findViewById(R.id.languageSpinner);
         endpointInput = findViewById(R.id.endpointInput);
         regionInput = findViewById(R.id.regionInput);
         bucketInput = findViewById(R.id.bucketInput);
@@ -140,13 +159,14 @@ public class MainActivity extends Activity {
         settingsToggleButton.setOnClickListener(v -> {
             boolean show = settingsContainer.getVisibility() != View.VISIBLE;
             settingsContainer.setVisibility(show ? View.VISIBLE : View.GONE);
-            settingsToggleButton.setText(show ? "收起配置" : "⚙️ 配置（S3 与录音设置）");
+            settingsToggleButton.setText(show
+                    ? getString(R.string.settings_collapse)
+                    : getString(R.string.settings_button));
         });
 
-        List<String> presetNames = new ArrayList<>();
-        for (String[] p : PRESETS) presetNames.add(p[0]);
         ArrayAdapter<String> presetAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, presetNames);
+                android.R.layout.simple_spinner_dropdown_item,
+                getResources().getStringArray(R.array.preset_names));
         presetSpinner.setAdapter(presetAdapter);
         presetSpinner.setOnTouchListener((v, e) -> {
             spinnerTouched = true;
@@ -156,11 +176,34 @@ public class MainActivity extends Activity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 if (!spinnerTouched) return;
+                if (pos == PRESETS.length - 1) return; // Custom: leave the fields alone
                 String[] p = PRESETS[pos];
-                if ("自定义".equals(p[0])) return;
-                endpointInput.setText(p[1]);
-                regionInput.setText(p[2]);
-                virtualStyleCheck.setChecked("virtual".equals(p[3]));
+                endpointInput.setText(p[0]);
+                regionInput.setText(p[1]);
+                virtualStyleCheck.setChecked("virtual".equals(p[2]));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        ArrayAdapter<String> languageAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                getResources().getStringArray(R.array.language_names));
+        languageSpinner.setAdapter(languageAdapter);
+        languageSpinner.setOnTouchListener((v, e) -> {
+            languageTouched = true;
+            return false;
+        });
+        languageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!languageTouched) return;
+                String code = getResources().getStringArray(R.array.language_codes)[pos];
+                if (code.equals(LocaleHelper.savedCode(MainActivity.this))) return;
+                Prefs.get(MainActivity.this).edit()
+                        .putString(Prefs.KEY_APP_LANGUAGE, code).apply();
+                recreate();
             }
 
             @Override
@@ -172,7 +215,7 @@ public class MainActivity extends Activity {
         recordButton.setOnClickListener(v -> {
             if (RecordingService.isRecording) {
                 RecordingService.stop(this);
-                toast("已停止");
+                toast(getString(R.string.toast_stopped));
             } else if (ensurePermissions()) {
                 RecordingService.start(this);
             }
@@ -200,7 +243,7 @@ public class MainActivity extends Activity {
 
         retryUploadButton.setOnClickListener(v -> {
             Uploader.kick(this);
-            toast("开始重试上传…");
+            toast(getString(R.string.toast_retry_started));
             refreshStatus();
         });
 
@@ -208,7 +251,7 @@ public class MainActivity extends Activity {
             saveSettings();
             lastConfigSavedAt = System.currentTimeMillis();
             Uploader.kick(this);
-            toast("设置已保存，开始上传");
+            toast(getString(R.string.toast_settings_saved));
             refreshStatus();
         });
 
@@ -226,9 +269,9 @@ public class MainActivity extends Activity {
         p.edit().putBoolean(activeKey, now)
                 .putLong(sinceKey, now ? System.currentTimeMillis() : 0)
                 .apply();
-        onEventMarked(conversation
-                ? (now ? "对话开始" : "对话结束")
-                : (now ? "会议开始" : "会议结束"));
+        onEventMarked(getString(conversation
+                ? (now ? R.string.event_conv_start : R.string.event_conv_end)
+                : (now ? R.string.event_meeting_start : R.string.event_meeting_end)));
         refreshStatus();
     }
 
@@ -268,14 +311,14 @@ public class MainActivity extends Activity {
             } catch (IOException | RuntimeException e) {
                 noteRecorder = null;
                 noteFile = null;
-                toast("自述录音启动失败");
+                toast(getString(R.string.toast_note_start_failed));
                 return;
             }
         }
         noteActive = true;
         vibrateTick();
         selfNoteButton.setBackground(roundedBg(0xFFFF3B30, 12));
-        selfNoteButton.setText("正在自述…松开结束");
+        selfNoteButton.setText(R.string.self_note_active);
         refreshStatus();
     }
 
@@ -283,7 +326,7 @@ public class MainActivity extends Activity {
         if (!noteActive) return;
         noteActive = false;
         EventLog.add(this, EventLog.SELF_NOTE_END);
-        onEventMarked("自述录音");
+        onEventMarked(getString(R.string.event_self_note));
         if (noteRecorder != null) {
             boolean kept = false;
             try {
@@ -298,18 +341,18 @@ public class MainActivity extends Activity {
             Uploader.extraExcludedFile = null;
             if (noteFile != null) {
                 if (kept) {
-                    toast("自述已保存，会自动上传");
+                    toast(getString(R.string.toast_note_saved));
                     Uploader.kick(this);
                 } else {
                     //noinspection ResultOfMethodCallIgnored
                     noteFile.delete();
-                    toast("太短了，没保存");
+                    toast(getString(R.string.toast_note_too_short));
                 }
                 noteFile = null;
             }
         }
         selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
-        selfNoteButton.setText("🎙 自述录音 · 按住说话，松开结束");
+        selfNoteButton.setText(R.string.self_note_button);
         refreshStatus();
     }
 
@@ -329,8 +372,8 @@ public class MainActivity extends Activity {
 
     private void onEventMarked(String label) {
         String time = new SimpleDateFormat("HH:mm:ss", Locale.US).format(new Date());
-        lastEventText.setText("最近标记：" + label + " · " + time);
-        toast("已标记：" + label + " " + time);
+        lastEventText.setText(getString(R.string.last_event, label, time));
+        toast(getString(R.string.marked_toast, label, time));
         Uploader.kick(this);
     }
 
@@ -351,15 +394,32 @@ public class MainActivity extends Activity {
 
     private void loadSettings() {
         SharedPreferences p = Prefs.get(this);
-        String savedPreset = p.getString(Prefs.KEY_S3_PRESET, PRESETS[0][0]);
-        for (int i = 0; i < PRESETS.length; i++) {
-            if (PRESETS[i][0].equals(savedPreset)) {
-                presetSpinner.setSelection(i);
+        // Language: position of the saved code in language_codes.
+        String savedLang = LocaleHelper.savedCode(this);
+        String[] codes = getResources().getStringArray(R.array.language_codes);
+        for (int i = 0; i < codes.length; i++) {
+            if (codes[i].equals(savedLang)) {
+                languageSpinner.setSelection(i);
                 break;
             }
         }
-        endpointInput.setText(p.getString(Prefs.KEY_S3_ENDPOINT, PRESETS[0][1]));
-        regionInput.setText(p.getString(Prefs.KEY_S3_REGION, PRESETS[0][2]));
+        // Preset: new installs save the index; old installs saved the
+        // display name (always Chinese), so both are recognized.
+        String savedPreset = p.getString(Prefs.KEY_S3_PRESET, "0");
+        try {
+            int idx = Integer.parseInt(savedPreset);
+            if (idx >= 0 && idx < PRESETS.length) presetSpinner.setSelection(idx);
+        } catch (NumberFormatException e) {
+            String[] names = getResources().getStringArray(R.array.preset_names);
+            for (int i = 0; i < PRESETS.length; i++) {
+                if (names[i].equals(savedPreset) || LEGACY_PRESET_NAMES[i].equals(savedPreset)) {
+                    presetSpinner.setSelection(i);
+                    break;
+                }
+            }
+        }
+        endpointInput.setText(p.getString(Prefs.KEY_S3_ENDPOINT, PRESETS[0][0]));
+        regionInput.setText(p.getString(Prefs.KEY_S3_REGION, PRESETS[0][1]));
         bucketInput.setText(p.getString(Prefs.KEY_S3_BUCKET, ""));
         accessKeyInput.setText(p.getString(Prefs.KEY_S3_ACCESS_KEY, ""));
         secretKeyInput.setText(p.getString(Prefs.KEY_S3_SECRET_KEY, ""));
@@ -376,7 +436,7 @@ public class MainActivity extends Activity {
             minutes = Integer.parseInt(segmentMinutesInput.getText().toString().trim());
         } catch (NumberFormatException ignored) {}
         Prefs.get(this).edit()
-                .putString(Prefs.KEY_S3_PRESET, String.valueOf(presetSpinner.getSelectedItem()))
+                .putString(Prefs.KEY_S3_PRESET, String.valueOf(presetSpinner.getSelectedItemPosition()))
                 .putString(Prefs.KEY_S3_ENDPOINT, endpointInput.getText().toString().trim())
                 .putString(Prefs.KEY_S3_REGION, regionInput.getText().toString().trim())
                 .putString(Prefs.KEY_S3_BUCKET, bucketInput.getText().toString().trim())
@@ -404,7 +464,7 @@ public class MainActivity extends Activity {
         } else {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_PERMS);
         }
-        toast("请先允许麦克风权限，然后再点一次按钮");
+        toast(getString(R.string.toast_mic_permission));
         return false;
     }
 
@@ -412,14 +472,14 @@ public class MainActivity extends Activity {
         try {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             if (pm != null && pm.isIgnoringBatteryOptimizations(getPackageName())) {
-                toast("已经允许后台运行了");
+                toast(getString(R.string.toast_battery_already));
                 return;
             }
             Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
                     Uri.parse("package:" + getPackageName()));
             startActivity(i);
         } catch (Exception e) {
-            toast("打不开电池设置，请到系统设置里手动允许本应用后台运行");
+            toast(getString(R.string.toast_battery_open_failed));
         }
     }
 
@@ -444,14 +504,14 @@ public class MainActivity extends Activity {
             card.setBackground(roundedBg(activeColor, 14));
             title.setTextColor(Color.WHITE);
             long mins = sinceMs > 0 ? (System.currentTimeMillis() - sinceMs) / 60000 : 0;
-            state.setText("进行中 · 已 " + mins + " 分钟，点一下结束");
+            state.setText(getString(R.string.card_active, mins));
             state.setTextColor(0xE6FFFFFF);
         } else {
             GradientDrawable d = roundedBg(Color.WHITE, 14);
             d.setStroke((int) (1 * getResources().getDisplayMetrics().density), 0xFFE0E0E6);
             card.setBackground(d);
             title.setTextColor(0xFF1C1C1E);
-            state.setText("点一下开始");
+            state.setText(R.string.tap_to_start);
             state.setTextColor(0xFF8E8E93);
         }
     }
@@ -477,13 +537,13 @@ public class MainActivity extends Activity {
             long segElapsed = RecordingService.currentSegmentStartMs > 0
                     ? now - RecordingService.currentSegmentStartMs : 0;
             long remainMin = Math.max(0, (long) Math.ceil((segMs - segElapsed) / 60000.0));
-            statusText.setText("剩余 " + remainMin + " 分钟 · 已录 " + totalMins + " 分钟");
+            statusText.setText(getString(R.string.status_remaining, remainMin, totalMins));
         } else if (noteActive) {
-            statusText.setText("自述录音中…松开按钮结束");
+            statusText.setText(R.string.self_note_recording);
         } else {
             statusText.setText(Prefs.s3Configured(this)
-                    ? "点红色按钮开始录音"
-                    : "点红色按钮开始录音（S3 还没配置好，录音会先存手机里）");
+                    ? getString(R.string.status_tap_record)
+                    : getString(R.string.status_tap_record_no_s3));
         }
 
         styleEventCard(convCard, convCardTitle, convCardState,
@@ -503,7 +563,8 @@ public class MainActivity extends Activity {
         if (recording && cur != null && cur.exists()) {
             String name = cur.getName();
             String label = name.length() > 15 ? name.substring(4, 14) + " " + hm.format(new Date(cur.lastModified())) : name;
-            rows.add("🔴 " + label + " · " + String.format(Locale.US, "%.1f MB", cur.length() / 1_000_000.0) + " · 录音中");
+            rows.add(getString(R.string.row_recording, label,
+                    String.format(Locale.US, "%.1f", cur.length() / 1_000_000.0)));
             rowIsRecording.add(true);
         }
         for (File f : pending) {
@@ -514,12 +575,13 @@ public class MainActivity extends Activity {
             if (name.startsWith("rec_") && name.length() > 14) datePart = name.substring(4, 14);
             else if (isNote && name.length() > 15) datePart = name.substring(5, 15);
             String label = datePart.isEmpty() ? name : datePart + " " + hm.format(new Date(f.lastModified()));
-            rows.add(label + (isNote ? " 的自述 · " : " 的片段 · ")
-                    + String.format(Locale.US, "%.1f MB", f.length() / 1_000_000.0) + " · 待上传");
+            rows.add(getString(isNote ? R.string.row_note : R.string.row_segment, label,
+                    String.format(Locale.US, "%.1f", f.length() / 1_000_000.0)));
             rowIsRecording.add(false);
         }
-        if (rows.isEmpty()) rows.add(Prefs.s3Configured(this) ? "没有待上传片段 ✓" : "还没有录音文件");
-        if (Uploader.eventsPending(this)) rows.add("事件标记 · 待同步");
+        if (rows.isEmpty()) rows.add(Prefs.s3Configured(this)
+                ? getString(R.string.no_pending_ok) : getString(R.string.no_files_yet));
+        if (Uploader.eventsPending(this)) rows.add(getString(R.string.events_pending_row));
         while (rowIsRecording.size() < rows.size()) rowIsRecording.add(false);
         // Rebuild every tick: the list is short, and caching by content
         // signature proved to be a staleness trap.
@@ -533,8 +595,9 @@ public class MainActivity extends Activity {
             pendingContainer.addView(tv);
         }
         filesTitle.setText(pending.length > 0
-                ? String.format(Locale.US, "录音文件（待上传 %d 段 · %.1f MB）", pending.length, bytes / 1_000_000.0)
-                : "录音文件");
+                ? getString(R.string.files_title_pending, pending.length,
+                        String.format(Locale.US, "%.1f", bytes / 1_000_000.0))
+                : getString(R.string.files_title));
 
         long nowMs = System.currentTimeMillis();
         boolean failingLong = Uploader.failingSinceMs > 0
@@ -544,19 +607,19 @@ public class MainActivity extends Activity {
             int pct = total > 0 ? (int) (Uploader.currentSent * 100 / total) : 0;
             uploadProgress.setVisibility(View.VISIBLE);
             uploadProgress.setProgress(pct);
-            uploadStatusText.setText("正在上传 第 " + Math.min(Uploader.runDone + 1, Math.max(Uploader.runTotal, 1))
-                    + "/" + Math.max(Uploader.runTotal, 1) + " 个：" + Uploader.currentFileName
-                    + " · " + pct + "%");
+            uploadStatusText.setText(getString(R.string.uploading,
+                    Math.min(Uploader.runDone + 1, Math.max(Uploader.runTotal, 1)),
+                    Math.max(Uploader.runTotal, 1), Uploader.currentFileName, pct));
         } else {
             uploadProgress.setVisibility(View.GONE);
             String text = "";
             if (!Uploader.lastResult.isEmpty()) {
                 String when = new SimpleDateFormat("HH:mm:ss", Locale.US)
                         .format(new Date(Uploader.lastResultAt));
-                text = "上次上传（" + when + "）：" + Uploader.lastResult;
+                text = getString(R.string.last_upload, when, Uploader.lastResult);
             }
             if (failingLong) {
-                text = "⚠️ 上传已持续失败超过 30 分钟，请检查配置与网络\n" + text;
+                text = getString(R.string.failing_warning, text);
             }
             uploadStatusText.setText(text);
         }

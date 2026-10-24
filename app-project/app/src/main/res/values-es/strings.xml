@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Toca el botón rojo para empezar a grabar</string>
+    <string name="status_tap_record_no_s3">Toca el botón rojo para empezar a grabar (S3 aún no está configurado; las grabaciones quedarán en el teléfono)</string>
+    <string name="files_title">Grabaciones</string>
+    <string name="files_title_pending">Grabaciones (%1$d pendientes · %2$s MB)</string>
+    <string name="retry_upload">Reintentar subida ahora</string>
+    <string name="settings_button">⚙️ Ajustes (S3 y grabación)</string>
+    <string name="settings_collapse">Ocultar ajustes</string>
+    <string name="settings_s3_title">Ajustes de almacenamiento S3 (al guardar se sube una vez de inmediato)</string>
+    <string name="preset_label">Proveedor predefinido (al elegirlo se rellenan la dirección y la región; puedes editarlos)</string>
+    <string name="endpoint_label">Endpoint (para R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Región (R2 usa “auto”; otros proveedores usan su código de región)</string>
+    <string name="bucket_label">Bucket (los buckets de Tencent Cloud necesitan el sufijo -APPID)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (solo se guarda en este teléfono; no la compartas con nadie)</string>
+    <string name="virtual_style_label">Estilo de host virtual (el bucket va delante del dominio; actívalo para Alibaba / Tencent / AWS / Qiniu, no para R2 / B2)</string>
+    <string name="segment_minutes_label">Duración de cada segmento (minutos, 60 por defecto)</string>
+    <string name="wifi_only_label">Subir solo con Wi‑Fi / redes sin límite de datos</string>
+    <string name="delete_after_label">Eliminar los segmentos locales tras una subida correcta (ahorra espacio)</string>
+    <string name="auto_resume_label">Reanudar la grabación automáticamente tras reiniciar el teléfono</string>
+    <string name="save_settings">Guardar ajustes</string>
+    <string name="battery_button">Permitir ejecución en segundo plano (desactivar optimización de batería)</string>
+    <string name="events_title">Marcadores de eventos</string>
+    <string name="no_events_yet">Aún no hay marcadores</string>
+    <string name="conv_card">💬 Conversación</string>
+    <string name="meeting_card">👥 Reunión</string>
+    <string name="tap_to_start">Toca para empezar</string>
+    <string name="self_note_button">🎙 Nota de voz · Mantén para hablar, suelta para terminar</string>
+    <string name="self_note_active">Grabando nota de voz… suelta para terminar</string>
+    <string name="self_note_recording">Grabando nota de voz… suelta para terminar</string>
+    <string name="status_remaining">Quedan %1$d min · Grabados %2$d min</string>
+    <string name="card_active">En curso · %1$d min, toca para terminar</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · Grabando</string>
+    <string name="row_note">Nota de voz de %1$s · %2$s MB · Pendiente de subida</string>
+    <string name="row_segment">Segmento de %1$s · %2$s MB · Pendiente de subida</string>
+    <string name="no_pending_ok">No hay segmentos pendientes ✓</string>
+    <string name="no_files_yet">Aún no hay grabaciones</string>
+    <string name="events_pending_row">Marcadores de eventos · Pendientes de sincronizar</string>
+    <string name="uploading">Subiendo %1$d/%2$d: %3$s · %4$d%%</string>
+    <string name="last_upload">Última subida (%1$s): %2$s</string>
+    <string name="failing_warning">⚠️ Las subidas llevan fallando más de 30 minutos; revisa los ajustes y la red\n%1$s</string>
+    <string name="toast_stopped">Detenido</string>
+    <string name="toast_retry_started">Reintentando subida…</string>
+    <string name="toast_settings_saved">Ajustes guardados, subiendo ahora</string>
+    <string name="toast_note_start_failed">No se pudo iniciar la nota de voz</string>
+    <string name="toast_note_saved">Nota de voz guardada, se subirá automáticamente</string>
+    <string name="toast_note_too_short">Demasiado corta, no se guardó</string>
+    <string name="toast_mic_permission">Primero permite el micrófono y luego toca el botón otra vez</string>
+    <string name="toast_battery_already">La ejecución en segundo plano ya está permitida</string>
+    <string name="toast_battery_open_failed">No se pudo abrir los ajustes de batería; permite manualmente que esta app se ejecute en segundo plano en los ajustes del sistema</string>
+    <string name="event_conv_start">Conversación iniciada</string>
+    <string name="event_conv_end">Conversación terminada</string>
+    <string name="event_meeting_start">Reunión iniciada</string>
+    <string name="event_meeting_end">Reunión terminada</string>
+    <string name="event_self_note">Nota de voz</string>
+    <string name="last_event">Último marcador: %1$s · %2$s</string>
+    <string name="marked_toast">Marcado: %1$s %2$s</string>
+    <string name="help_title">Ayuda</string>
+    <string name="record_button_desc">Botón de grabación</string>
+    <string name="notif_preparing">Preparando grabación…</string>
+    <string name="notif_recording">Grabando: %1$s</string>
+    <string name="notif_start_failed">Error al iniciar la grabación: %1$s</string>
+    <string name="channel_name">Estado de grabación</string>
+    <string name="channel_desc">Notificación permanente mientras se graba</string>
+    <string name="notif_stop">Detener grabación</string>
+    <string name="up_style_virtual">Host virtual</string>
+    <string name="up_style_path">Ruta</string>
+    <string name="up_target_info">\nPetición real: bucket “%1$s” @ %2$s (estilo %3$s, región %4$s)</string>
+    <string name="up_err_placeholder">No subido: el Endpoint aún contiene el marcador &lt;AccountID&gt;; sustitúyelo por tu Account ID real de R2</string>
+    <string name="up_err_not_configured">No subido: los ajustes de S3 están incompletos (revisa Endpoint, bucket y ambas claves en Ajustes)</string>
+    <string name="up_err_wifi_only">No subido: “Subir solo con Wi‑Fi” está activado y la red actual tiene límite de datos</string>
+    <string name="up_no_valid_segments">No hay segmentos pendientes válidos (se limpiaron %1$d segmentos vacíos)</string>
+    <string name="up_no_pending_files">No hay archivos pendientes de subida</string>
+    <string name="up_failed">Error de subida: %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Grabaciones subidas, pero los marcadores no se sincronizaron; se reintentará (subidos %1$d segmentos)</string>
+    <string name="up_done">Subida completa ✓ %1$d segmentos</string>
+    <string name="up_events_synced">, marcadores sincronizados</string>
+    <string name="up_stubs_cleaned">, se limpiaron %1$d segmentos vacíos</string>
+    <string name="up_events_suffix">(marcadores de eventos)</string>
+    <string name="language_label">Idioma</string>
+
+    <string-array name="language_names">
+        <item>Seguir el sistema</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · Oeste de EE. UU.</item>
+        <item>Backblaze B2 · Este de EE. UU.</item>
+        <item>Backblaze B2 · Europa</item>
+        <item>Alibaba Cloud OSS · Hangzhou (compatible con S3)</item>
+        <item>Alibaba Cloud OSS · Shanghái (compatible con S3)</item>
+        <item>Alibaba Cloud OSS · Pekín (compatible con S3)</item>
+        <item>Alibaba Cloud OSS · Shenzhen (compatible con S3)</item>
+        <item>Tencent Cloud COS · Guangzhou (compatible con S3)</item>
+        <item>Tencent Cloud COS · Shanghái (compatible con S3)</item>
+        <item>Tencent Cloud COS · Pekín (compatible con S3)</item>
+        <item>AWS S3 · Este de EE. UU.</item>
+        <item>AWS S3 · Singapur</item>
+        <item>Qiniu Kodo · Este de China (compatible con S3)</item>
+        <item>Personalizado</item>
+    </string-array>
+</resources>

@@ -1,4 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Default strings (English). Other locales live in values-<lang>/. -->
 <resources>
-    <string name="app_name">Muse 录音助手</string>
+    <string name="app_name">Muse Recorder</string>
+    <string name="status_tap_record">Tap the red button to start recording</string>
+    <string name="status_tap_record_no_s3">Tap the red button to start recording (S3 is not configured yet; recordings will stay on this phone)</string>
+    <string name="files_title">Recordings</string>
+    <string name="files_title_pending">Recordings (%1$d pending · %2$s MB)</string>
+    <string name="retry_upload">Retry upload now</string>
+    <string name="settings_button">⚙️ Settings (S3 &amp; recording)</string>
+    <string name="settings_collapse">Collapse settings</string>
+    <string name="settings_s3_title">S3 storage settings (saving triggers an upload right away)</string>
+    <string name="preset_label">Cloud preset (picking one fills in the address and region; you can still edit them)</string>
+    <string name="endpoint_label">Endpoint (for R2: https://&lt;AccountID&gt;.r2.cloudflarestorage.com)</string>
+    <string name="region_label">Region (R2 uses “auto”; other providers use their region code)</string>
+    <string name="bucket_label">Bucket (Tencent Cloud bucket names need the -APPID suffix)</string>
+    <string name="access_key_label">Access Key ID</string>
+    <string name="secret_label">Secret Access Key (stored only on this phone — never share it)</string>
+    <string name="virtual_style_label">Virtual-host style (bucket in the hostname; check for Alibaba / Tencent / AWS / Qiniu, leave unchecked for R2 / B2)</string>
+    <string name="segment_minutes_label">Segment length (minutes, default 60)</string>
+    <string name="wifi_only_label">Upload only on Wi‑Fi / unmetered networks</string>
+    <string name="delete_after_label">Delete local segments after a successful upload (saves space)</string>
+    <string name="auto_resume_label">Auto-resume recording after the phone restarts</string>
+    <string name="save_settings">Save settings</string>
+    <string name="battery_button">Allow background running (disable battery optimization)</string>
+    <string name="events_title">Event markers</string>
+    <string name="no_events_yet">No markers yet</string>
+    <string name="conv_card">💬 Conversation</string>
+    <string name="meeting_card">👥 Meeting</string>
+    <string name="tap_to_start">Tap to start</string>
+    <string name="self_note_button">🎙 Voice note · Hold to talk, release to stop</string>
+    <string name="self_note_active">Recording voice note… release to stop</string>
+    <string name="self_note_recording">Recording voice note… release to stop</string>
+    <string name="status_remaining">%1$d min left · %2$d min recorded</string>
+    <string name="card_active">In progress · %1$d min, tap to stop</string>
+    <string name="row_recording">🔴 %1$s · %2$s MB · Recording</string>
+    <string name="row_note">%1$s note · %2$s MB · Pending upload</string>
+    <string name="row_segment">%1$s segment · %2$s MB · Pending upload</string>
+    <string name="no_pending_ok">No pending segments ✓</string>
+    <string name="no_files_yet">No recordings yet</string>
+    <string name="events_pending_row">Event markers · Pending sync</string>
+    <string name="uploading">Uploading %1$d/%2$d: %3$s · %4$d%%</string>
+    <string name="last_upload">Last upload (%1$s): %2$s</string>
+    <string name="failing_warning">⚠️ Uploads have been failing for over 30 minutes — check your settings and network\n%1$s</string>
+    <string name="toast_stopped">Stopped</string>
+    <string name="toast_retry_started">Retrying upload…</string>
+    <string name="toast_settings_saved">Settings saved, uploading now</string>
+    <string name="toast_note_start_failed">Failed to start voice note</string>
+    <string name="toast_note_saved">Voice note saved, will upload automatically</string>
+    <string name="toast_note_too_short">Too short, not saved</string>
+    <string name="toast_mic_permission">Please allow microphone permission first, then tap the button again</string>
+    <string name="toast_battery_already">Background running is already allowed</string>
+    <string name="toast_battery_open_failed">Could not open battery settings — please allow this app to run in the background in system settings</string>
+    <string name="event_conv_start">Conversation started</string>
+    <string name="event_conv_end">Conversation ended</string>
+    <string name="event_meeting_start">Meeting started</string>
+    <string name="event_meeting_end">Meeting ended</string>
+    <string name="event_self_note">Voice note</string>
+    <string name="last_event">Latest marker: %1$s · %2$s</string>
+    <string name="marked_toast">Marked: %1$s %2$s</string>
+    <string name="help_title">Help</string>
+    <string name="record_button_desc">Record button</string>
+    <string name="notif_preparing">Preparing to record…</string>
+    <string name="notif_recording">Recording: %1$s</string>
+    <string name="notif_start_failed">Failed to start recording: %1$s</string>
+    <string name="channel_name">Recording status</string>
+    <string name="channel_desc">Persistent notification while recording</string>
+    <string name="notif_stop">Stop recording</string>
+    <string name="up_style_virtual">Virtual-host</string>
+    <string name="up_style_path">Path</string>
+    <string name="up_target_info">\nActual request: bucket “%1$s” @ %2$s (%3$s style, region %4$s)</string>
+    <string name="up_err_placeholder">Not uploaded: the Endpoint still contains the &lt;AccountID&gt; placeholder — replace it with your real R2 Account ID</string>
+    <string name="up_err_not_configured">Not uploaded: S3 settings are incomplete (check the Endpoint, bucket and both keys in Settings)</string>
+    <string name="up_err_wifi_only">Not uploaded: “Wi‑Fi only upload” is on and the current network is metered</string>
+    <string name="up_no_valid_segments">No valid pending segments (cleaned up %1$d empty segments)</string>
+    <string name="up_no_pending_files">Nothing pending upload</string>
+    <string name="up_failed">Upload failed: %1$s — %2$s%3$s</string>
+    <string name="up_events_sync_failed">Recordings uploaded, but event markers failed to sync — will retry (uploaded %1$d segments)</string>
+    <string name="up_done">Upload complete ✓ %1$d segments</string>
+    <string name="up_events_synced">, event markers synced</string>
+    <string name="up_stubs_cleaned">, cleaned up %1$d empty segments</string>
+    <string name="up_events_suffix">(event markers)</string>
+    <string name="language_label">Language</string>
+
+    <string-array name="language_codes">
+        <item>system</item>
+        <item>en</item>
+        <item>zh</item>
+        <item>ja</item>
+        <item>ko</item>
+        <item>es</item>
+        <item>fr</item>
+        <item>de</item>
+        <item>pt</item>
+        <item>ru</item>
+    </string-array>
+    <string-array name="language_names">
+        <item>System default</item>
+        <item>English</item>
+        <item>中文</item>
+        <item>日本語</item>
+        <item>한국어</item>
+        <item>Español</item>
+        <item>Français</item>
+        <item>Deutsch</item>
+        <item>Português</item>
+        <item>Русский</item>
+    </string-array>
+    <string-array name="preset_names">
+        <item>Cloudflare R2</item>
+        <item>Backblaze B2 · US West</item>
+        <item>Backblaze B2 · US East</item>
+        <item>Backblaze B2 · Europe</item>
+        <item>Alibaba Cloud OSS · Hangzhou (S3-compatible)</item>
+        <item>Alibaba Cloud OSS · Shanghai (S3-compatible)</item>
+        <item>Alibaba Cloud OSS · Beijing (S3-compatible)</item>
+        <item>Alibaba Cloud OSS · Shenzhen (S3-compatible)</item>
+        <item>Tencent Cloud COS · Guangzhou (S3-compatible)</item>
+        <item>Tencent Cloud COS · Shanghai (S3-compatible)</item>
+        <item>Tencent Cloud COS · Beijing (S3-compatible)</item>
+        <item>AWS S3 · US East</item>
+        <item>AWS S3 · Singapore</item>
+        <item>Qiniu Kodo · East China (S3-compatible)</item>
+        <item>Custom</item>
+    </string-array>
 </resources>
