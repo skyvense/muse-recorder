@@ -1,57 +1,63 @@
-# Muse 录音助手 v1.7（S3 直传 + 事件标记 + 每日总结）
+# Muse Daily Recorder v1.8.2 (S3 upload + event markers + daily summary)
 
-Muse 本身没有持续监听麦克风的能力，所以这套方案由三部分组成：
+English | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português](README.pt.md) | [Русский](README.ru.md)
 
-1. **Android App**（`MuseRecorder.apk`）：前台服务录音，**每 60 分钟自动切一段**（.m4a，约 21 MB/段），每段结束就自动上传到你自己的 **S3 兼容对象存储**；失败排队重试，App 里有**待上传列表**可以看。
-2. **事件标记**：录音时可以随手标记重要时刻（见下），标记会一起传到桶里。
-3. **每日总结**（在 Muse 这边）：每天用 `receiver/fetch_day_from_s3.py` 从桶里拉前一天的录音和标记 → 转写 → Muse 整理成日报。
+Muse itself cannot listen to the microphone continuously, so this setup has three parts:
 
-v1.2 起 App **只支持 S3 模式**（v1.0 的自建接收端、v1.1 的 Supabase 直传已移除；接收端脚本还保留在 `receiver/` 里供参考）。
+1. **Android app** (`MuseRecorder.apk`): a foreground-service recorder that **cuts a new segment every 60 minutes** (.m4a, ~21 MB per segment) and uploads each finished segment automatically to your own **S3-compatible object storage**. Failed uploads are queued and retried; the app shows a **pending-upload list**.
+2. **Event markers**: mark important moments while recording (see below); markers are uploaded to the bucket together with the audio.
+3. **Daily summary** (on Muse's side): `receiver/fetch_day_from_s3.py` pulls the previous day's audio and markers from the bucket → transcribes → Muse turns it into a daily report.
 
-## 一、准备一个 S3 桶（以 Cloudflare R2 为例）
+Since v1.2 the app is **S3-only** (v1.0's self-hosted receiver and v1.1's Supabase direct upload were removed; the old receiver scripts are still kept in `receiver/` for reference).
 
-1. cloudflare.com 注册并开通 R2（免费档 10 GB、下载免费；开通可能要求绑卡，免费额度内不扣费）。创建一个 bucket，例如 `recordings`。
-2. 在 R2 的“管理 R2 API 令牌”里**创建一个只对这个桶有读写权限的令牌**（Object Read & Write，指定桶），记下 Access Key ID、Secret Access Key 和你的 Account ID（Endpoint 是 `https://<AccountID>.r2.cloudflarestorage.com`）。
-3. App 里预置选 **Cloudflare R2**，把 Endpoint 里的 `<你的AccountID>` 换成真实 ID，填桶名和两个 Key，保存。
+## 1. Prepare an S3 bucket (Cloudflare R2 example)
 
-其他厂商同样可以（App 里都有预置）：Backblaze B2、阿里云 OSS（要用 S3 兼容模式 + 云账号 AccessKey；桶在控制台建）、腾讯云 COS（桶名带 `-APPID` 后缀；用 SecretId/SecretKey）、AWS S3、七牛云 Kodo，或任意 S3 兼容服务选“自定义”。阿里/腾讯/AWS/七牛要勾选“虚拟主机风格”，R2/B2 不勾。
+1. Sign up at cloudflare.com and enable R2 (free tier: 10 GB, downloads free; activation may ask for a card, but nothing is charged within the free quota). Create a bucket, e.g. `recordings`.
+2. Under "Manage R2 API Tokens", **create a token with read & write access to only that bucket** (Object Read & Write, scoped to the bucket). Note the Access Key ID, Secret Access Key, and your Account ID (the endpoint is `https://<AccountID>.r2.cloudflarestorage.com`).
+3. In the app, pick the **Cloudflare R2** preset, replace `<AccountID>` in the endpoint with your real ID, and fill in the bucket name and the two keys, then save.
 
-> 安全提示：Secret Key 只填在手机 App 里，不要发到聊天、不要贴到任何公开地方。给令牌只开单个桶的权限，泄露了影响也可控。
+Other providers work the same way (all have presets in the app): Backblaze B2, Alibaba Cloud OSS (use S3-compatible mode + account AccessKey; create the bucket in the console), Tencent Cloud COS (bucket names carry an `-APPID` suffix; use SecretId/SecretKey), AWS S3, Qiniu Kodo, or any S3-compatible service via "Custom". Alibaba/Tencent/AWS/Qiniu need "virtual-host style" checked; R2/B2 do not.
 
-## 二、安装与日常使用
+> Security note: the Secret Key lives only inside the phone app — never paste it into a chat or anywhere public. Scoping the token to a single bucket limits the damage if it ever leaks.
 
-1. 把 `MuseRecorder.apk` 传到手机点开安装（自用 App 未上架，允许一次“未知来源”）；已装旧版可直接覆盖，设置会保留。
-2. 打开 App → 点“⚙️ 配置”填好 S3 并保存（保存后会自动上传一次）→ 点“允许后台运行（关闭电池优化）” → 点红色圆形按钮开始录音（录音中按钮变方形，下方有实时波形和本段剩余分钟），并允许麦克风/通知权限。三星手机还建议把本 App 的电池设为“不受限制”。
-3. **待上传列表**会显示每段的状态；点“立即上传”后下方会出现进度条（第几个文件、百分比、已传 MB），传完或失败后结果会留在原地显示，失败时带服务器返回的错误信息。断网或失败的段会留在列表里，恢复后自动重试。S3 与录音设置默认收起，点“⚙️ 配置”展开。
+## 2. Install and daily use
 
-## 三、事件标记（给日报“划重点”）
+1. Send `MuseRecorder.apk` to the phone and install it (a sideloaded personal app, so allow "unknown sources" once). Installing over an older version keeps your settings.
+2. Open the app → tap "⚙️ Config" and fill in S3, then save (saving triggers an upload right away) → tap "Allow background running (disable battery optimization)" → tap the red round button to start recording (it turns into a square while recording, with a live waveform and the minutes remaining in the current segment below), and grant microphone/notification permissions. On Samsung phones, also set the app's battery to "Unrestricted".
+3. **Uploads are fully automatic**: the pending list shows each segment's status, live progress appears while uploading, and the result stays on screen afterwards — with the server's error message on failure. Segments that fail (e.g. offline) stay queued and retry on their own. A manual "retry upload now" button only appears after a settings change or after 30+ minutes of failed automatic retries. S3 and recording settings are collapsed by default; tap "⚙️ Config" to expand them.
+4. **Language**: the picker at the top of Settings offers system default plus English, Chinese, Japanese, Korean, Spanish, French, German, Portuguese and Russian, and applies immediately. The app name is always "Muse Daily Recorder" in every language.
+5. The blue ⓘ button at the top right opens a built-in help page (recording, upload, markers, settings, FAQ, privacy).
 
-- **对话开关**：开始一段重要对话时打开，聊完关掉。
-- **会议开关**：开会前打开，散会关掉。
-- **📌 自我记录按钮**：想到重要的事、灵感、待办时点一下，标记此刻（push button，不用关）。
-- 标记按天存在桶的 `markers/events-<日期>.jsonl` 里；日报会按标记切分对话/会议，并特别留意“自我记录”附近的内容。开关状态会记住，关掉 App 重开不会乱。
+## 3. Event markers (highlighting things for the daily report)
 
-## 四、每日总结（Muse 这边）
+- **Conversation switch**: turn it on when an important conversation starts, off when it ends.
+- **Meeting switch**: turn it on before a meeting, off when it adjourns.
+- **📌 Self-note button**: press and hold whenever something occurs to you — an idea, a todo, a thought. While recording it just marks the moment; while idle it records a standalone voice note.
+- Markers are stored per day in the bucket at `markers/events-<date>.jsonl`; the daily report splits conversations/meetings by markers and pays special attention to content near self-notes. Switch states are remembered, so closing and reopening the app never scrambles them.
+
+## 4. Daily summary (on Muse's side)
 
 ```bash
-# 环境变量：S3_ENDPOINT / S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY / S3_REGION / S3_STYLE(path|virtual)
-# 可选：S3_DELETE_AFTER=1 → 拉完自动删云端录音原件（省云端空间，转写稿和日报在 Muse 这边留存）
+# Env vars: S3_ENDPOINT / S3_BUCKET / S3_ACCESS_KEY / S3_SECRET_KEY / S3_REGION / S3_STYLE (path|virtual)
+# Optional: S3_DELETE_AFTER=1 → delete the cloud originals after pulling (saves cloud space; transcripts and reports stay on Muse's side)
 python3 receiver/fetch_day_from_s3.py --date 2026-10-23
 python3 receiver/summarize_day.py   --date 2026-10-23
 ```
-转写引擎二选一：环境变量 `OPENAI_API_KEY`（Whisper API），或在 Muse 的电脑上 `pip install faster-whisper`（本地免费）。配好后告诉 Muse 一个日报时间（比如每天 7:30），它会建定时任务自动跑并发到聊天里。
 
-## 五、现实提醒
+Transcription, two options: set `OPENAI_API_KEY` (Whisper API), or `pip install faster-whisper` on Muse's machine (local, free). Then tell Muse a report time (e.g. 7:30 every morning) and it will set up a scheduled job that runs automatically and posts to the chat.
 
-- **电量**：全天录音约每小时 3–6% 电量，建议夜间充电时录；可开“仅 Wi‑Fi 上传”。
-- **空间**：一天约 500 MB。默认“上传成功后删本地”；云端建议开 `S3_DELETE_AFTER=1` 或桶的生命周期规则，只留最近几天。
-- **稳定性**：Android 对后台录音限制严格；状态栏常驻通知是系统要求（也是在录的凭证）。睡前/起床瞄一眼 App 里“已持续 X 分钟”即可。
-- **合规**：录下与他人对话在很多地方需要对方同意，请在合法、对方知情的场景使用。
+## 5. Reality check
 
-## 六、目录
+- **Battery**: all-day recording uses roughly 3–6% per hour; record while charging overnight if you can. "Wi-Fi only upload" is available.
+- **Storage**: about 500 MB per day. Local copies are deleted after a successful upload by default; for the cloud side, use `S3_DELETE_AFTER=1` or a bucket lifecycle rule that only keeps the last few days.
+- **Stability**: Android restricts background recording strictly; the persistent status-bar notification is a system requirement (and also your proof that it is recording). A quick glance at "recorded for X minutes" in the app morning and night is enough.
+- **Compliance**: recording conversations with other people requires their consent in many places — only use it where it is legal and where the other side knows.
 
-- `app-project/`：App 完整源码（Java + Android 框架 API，S3 签名是纯 Java 实现，已通过 AWS 官方 SigV4 测试向量验证）。
-- `receiver/fetch_day_from_s3.py`：从 S3 桶拉取录音+标记（Python 标准库，签名实现同样通过官方测试向量）。
-- `receiver/summarize_day.py`：转写 + 日报草稿；`receiver/server.py`、`fetch_day_from_supabase.py` 为旧方案存档。
-- `build-apk.sh`：用 Android SDK build-tools 直接构建 APK。
-- `muse-recorder.keystore` + `keystore-info.txt`：签名密钥，**务必保留**，升级必须用它重新签名。
+## 6. Layout
+
+- `app-project/`: the complete app source (Java + Android framework APIs; the S3 signature is a pure-Java implementation, verified against AWS's official SigV4 test vectors).
+- `receiver/fetch_day_from_s3.py`: pulls audio + markers from the S3 bucket (Python standard library only; its signature implementation passed the same official test vectors).
+- `receiver/summarize_day.py`: transcription + report draft; `receiver/server.py` and `fetch_day_from_supabase.py` are archives of the old approach.
+- `build-apk.sh`: builds the APK directly with the Android SDK build-tools.
+- `.github/workflows/build.yml`: CI builds on every push to master and publishes two releases holding the same APK — a rolling `latest` release (always the newest build) and a versioned release per version (tag `vX.Y.Z`, kept forever). Download the newest build any time at https://github.com/skyvense/muse-recorder/releases/tag/latest
+- `muse-recorder.keystore` + `keystore-info.txt`: the signing key — **keep them safe**. Upgrades must be signed with the same key, or they cannot install over the old version. Encrypted copies live in `vault/` (AES-256-CBC + PBKDF2).
