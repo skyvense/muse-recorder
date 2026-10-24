@@ -548,16 +548,14 @@ public class MainActivity extends Activity {
             waveform.stopAnimating();
         }
         if (recording) {
-            long now = System.currentTimeMillis();
-            long totalMins = (now - RecordingService.recordingSinceMs) / 60000;
-            long segMs = Prefs.segmentMinutes(this) * 60_000L;
-            long segElapsed = RecordingService.currentSegmentStartMs > 0
-                    ? now - RecordingService.currentSegmentStartMs : 0;
-            long remainMin = Math.max(0, (long) Math.ceil((segMs - segElapsed) / 60000.0));
-            statusText.setText(getString(R.string.status_remaining, remainMin, totalMins));
+            // The minutes line is gone: segment progress now lives in the
+            // in-progress file row's bar, so this text only repeats it.
+            statusText.setVisibility(View.GONE);
         } else if (noteActive) {
+            statusText.setVisibility(View.VISIBLE);
             statusText.setText(R.string.self_note_recording);
         } else {
+            statusText.setVisibility(View.VISIBLE);
             statusText.setText(Prefs.s3Configured(this)
                     ? getString(R.string.status_tap_record)
                     : getString(R.string.status_tap_record_no_s3));
