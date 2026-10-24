@@ -3,8 +3,13 @@
 # The signing keystore is NOT in the repo in plaintext: vault/ holds only
 # AES-256 encrypted copies. This job decrypts them with the VAULT_PASS
 # repository secret (Settings -> Secrets and variables -> Actions), builds
-# with the same build-apk.sh used locally, deletes the plaintext keystore
-# again, and uploads the signed APK as a run artifact.
+# with the same build-apk.sh used locally, prints the signing certificate
+# fingerprint (it must match the local builds' fingerprint), deletes the
+# plaintext keystore again, and uploads the signed APK as a run artifact.
+#
+# Note: the runner image already ships an Android SDK, so this workflow
+# installs the needed packages with sdkmanager directly instead of the
+# setup-android action (whose license-acceptance step proved flaky).
 name: Build APK
 
 on:
@@ -24,11 +29,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install platform 34 and build-tools 34.0.0
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Restore signing keystore from vault/
         env:
@@ -41,6 +46,11 @@ jobs:
 
       - name: Build APK
         run: ./build-apk.sh
+
+      - name: Show signing certificate fingerprint
+        run: |
+          export PATH="$JAVA_HOME/bin:$PATH"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --print-certs MuseRecorder.apk
 
       - name: Remove signing material
         if: always()
