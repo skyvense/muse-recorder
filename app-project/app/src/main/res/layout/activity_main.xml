@@ -4,6 +4,32 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <!-- Fixed header (pinned above the scrollable content, like the footer
+         below): only the help button lives here now that the title text
+         above the record button is gone. Same @id, so MainActivity's click
+         listener is untouched. paddingEnd matches the content's 20dp so the
+         button lines up with the right edge of the scroll area. -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:id="@+id/infoButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/circle_info_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="i"
+            android:textColor="#007AFF"
+            android:textSize="20sp"
+            android:textStyle="bold|italic" />
+    </RelativeLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -15,47 +41,18 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="@string/app_name"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/infoButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:background="@drawable/circle_info_bg"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:text="i"
-                    android:textColor="#007AFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold|italic" />
-            </RelativeLayout>
-
             <personal.muse.recorder.RecordButtonView
                 android:id="@+id/recordButton"
                 android:layout_width="92dp"
                 android:layout_height="92dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="18dp"
                 android:clickable="true"
                 android:focusable="true" />
 
             <personal.muse.recorder.WaveformView
                 android:id="@+id/waveform"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
+                android:layout_height="64dp"
                 android:layout_marginTop="14dp"
                 android:visibility="invisible" />
 
