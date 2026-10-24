@@ -22,7 +22,7 @@ sed 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<ma
   --manifest "$OUT/AndroidManifest.xml" --java "$OUT/gen" \
   --min-sdk-version 26 --target-sdk-version 34 \
   -A "$SRC/assets" \
-  --version-code 21 --version-name 1.8.5 "$OUT/compiled.zip"
+  --version-code 22 --version-name 1.8.6 "$OUT/compiled.zip"
 
 find "$SRC/java" "$OUT/gen" -name '*.java' > "$OUT/sources.txt"
 "$JAVABIN/javac" -encoding UTF-8 -cp "$AJAR" -d "$OUT/classes" @"$OUT/sources.txt"
