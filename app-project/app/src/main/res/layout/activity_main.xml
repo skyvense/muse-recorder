@@ -53,6 +53,16 @@
                 android:text="@string/status_tap_record"
                 android:textSize="15sp" />
 
+            <!-- Segment progress bar: shown in place of the status text while
+                 recording. Full content width, left edge aligned with the
+                 status text (and the record button) above it. -->
+            <personal.muse.recorder.SegmentProgressView
+                android:id="@+id/segmentProgress"
+                android:layout_width="match_parent"
+                android:layout_height="28dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/filesTitle"
                 android:layout_width="wrap_content"

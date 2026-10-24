@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Muse Daily Recorder</string>
+    <string name="seconds_short">秒</string>
     <string name="status_tap_record">点红色按钮开始录音</string>
     <string name="status_tap_record_no_s3">点红色按钮开始录音（S3 还没配置好，录音会先存手机里）</string>
     <string name="files_title">录音文件</string>

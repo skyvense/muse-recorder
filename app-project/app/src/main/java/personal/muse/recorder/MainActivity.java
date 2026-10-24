@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
     private RecordButtonView recordButton;
     private WaveformView waveform;
     private TextView statusText, lastEventText, filesTitle, uploadStatusText;
+    private SegmentProgressView segmentProgress;
     private LinearLayout convCard, meetingCard, pendingContainer;
     private TextView convCardTitle, convCardState, meetingCardTitle, meetingCardState;
     private Button selfNoteButton, retryUploadButton, settingsToggleButton;
@@ -123,6 +124,7 @@ public class MainActivity extends Activity {
         recordButton = findViewById(R.id.recordButton);
         waveform = findViewById(R.id.waveform);
         statusText = findViewById(R.id.statusText);
+        segmentProgress = findViewById(R.id.segmentProgress);
         lastEventText = findViewById(R.id.lastEventText);
         filesTitle = findViewById(R.id.filesTitle);
         uploadStatusText = findViewById(R.id.uploadStatusText);
@@ -548,16 +550,23 @@ public class MainActivity extends Activity {
             waveform.stopAnimating();
         }
         if (recording) {
+            // The minutes line becomes a full-width progress bar: elapsed /
+            // segment seconds overlaid on it (e.g. 120/600s, 120/600秒 in zh).
             long now = System.currentTimeMillis();
-            long totalMins = (now - RecordingService.recordingSinceMs) / 60000;
             long segMs = Prefs.segmentMinutes(this) * 60_000L;
             long segElapsed = RecordingService.currentSegmentStartMs > 0
                     ? now - RecordingService.currentSegmentStartMs : 0;
-            long remainMin = Math.max(0, (long) Math.ceil((segMs - segElapsed) / 60000.0));
-            statusText.setText(getString(R.string.status_remaining, remainMin, totalMins));
+            statusText.setVisibility(View.GONE);
+            segmentProgress.setVisibility(View.VISIBLE);
+            segmentProgress.setProgress(segElapsed / 1000, segMs / 1000,
+                    getString(R.string.seconds_short));
         } else if (noteActive) {
+            statusText.setVisibility(View.VISIBLE);
+            segmentProgress.setVisibility(View.GONE);
             statusText.setText(R.string.self_note_recording);
         } else {
+            statusText.setVisibility(View.VISIBLE);
+            segmentProgress.setVisibility(View.GONE);
             statusText.setText(Prefs.s3Configured(this)
                     ? getString(R.string.status_tap_record)
                     : getString(R.string.status_tap_record_no_s3));
