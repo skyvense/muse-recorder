@@ -80,9 +80,16 @@ public class MainActivity extends Activity {
     private TextView statusText, lastEventText, filesTitle, uploadStatusText;
     private LinearLayout convCard, meetingCard, pendingContainer;
     private TextView convCardTitle, convCardState, meetingCardTitle, meetingCardState;
-    private Button selfNoteButton, retryUploadButton, settingsToggleButton;
+    private Button selfNoteButton, retryUploadButton;
     private ProgressBar uploadProgress;
     private View settingsContainer;
+    // Tabs
+    private Button tabRecordButton, tabCloudButton, tabReportsButton, tabSettingsButton;
+    private View pageRecord, pageCloud, pageReports, pageSettings;
+    private int currentTab = 0;
+    private R2Browser r2Browser;
+    private SupabaseReports supabaseReports;
+    private EditText supabaseUrlInput, supabaseKeyInput;
     private Spinner presetSpinner, languageSpinner, snapshotCameraSpinner;
     private boolean snapshotSpinnerTouched = false;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
@@ -154,19 +161,31 @@ public class MainActivity extends Activity {
         snapshotCheck = findViewById(R.id.snapshotCheck);
         snapshotCameraSpinner = findViewById(R.id.snapshotCameraSpinner);
         settingsContainer = findViewById(R.id.settingsContainer);
-        settingsToggleButton = findViewById(R.id.settingsToggleButton);
+        supabaseUrlInput = findViewById(R.id.supabaseUrlInput);
+        supabaseKeyInput = findViewById(R.id.supabaseKeyInput);
 
         selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
         selfNoteButton.setTextColor(Color.WHITE);
         selfNoteButton.setAllCaps(false);
 
-        settingsToggleButton.setOnClickListener(v -> {
-            boolean show = settingsContainer.getVisibility() != View.VISIBLE;
-            settingsContainer.setVisibility(show ? View.VISIBLE : View.GONE);
-            settingsToggleButton.setText(show
-                    ? getString(R.string.settings_collapse)
-                    : getString(R.string.settings_button));
-        });
+        // Tabs: record (control) / cloud (R2 browser) / reports (Supabase)
+        // / settings. The settings that used to hide behind a toggle button
+        // on the record page now live on their own tab, categorized.
+        tabRecordButton = findViewById(R.id.tabRecordButton);
+        tabCloudButton = findViewById(R.id.tabCloudButton);
+        tabReportsButton = findViewById(R.id.tabReportsButton);
+        tabSettingsButton = findViewById(R.id.tabSettingsButton);
+        pageRecord = findViewById(R.id.pageRecord);
+        pageCloud = findViewById(R.id.pageCloud);
+        pageReports = findViewById(R.id.pageReports);
+        pageSettings = findViewById(R.id.pageSettings);
+        r2Browser = new R2Browser(this);
+        supabaseReports = new SupabaseReports(this);
+        tabRecordButton.setOnClickListener(v -> selectTab(0));
+        tabCloudButton.setOnClickListener(v -> selectTab(1));
+        tabReportsButton.setOnClickListener(v -> selectTab(2));
+        tabSettingsButton.setOnClickListener(v -> selectTab(3));
+        selectTab(0);
 
         ArrayAdapter<String> presetAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
@@ -466,6 +485,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         SnapshotWatcher.stop(this);
+        if (r2Browser != null) r2Browser.onHide();
         stopSelfNote();
         ui.removeCallbacks(refresh);
         waveform.stopAnimating();
@@ -527,6 +547,10 @@ public class MainActivity extends Activity {
         autoResumeCheck.setChecked(p.getBoolean(Prefs.KEY_AUTO_RESUME, false));
         snapshotCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false));
         snapshotCameraSpinner.setSelection(Prefs.snapshotCameraMode(this));
+        String sbUrl = Prefs.supabaseUrl(this);
+        supabaseUrlInput.setText(sbUrl.isEmpty()
+                ? "https://xpmorezsouevzihgjpxe.supabase.co" : sbUrl);
+        supabaseKeyInput.setText(Prefs.supabaseKey(this));
     }
 
     private void saveSettings() {
@@ -548,8 +572,40 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_AUTO_RESUME, autoResumeCheck.isChecked())
                 .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
                 .putInt(Prefs.KEY_SNAPSHOT_CAMERA, snapshotCameraSpinner.getSelectedItemPosition())
+                .putString(Prefs.KEY_SB_URL, supabaseUrlInput.getText().toString().trim())
+                .putString(Prefs.KEY_SB_KEY, supabaseKeyInput.getText().toString().trim())
                 .apply();
         SnapshotWatcher.sync(this);
+    }
+
+    // ---- tabs ----
+
+    private void selectTab(int tab) {
+        if (currentTab == 1 && tab != 1 && r2Browser != null) r2Browser.onHide();
+        currentTab = tab;
+        pageRecord.setVisibility(tab == 0 ? View.VISIBLE : View.GONE);
+        pageCloud.setVisibility(tab == 1 ? View.VISIBLE : View.GONE);
+        pageReports.setVisibility(tab == 2 ? View.VISIBLE : View.GONE);
+        pageSettings.setVisibility(tab == 3 ? View.VISIBLE : View.GONE);
+        Button[] tabs = {tabRecordButton, tabCloudButton, tabReportsButton, tabSettingsButton};
+        for (int i = 0; i < tabs.length; i++) {
+            tabs[i].setTypeface(null, i == tab
+                    ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            tabs[i].setBackgroundColor(i == tab ? 0xFFE3E6F3 : 0x00000000);
+        }
+        if (tab == 1 && r2Browser != null) r2Browser.onShow();
+        if (tab == 2 && supabaseReports != null) supabaseReports.onShow();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (currentTab == 1 && r2Browser != null && r2Browser.onBack()) return;
+        if (currentTab == 2 && supabaseReports != null && supabaseReports.onBack()) return;
+        if (currentTab != 0) {
+            selectTab(0);
+            return;
+        }
+        super.onBackPressed();
     }
 
     private boolean ensurePermissions() {

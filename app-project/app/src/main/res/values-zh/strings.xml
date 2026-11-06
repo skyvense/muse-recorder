@@ -24,6 +24,43 @@
     <string name="snapshot_label">📸 抬起手机自动拍照（抬到接近 90° 时）</string>
     <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动拍照，排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间锁屏、息屏也能拍；手机重启后请先打开一次 App，息屏拍照才会恢复。关掉就完全不用摄像头。</string>
     <string name="row_snapshot">📸 %1$s 快照 · %2$s MB · 待上传</string>
+    <string name="tab_record">🎙 录音</string>
+    <string name="tab_cloud">☁️ 云端</string>
+    <string name="tab_reports">📊 日报</string>
+    <string name="tab_settings">⚙️ 配置</string>
+
+    <string name="cat_recording">🎙 录音</string>
+    <string name="cat_upload">⬆️ 上传</string>
+    <string name="cat_snapshot">📸 自动拍照</string>
+    <string name="cat_reports">📊 每日报告（Supabase）</string>
+    <string name="cat_system">🌐 语言与系统</string>
+
+    <string name="supabase_url_label">Supabase 项目地址</string>
+    <string name="supabase_key_label">Supabase publishable（anon）key — 在控制台 Settings → API 复制</string>
+    <string name="supabase_hint">只给「日报」页用，只读。填 publishable key 就行（已实测可读）。千万别把 service_role key 填到这里。</string>
+
+    <string name="cloud_title">云端文件（R2）</string>
+    <string name="cloud_refresh">刷新</string>
+    <string name="cloud_back">‹ 返回</string>
+    <string name="cloud_loading">加载中…</string>
+    <string name="cloud_downloading">下载中…</string>
+    <string name="cloud_empty">这里还没有文件</string>
+    <string name="cloud_not_configured">请先在「配置」页填好云存储</string>
+    <string name="cloud_failed">失败：%1$s</string>
+    <string name="cloud_photo_section">📸 照片</string>
+    <string name="cloud_audio_section">🎵 语音</string>
+    <string name="player_play">▶ 播放</string>
+    <string name="player_pause">⏸ 暂停</string>
+
+    <string name="reports_title">每日总结</string>
+    <string name="reports_loading">加载中…</string>
+    <string name="reports_empty">还没有每日总结</string>
+    <string name="reports_not_configured">在「配置」页填入 Supabase 的 publishable key 后，这里就能看每日总结</string>
+    <string name="reports_failed">加载失败：%1$s</string>
+    <string name="reports_segments">%1$d 段录音</string>
+    <string name="reports_analyses_title">当天分段报告</string>
+    <string name="reports_analyses_failed">分段报告没读到（可能还没开只读策略）</string>
+
     <string name="snapshot_camera_label">拍照用哪个摄像头（改完立即生效）</string>
     <string name="snapshot_test_button">📸 立即测试拍一次</string>
     <string name="toast_snapshot_testing">正在测试拍照…留意下面的文件列表</string>

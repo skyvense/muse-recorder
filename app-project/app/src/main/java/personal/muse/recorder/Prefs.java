@@ -125,6 +125,9 @@ public final class Prefs {
         return get(ctx).getBoolean(KEY_SNAPSHOT_ENABLED, false);
     }
 
+    // The reports tab reuses the legacy supabaseUrl()/supabaseKey() above
+    // (KEY_SB_URL / KEY_SB_KEY) — same SharedPreferences keys.
+
     /** Which cameras a snapshot uses: 0 = both, 1 = back only, 2 = front only. */
     public static int snapshotCameraMode(Context ctx) {
         int m = get(ctx).getInt(KEY_SNAPSHOT_CAMERA, 0);

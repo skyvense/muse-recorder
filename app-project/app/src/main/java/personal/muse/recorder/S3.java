@@ -210,4 +210,160 @@ public final class S3 {
         conn.disconnect();
         return true;
     }
+
+    // ---------- GET: list + download (used by the cloud browser tab) ----------
+
+    public static final class Entry {
+        public String key;
+        public long size;
+    }
+
+    public static final class ListResult {
+        public final java.util.List<Entry> entries = new java.util.ArrayList<>();
+        public final java.util.List<String> prefixes = new java.util.ArrayList<>();
+    }
+
+    private static String emptyHash() throws Exception {
+        return sha256Hex(new byte[0]);
+    }
+
+    /** Builds a signed connection for a bucket-level (key == null) or object request. */
+    private static HttpURLConnection openSigned(Config cfg, String method, String key,
+                                                TreeMap<String, String> query) throws Exception {
+        String payloadHash = emptyHash();
+        String amzDate = amzDateNow();
+        URL base = new URL(cfg.endpoint);
+        String endpointHost = base.getHost() + (base.getPort() > 0 ? ":" + base.getPort() : "");
+        String host;
+        String rawPath;
+        if (cfg.virtualStyle) {
+            host = cfg.bucket + "." + endpointHost;
+            rawPath = key == null ? "/" : "/" + key;
+        } else {
+            host = endpointHost;
+            rawPath = key == null ? "/" + cfg.bucket : "/" + cfg.bucket + "/" + key;
+        }
+        String canonicalUri = encodePath(rawPath);
+        StringBuilder qs = new StringBuilder();
+        for (java.util.Map.Entry<String, String> e : query.entrySet()) {
+            if (qs.length() > 0) qs.append('&');
+            qs.append(encodeSegment(e.getKey())).append('=').append(encodeSegment(e.getValue()));
+        }
+        String canonicalQuery = qs.toString();
+        URL url = new URL(base.getProtocol() + "://" + host + canonicalUri
+                + (canonicalQuery.isEmpty() ? "" : "?" + canonicalQuery));
+        TreeMap<String, String> headers = new TreeMap<>();
+        headers.put("host", host);
+        headers.put("x-amz-content-sha256", payloadHash);
+        headers.put("x-amz-date", amzDate);
+        String auth = authorization(method, canonicalUri, canonicalQuery, headers, payloadHash,
+                cfg.region, "s3", cfg.accessKey, cfg.secretKey, amzDate);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(30_000);
+        conn.setReadTimeout(120_000);
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Authorization", auth);
+        conn.setRequestProperty("x-amz-date", amzDate);
+        conn.setRequestProperty("x-amz-content-sha256", payloadHash);
+        return conn;
+    }
+
+    private static String readBody(HttpURLConnection conn) throws Exception {
+        InputStream in = conn.getInputStream();
+        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+        byte[] b = new byte[8192];
+        int n;
+        while ((n = in.read(b)) > 0) bos.write(b, 0, n);
+        return bos.toString("UTF-8");
+    }
+
+    /** Lists one "folder" level: objects directly under prefix plus sub-prefixes. */
+    public static ListResult list(Config cfg, String prefix, String delimiter) throws Exception {
+        ListResult result = new ListResult();
+        String token = null;
+        for (int page = 0; page < 20; page++) {
+            TreeMap<String, String> q = new TreeMap<>();
+            q.put("list-type", "2");
+            if (prefix != null && !prefix.isEmpty()) q.put("prefix", prefix);
+            if (delimiter != null && !delimiter.isEmpty()) q.put("delimiter", delimiter);
+            if (token != null) q.put("continuation-token", token);
+            HttpURLConnection conn = openSigned(cfg, "GET", null, q);
+            int code = conn.getResponseCode();
+            if (code < 200 || code >= 300) {
+                String err = "";
+                try (InputStream es = conn.getErrorStream()) {
+                    if (es != null) {
+                        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                        byte[] b = new byte[4096];
+                        int n;
+                        while ((n = es.read(b)) > 0) bos.write(b, 0, n);
+                        err = bos.toString("UTF-8");
+                    }
+                } catch (Exception ignored) {}
+                conn.disconnect();
+                throw new java.io.IOException("S3 LIST HTTP " + code + " " + err);
+            }
+            String xml = readBody(conn);
+            conn.disconnect();
+            token = parseListPage(xml, result);
+            if (token == null) break;
+        }
+        return result;
+    }
+
+    /** Parses one ListObjectsV2 page into result; returns the next continuation token or null. */
+    private static String parseListPage(String xml, ListResult result) throws Exception {
+        org.xmlpull.v1.XmlPullParserFactory factory = org.xmlpull.v1.XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(false);
+        org.xmlpull.v1.XmlPullParser p = factory.newPullParser();
+        p.setInput(new java.io.StringReader(xml));
+        String nextToken = null;
+        String currentKey = null;
+        long currentSize = 0;
+        boolean inCommonPrefix = false;
+        int ev;
+        while ((ev = p.next()) != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+            if (ev == org.xmlpull.v1.XmlPullParser.START_TAG) {
+                String name = p.getName();
+                if ("CommonPrefixes".equals(name)) inCommonPrefix = true;
+                else if ("Key".equals(name)) currentKey = p.nextText();
+                else if ("Size".equals(name)) {
+                    try { currentSize = Long.parseLong(p.nextText().trim()); }
+                    catch (Exception ignored) { currentSize = 0; }
+                } else if ("Prefix".equals(name) && inCommonPrefix) {
+                    result.prefixes.add(p.nextText());
+                } else if ("NextContinuationToken".equals(name)) {
+                    nextToken = p.nextText();
+                }
+            } else if (ev == org.xmlpull.v1.XmlPullParser.END_TAG) {
+                String name = p.getName();
+                if ("Contents".equals(name) && currentKey != null) {
+                    Entry e = new Entry();
+                    e.key = currentKey;
+                    e.size = currentSize;
+                    result.entries.add(e);
+                    currentKey = null;
+                    currentSize = 0;
+                } else if ("CommonPrefixes".equals(name)) inCommonPrefix = false;
+            }
+        }
+        return nextToken;
+    }
+
+    /** Downloads one object to a local file (streaming). */
+    public static void download(Config cfg, String key, File dest) throws Exception {
+        HttpURLConnection conn = openSigned(cfg, "GET", key, new TreeMap<>());
+        int code = conn.getResponseCode();
+        if (code < 200 || code >= 300) {
+            conn.disconnect();
+            throw new java.io.IOException("S3 GET HTTP " + code + " for " + key);
+        }
+        try (InputStream in = conn.getInputStream();
+             OutputStream out = new java.io.FileOutputStream(dest)) {
+            byte[] buf = new byte[128 * 1024];
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+        }
+        conn.disconnect();
+    }
 }
