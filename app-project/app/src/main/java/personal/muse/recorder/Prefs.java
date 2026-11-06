@@ -35,6 +35,12 @@ public final class Prefs {
     public static final String KEY_MEETING_ACTIVE = "meeting_active";
     public static final String KEY_CONV_SINCE = "conv_since";
     public static final String KEY_MEETING_SINCE = "meeting_since";
+    // Muse AI Cloud (optional; ignored unless the build set MUSE_CLOUD_ENABLED).
+    public static final String KEY_CLOUD_BASE_URL = "cloud_base_url";
+    public static final String KEY_CLOUD_EMAIL = "cloud_email";
+    public static final String KEY_CLOUD_TOKEN = "cloud_token";
+    public static final String KEY_CLOUD_USE = "cloud_use";
+    public static final String KEY_CLOUD_SUBSCRIPTION = "cloud_subscription";
 
     private Prefs() {}
 
@@ -118,6 +124,46 @@ public final class Prefs {
         S3.Config c = s3Config(ctx);
         return !c.endpoint.isEmpty() && !c.bucket.isEmpty()
                 && !c.accessKey.isEmpty() && !c.secretKey.isEmpty();
+    }
+
+    /**
+     * Effective shelf origin. A value saved in Settings wins; otherwise the
+     * URL baked in at build time ({@code CLOUD_BASE_URL}).
+     */
+    public static String cloudBaseUrl(Context ctx) {
+        String override = get(ctx).getString(KEY_CLOUD_BASE_URL, "");
+        if (override != null && !override.trim().isEmpty()) {
+            return MuseCloud.normalizeBaseUrl(override);
+        }
+        return MuseCloud.normalizeBaseUrl(BuildConfig.CLOUD_BASE_URL);
+    }
+
+    public static String cloudEmail(Context ctx) {
+        return get(ctx).getString(KEY_CLOUD_EMAIL, "").trim();
+    }
+
+    public static String cloudToken(Context ctx) {
+        return get(ctx).getString(KEY_CLOUD_TOKEN, "").trim();
+    }
+
+    public static String cloudPlan(Context ctx) {
+        return get(ctx).getString(KEY_CLOUD_SUBSCRIPTION, "").trim();
+    }
+
+    /**
+     * User opted into cloud upload. Stock builds ({@code MUSE_CLOUD_ENABLED}
+     * false) ignore a leftover checkbox so an ordinary S3 install never
+     * changes destination.
+     */
+    public static boolean cloudUse(Context ctx) {
+        return BuildConfig.MUSE_CLOUD_ENABLED && get(ctx).getBoolean(KEY_CLOUD_USE, false);
+    }
+
+    /** Cloud upload is selected and we have both an origin and a JWT. */
+    public static boolean cloudSessionReady(Context ctx) {
+        return cloudUse(ctx)
+                && !cloudBaseUrl(ctx).isEmpty()
+                && !cloudToken(ctx).isEmpty();
     }
 
     /** Auto-snapshot on the raise gesture; strictly opt-in, default OFF. */

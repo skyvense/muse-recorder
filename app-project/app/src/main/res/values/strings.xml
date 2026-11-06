@@ -7,10 +7,12 @@
     <string name="seconds_short">s</string>
     <string name="status_tap_record">Tap the red button to start recording</string>
     <string name="status_tap_record_no_s3">Tap the red button to start recording (S3 is not configured yet; recordings will stay on this phone)</string>
+    <string name="status_tap_record_no_backend">Tap the red button to start recording (sign in to Muse AI Cloud or fill in S3; recordings stay on this phone until then)</string>
     <string name="files_title">Recordings</string>
     <string name="files_title_pending">Recordings (%1$d pending · %2$s MB)</string>
     <string name="retry_upload">Retry upload now</string>
     <string name="settings_button">⚙️ Settings (S3 &amp; recording)</string>
+    <string name="settings_button_cloud">⚙️ Settings (Cloud, S3 &amp; recording)</string>
     <string name="settings_collapse">Collapse settings</string>
     <string name="settings_s3_title">S3 storage settings (saving triggers an upload right away)</string>
     <string name="preset_label">Cloud preset (picking one fills in the address and region; you can still edit them)</string>
@@ -90,6 +92,8 @@
     <string name="up_target_info">\nActual request: bucket “%1$s” @ %2$s (%3$s style, region %4$s)</string>
     <string name="up_err_placeholder">Not uploaded: the Endpoint still contains the &lt;AccountID&gt; placeholder — replace it with your real R2 Account ID</string>
     <string name="up_err_not_configured">Not uploaded: S3 settings are incomplete (check the Endpoint, bucket and both keys in Settings)</string>
+    <string name="up_err_cloud_signed_out">Not uploaded: Muse AI Cloud is selected, but you are not signed in. Sign in, or turn off Cloud upload and use S3.</string>
+    <string name="up_cloud_target">\nMuse AI Cloud: %1$s</string>
     <string name="up_err_wifi_only">Not uploaded: “Wi‑Fi only upload” is on and the current network is metered</string>
     <string name="up_no_valid_segments">No valid pending segments (cleaned up %1$d empty segments)</string>
     <string name="up_no_pending_files">Nothing pending upload</string>
@@ -100,6 +104,24 @@
     <string name="up_stubs_cleaned">, cleaned up %1$d empty segments</string>
     <string name="up_events_suffix">(event markers)</string>
     <string name="language_label">Language</string>
+    <string name="cloud_section_title">Muse AI Cloud</string>
+    <string name="cloud_section_hint">Sign in to your Muse AI Cloud account. The shelf stores each day’s audio and markers. Connect Muse and the $5/mo plan (7-day trial) on the web — this app does not send AI keys. Leave Cloud upload off to keep using S3.</string>
+    <string name="cloud_base_url_label">Cloud base URL (PUBLIC_URL, no /api suffix)</string>
+    <string name="cloud_email_label">Email</string>
+    <string name="cloud_password_label">Password (used to sign in, then discarded — not saved on this phone)</string>
+    <string name="cloud_use_label">Upload via Muse AI Cloud (when off, S3 is used if it is configured)</string>
+    <string name="cloud_register">Create account</string>
+    <string name="cloud_login">Sign in</string>
+    <string name="cloud_logout">Sign out</string>
+    <string name="cloud_working">Contacting Muse AI Cloud…</string>
+    <string name="cloud_need_url">Enter the cloud base URL first (for example http://HOST:8080)</string>
+    <string name="cloud_need_credentials">Enter email and password</string>
+    <string name="cloud_auth_failed">%1$s failed: %2$s</string>
+    <string name="cloud_status_logged_out">Not signed in. S3 is used when it is configured.</string>
+    <string name="cloud_status_ready">Signed in as %1$s. Uploads go to Muse AI Cloud.</string>
+    <string name="cloud_status_ready_plan">Signed in as %1$s (%2$s). Uploads go to Muse AI Cloud.</string>
+    <string name="cloud_status_signed_in_s3">Signed in as %1$s. Cloud upload is off, so S3 is used.</string>
+    <string name="cloud_signed_out">Signed out. Uploads use S3 when it is configured.</string>
 
     <string-array name="language_codes">
         <item>system</item>

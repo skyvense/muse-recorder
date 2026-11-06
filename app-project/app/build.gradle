@@ -2,9 +2,50 @@ plugins {
     id 'com.android.application'
 }
 
+// Optional Muse AI Cloud shelf. Empty by default so a normal build stays
+// S3-only. Resolution order matches build-apk.sh: environment, then
+// cloud.local.properties (gitignored), then gradle.properties / -P.
+def readCloudProp = { String name ->
+    def fromEnv = System.getenv(name)
+    if (fromEnv != null && !fromEnv.trim().isEmpty()) return fromEnv.trim()
+    def local = new File(rootProject.projectDir, "cloud.local.properties")
+    if (local.exists()) {
+        def props = new Properties()
+        local.withInputStream { props.load(it) }
+        def fromFile = props.getProperty(name)
+        if (fromFile != null && !fromFile.trim().isEmpty()) return fromFile.trim()
+    }
+    def fromProject = project.findProperty(name)
+    if (fromProject != null && !fromProject.toString().trim().isEmpty()) {
+        return fromProject.toString().trim()
+    }
+    return ""
+}
+
+def cloudBaseUrl = readCloudProp("CLOUD_BASE_URL")
+def cloudEnabledProp = readCloudProp("MUSE_CLOUD_ENABLED")
+def cloudEnabled = cloudEnabledProp.equalsIgnoreCase("true") || !cloudBaseUrl.isEmpty()
+
+def javaStringLiteral = { String s ->
+    def sb = new StringBuilder()
+    sb.append('"')
+    for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i)
+        if (c == '\\' as char) sb.append('\\\\')
+        else if (c == '"' as char) sb.append('\\"')
+        else if (c != '\n' as char && c != '\r' as char) sb.append(c)
+    }
+    sb.append('"')
+    return sb.toString()
+}
+
 android {
     namespace 'personal.muse.recorder'
     compileSdk 34
+
+    buildFeatures {
+        buildConfig true
+    }
 
     defaultConfig {
         applicationId 'personal.muse.recorder'
@@ -12,6 +53,8 @@ android {
         targetSdk 34
         versionCode 29
         versionName '1.9.3'
+        buildConfigField "String", "CLOUD_BASE_URL", javaStringLiteral(cloudBaseUrl)
+        buildConfigField "boolean", "MUSE_CLOUD_ENABLED", cloudEnabled ? "true" : "false"
     }
 
     buildTypes {

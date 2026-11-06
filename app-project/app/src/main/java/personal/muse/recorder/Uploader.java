@@ -18,8 +18,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Uploads finished segments (and event-marker files) to the configured
- * S3-compatible bucket.
+ * Uploads finished segments (and event-marker files).
+ *
+ * Default destination is the configured S3-compatible bucket. When the
+ * build enables Muse AI Cloud and the user is signed in with "Upload via
+ * Muse AI Cloud" on, the same files go to the shelf instead. Signing out
+ * or turning that switch off falls back to S3 when S3 is configured.
  *
  * Bucket layout:
  *   <yyyy-MM-dd>/rec_<yyyy-MM-dd_HH-mm-ss>.m4a   audio segments
@@ -187,6 +191,24 @@ public final class Uploader {
         // Build user-facing texts in the app language, not the device's:
         // this runs on the service's application context.
         Context ctx = LocaleHelper.wrap(app);
+        // Cloud is opt-in. Stock builds never enter this branch, so the S3
+        // checks below stay exactly the path existing installs already run.
+        if (Prefs.cloudSessionReady(app)) {
+            if (Prefs.wifiOnly(app) && !isUnmetered(app)) {
+                Log.i(TAG, "Wi-Fi-only is on and network is metered; postponing upload.");
+                setResult(ctx.getString(R.string.up_err_wifi_only));
+                markFail();
+                return;
+            }
+            uploadPendingCloud(app, ctx);
+            return;
+        }
+        if (Prefs.cloudUse(app) && !Prefs.s3Configured(app)) {
+            Log.i(TAG, "Muse AI Cloud is selected but there is no session.");
+            setResult(ctx.getString(R.string.up_err_cloud_signed_out));
+            markFail();
+            return;
+        }
         String rawEndpoint = Prefs.get(app).getString(Prefs.KEY_S3_ENDPOINT, "");
         if (rawEndpoint != null && (rawEndpoint.contains("<") || rawEndpoint.contains(">"))) {
             setResult(ctx.getString(R.string.up_err_placeholder));
@@ -322,6 +344,149 @@ public final class Uploader {
             }
         }
         return true;
+    }
+
+    /**
+     * Segments, then that day's markers, then snapshots. Markers are sent
+     * before snapshots so a shelf that does not implement snapshots yet still
+     * receives the audio and the event log. The S3 path uploads snapshots
+     * first; this branch does not.
+     */
+    private static void uploadPendingCloud(Context app, Context ctx) {
+        String base = Prefs.cloudBaseUrl(app);
+        String token = Prefs.cloudToken(app);
+        String target = cloudTargetInfo(ctx, base);
+        File[] allPending = pendingFiles(app);
+        int stubCount = 0;
+        List<File> real = new ArrayList<>();
+        for (File f : allPending) {
+            if (f.length() < 4096) {
+                // Header-only stub (under a second of audio): never upload.
+                //noinspection ResultOfMethodCallIgnored
+                f.delete();
+                //noinspection ResultOfMethodCallIgnored
+                Prefs.markerFor(f).delete();
+                stubCount++;
+            } else {
+                real.add(f);
+            }
+        }
+        File[] pending = real.toArray(new File[0]);
+        File[] snaps = pendingSnapshots(app);
+        boolean hadEvents = eventsPending(app);
+        runTotal = pending.length + snaps.length;
+        runDone = 0;
+        if (pending.length == 0 && snaps.length == 0 && !hadEvents) {
+            setResult(stubCount > 0
+                    ? ctx.getString(R.string.up_no_valid_segments, stubCount)
+                    : ctx.getString(R.string.up_no_pending_files));
+            markOk();
+            return;
+        }
+        for (File f : pending) {
+            String name = f.getName();
+            String date = dateOf(name, f);
+            currentFileName = name;
+            currentSent = 0;
+            currentTotal = f.length();
+            try {
+                MuseCloud.putFile(base, token, MuseCloud.segmentPath(date, name), f, "audio/mp4",
+                        (sent, total) -> {
+                            currentSent = sent;
+                            currentTotal = total;
+                        });
+                markDone(app, f);
+                runDone++;
+                Log.i(TAG, "Uploaded " + name + " to Muse AI Cloud");
+            } catch (Exception e) {
+                Log.w(TAG, "Cloud upload failed, will retry later: " + name + " (" + e.getMessage() + ")");
+                setResult(ctx.getString(R.string.up_failed, name, trimErr(e), target));
+                markFail();
+                return;
+            }
+        }
+        if (!syncEventsCloud(app, ctx, base, token) && hadEvents) {
+            setResult(ctx.getString(R.string.up_events_sync_failed, runDone) + target);
+            markFail();
+            return;
+        }
+        for (File f : snaps) {
+            String name = f.getName();
+            String date = dateOf(name, f);
+            currentFileName = name;
+            currentSent = 0;
+            currentTotal = f.length();
+            try {
+                MuseCloud.putFile(base, token, MuseCloud.snapshotPath(date, name), f, "image/jpeg",
+                        (sent, total) -> {
+                            currentSent = sent;
+                            currentTotal = total;
+                        });
+                markDone(app, f);
+                runDone++;
+                Log.i(TAG, "Uploaded snapshot " + name + " to Muse AI Cloud");
+            } catch (Exception e) {
+                Log.w(TAG, "Cloud snapshot upload failed, will retry later: " + name
+                        + " (" + e.getMessage() + ")");
+                setResult(ctx.getString(R.string.up_failed, name, trimErr(e), target));
+                markFail();
+                return;
+            }
+        }
+        setResult(ctx.getString(R.string.up_done, runDone)
+                + (hadEvents ? ctx.getString(R.string.up_events_synced) : "")
+                + (stubCount > 0 ? ctx.getString(R.string.up_stubs_cleaned, stubCount) : "")
+                + target);
+        markOk();
+    }
+
+    /** Returns false when an events file failed to sync to the shelf. */
+    private static boolean syncEventsCloud(Context app, Context ctx, String base, String token) {
+        File dir = Prefs.markersDir(app);
+        File[] files = dir.listFiles((d, name) -> name.startsWith("events-") && name.endsWith(".jsonl"));
+        if (files == null) return true;
+        Arrays.sort(files);
+        for (File f : files) {
+            if (f.length() == syncedLength(f)) continue;
+            String date = dateOfEvents(f);
+            currentFileName = f.getName() + ctx.getString(R.string.up_events_suffix);
+            currentSent = 0;
+            currentTotal = f.length();
+            try {
+                MuseCloud.putFile(base, token, MuseCloud.markersPath(date), f, "application/x-ndjson",
+                        (sent, total) -> {
+                            currentSent = sent;
+                            currentTotal = total;
+                        });
+                writeSyncedLength(f, f.length());
+                Log.i(TAG, "Synced " + f.getName() + " to Muse AI Cloud");
+            } catch (Exception e) {
+                Log.w(TAG, "Cloud event sync failed for " + f.getName() + " (" + e.getMessage() + ")");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Day folder for events-YYYY-MM-DD.jsonl; falls back to the file's mtime day. */
+    private static String dateOfEvents(File f) {
+        String name = f.getName();
+        if (name.startsWith("events-") && name.length() >= 17) {
+            String day = name.substring(7, 17);
+            if (day.length() == 10 && day.charAt(4) == '-' && day.charAt(7) == '-') return day;
+        }
+        return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(new java.util.Date(f.lastModified()));
+    }
+
+    private static String cloudTargetInfo(Context ctx, String base) {
+        String host = base;
+        try {
+            java.net.URL url = new java.net.URL(base);
+            host = url.getHost();
+            if (url.getPort() > 0) host = host + ":" + url.getPort();
+        } catch (Exception ignored) {}
+        return ctx.getString(R.string.up_cloud_target, host);
     }
 
     private static void markDone(Context app, File f) {

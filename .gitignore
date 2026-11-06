@@ -21,3 +21,7 @@ token.txt
 
 # Gradle local state
 .gradle/
+
+# Machine-specific Muse AI Cloud origin for local builds. Not a credential,
+# but it should not ride along in the repo. See cloud.local.properties.example.
+app-project/cloud.local.properties
