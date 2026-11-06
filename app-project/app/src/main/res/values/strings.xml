@@ -29,6 +29,43 @@
     <string name="snapshot_label">📸 Auto snapshot when the phone is raised upright (near 90°)</string>
     <string name="snapshot_hint">Off by default. When on: raise the phone from flat to upright and hold ~1 second — it takes photos and uploads them to snapshot-YYYY-MM-DD/ in the bucket. While recording runs it also works with the screen locked or off; after a phone reboot, open the app once to restore screen-off capture. Turn it off to stop all camera use.</string>
     <string name="row_snapshot">📸 %1$s snapshot · %2$s MB · Pending upload</string>
+    <string name="tab_record">🎙 Record</string>
+    <string name="tab_cloud">☁️ Cloud</string>
+    <string name="tab_reports">📊 Reports</string>
+    <string name="tab_settings">⚙️ Settings</string>
+
+    <string name="cat_recording">🎙 Recording</string>
+    <string name="cat_upload">⬆️ Upload</string>
+    <string name="cat_snapshot">📸 Auto snapshot</string>
+    <string name="cat_reports">📊 Daily reports (Supabase)</string>
+    <string name="cat_system">🌐 Language &amp; system</string>
+
+    <string name="supabase_url_label">Supabase project URL</string>
+    <string name="supabase_key_label">Supabase publishable (anon) key — from the console: Settings → API</string>
+    <string name="supabase_hint">Used only by the Reports tab, read-only; the publishable key is enough (reads verified). Never paste the service_role key here.</string>
+
+    <string name="cloud_title">Cloud files (R2)</string>
+    <string name="cloud_refresh">Refresh</string>
+    <string name="cloud_back">‹ Back</string>
+    <string name="cloud_loading">Loading…</string>
+    <string name="cloud_downloading">Downloading…</string>
+    <string name="cloud_empty">Nothing here yet</string>
+    <string name="cloud_not_configured">Set up cloud storage in the Settings tab first</string>
+    <string name="cloud_failed">Failed: %1$s</string>
+    <string name="cloud_photo_section">📸 Photos</string>
+    <string name="cloud_audio_section">🎵 Audio</string>
+    <string name="player_play">▶ Play</string>
+    <string name="player_pause">⏸ Pause</string>
+
+    <string name="reports_title">Daily summaries</string>
+    <string name="reports_loading">Loading…</string>
+    <string name="reports_empty">No daily summaries yet</string>
+    <string name="reports_not_configured">Paste the Supabase publishable key in the Settings tab to read daily summaries here</string>
+    <string name="reports_failed">Failed to load: %1$s</string>
+    <string name="reports_segments">%1$d segments</string>
+    <string name="reports_analyses_title">Window reports of the day</string>
+    <string name="reports_analyses_failed">Window reports could not be loaded (read policy may be missing)</string>
+
     <string name="snapshot_camera_label">Snapshot cameras (applies immediately)</string>
     <string name="snapshot_test_button">📸 Test snapshot now</string>
     <string name="toast_snapshot_testing">Taking a test snapshot… watch the file list below</string>

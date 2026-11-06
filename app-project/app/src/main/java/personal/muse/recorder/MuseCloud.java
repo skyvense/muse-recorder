@@ -18,20 +18,23 @@ import java.util.Map;
 /**
  * Minimal client for a self-hosted Muse AI Cloud shelf.
  *
- * <p>The shelf was not in this repo, so the app speaks the REST shape
- * documented in {@code docs/muse-ai-cloud.md}. The phone never holds an AI
- * provider key: it only exchanges an email and password for a JWT, then
- * uploads the day's files with {@code Authorization: Bearer}.
+ * <p>Paths match the live shelf ({@code docs/muse-ai-cloud.md}): auth under
+ * {@code /api/v1/auth} and {@code GET /api/v1/me}, uploads as
+ * {@code PUT /api/v1/upload/{objectKey}} using the same keys as S3.
+ * The phone never holds an AI provider key.
  *
  * <p>No Android dependencies, so the parser and HTTP calls can be exercised
  * on a desktop JVM ({@code MuseCloudManualTest}).
  */
 public final class MuseCloud {
-    static final String CLIENT = "muse-recorder";
+    /** Sent as {@code "client"} on register and login. */
+    static final String CLIENT_ANDROID = "android";
 
-    public static final String AUTH_REGISTER = "/api/auth/register";
-    public static final String AUTH_LOGIN = "/api/auth/login";
-    public static final String AUTH_ME = "/api/auth/me";
+    public static final String AUTH_REGISTER = "/api/v1/auth/register";
+    public static final String AUTH_LOGIN = "/api/v1/auth/login";
+    public static final String AUTH_LOGOUT = "/api/v1/auth/logout";
+    public static final String AUTH_REFRESH = "/api/v1/auth/refresh";
+    public static final String AUTH_ME = "/api/v1/me";
 
     private static final String[] TOKEN_KEYS = {"token", "access_token", "accessToken", "jwt"};
     private static final String[] PLAN_VALUES = {
@@ -41,7 +44,7 @@ public final class MuseCloud {
 
     private MuseCloud() {}
 
-    /** Result of register, login, or a follow-up {@code /api/auth/me}. */
+    /** Result of register, login, refresh, or a follow-up {@code /api/v1/me}. */
     public static final class AuthResult {
         public final boolean ok;
         public final int httpCode;
@@ -76,16 +79,19 @@ public final class MuseCloud {
         return u;
     }
 
+    /** {@code PUT /api/v1/upload/{date}/{filename}} — {@code rec_} or {@code note_}. */
     public static String segmentPath(String date, String filename) {
-        return "/api/days/" + date + "/segments/" + filename;
+        return "/api/v1/upload/" + date + "/" + filename;
     }
 
-    public static String markersPath(String date) {
-        return "/api/days/" + date + "/markers";
+    /** {@code PUT /api/v1/upload/markers/events-YYYY-MM-DD.jsonl}. */
+    public static String markersPath(String filename) {
+        return "/api/v1/upload/markers/" + filename;
     }
 
+    /** {@code PUT /api/v1/upload/snapshot-YYYY-MM-DD/snap_…_back.jpg} (or {@code _front}). */
     public static String snapshotPath(String date, String filename) {
-        return "/api/days/" + date + "/snapshots/" + filename;
+        return "/api/v1/upload/snapshot-" + date + "/" + filename;
     }
 
     public static AuthResult register(String baseUrl, String email, String password) throws IOException {
@@ -103,7 +109,7 @@ public final class MuseCloud {
             return new AuthResult(false, 0, null, "Missing cloud base URL", null);
         }
         String json = "{\"email\":\"" + escapeJson(email) + "\",\"password\":\""
-                + escapeJson(password) + "\"}";
+                + escapeJson(password) + "\",\"client\":\"" + CLIENT_ANDROID + "\"}";
         HttpResult http = postJson(base, path, json);
         if (http.code < 200 || http.code >= 300) {
             return new AuthResult(false, http.code, null, http.message, null);
@@ -126,10 +132,44 @@ public final class MuseCloud {
             }
             // 404 (or any other non-auth failure) — login itself succeeded.
         } catch (IOException ignored) {
-            // /api/auth/me is optional. A network blip after a 200 login
-            // still leaves the caller with a usable token.
+            // A network blip after a 200 login still leaves a usable token.
         }
         return new AuthResult(true, http.code, parsed.token, null, plan);
+    }
+
+    /**
+     * {@code POST /api/v1/auth/logout}. The shelf bumps token_version so the
+     * old JWT starts returning 401. 2xx and 401 (already dead) are success.
+     */
+    public static AuthResult logout(String baseUrl, String token) throws IOException {
+        String base = normalizeBaseUrl(baseUrl);
+        if (base.isEmpty() || safeHeader(token).isEmpty()) {
+            return new AuthResult(true, 0, null, null, null);
+        }
+        HttpResult http = postJson(base, AUTH_LOGOUT, "{}", token);
+        if ((http.code >= 200 && http.code < 300) || http.code == 401) {
+            return new AuthResult(true, http.code, null, null, null);
+        }
+        return new AuthResult(false, http.code, null, http.message, null);
+    }
+
+    /**
+     * Optional {@code POST /api/v1/auth/refresh}. Returns the new token when
+     * the shelf sends one. The upload path does not call this; a 401 there
+     * means sign in again.
+     */
+    public static AuthResult refresh(String baseUrl, String token) throws IOException {
+        String base = normalizeBaseUrl(baseUrl);
+        if (base.isEmpty() || safeHeader(token).isEmpty()) {
+            return new AuthResult(false, 0, null, "Missing cloud session", null);
+        }
+        HttpResult http = postJson(base, AUTH_REFRESH, "{}", token);
+        if (http.code < 200 || http.code >= 300) {
+            return new AuthResult(false, http.code, null, http.message, null);
+        }
+        Parsed parsed = parseBody(http.body);
+        String next = parsed.token == null || parsed.token.isEmpty() ? token : parsed.token;
+        return new AuthResult(true, http.code, next, null, parsed.plan);
     }
 
     /**
@@ -154,7 +194,6 @@ public final class MuseCloud {
         conn.setRequestProperty("Authorization", "Bearer " + bearer);
         conn.setRequestProperty("Content-Type", contentType);
         conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("X-Muse-Client", CLIENT);
         conn.setFixedLengthStreamingMode(file.length());
         try (OutputStream out = conn.getOutputStream();
              InputStream in = new FileInputStream(file)) {
@@ -176,6 +215,11 @@ public final class MuseCloud {
         String body = readBody(conn, code);
         conn.disconnect();
         String detail = serverMessage(body);
+        if (code == 402) {
+            String billing = "Uploads are closed. Open Muse AI Cloud in a browser to subscribe or renew the trial.";
+            throw new IOException("Muse AI Cloud PUT " + safePath + " HTTP 402 " + billing
+                    + (detail.isEmpty() ? "" : " " + detail));
+        }
         throw new IOException("Muse AI Cloud PUT " + safePath + " HTTP " + code
                 + (detail.isEmpty() ? "" : " " + detail));
     }
@@ -196,8 +240,13 @@ public final class MuseCloud {
     }
 
     private static HttpResult postJson(String base, String path, String json) throws IOException {
+        return postJson(base, path, json, null);
+    }
+
+    private static HttpResult postJson(String base, String path, String json, String token)
+            throws IOException {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-        HttpURLConnection conn = open(base, path, "POST", null);
+        HttpURLConnection conn = open(base, path, "POST", token);
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
         // Auth bodies are tiny. Leaving streaming mode off lets the JDK return
@@ -229,7 +278,6 @@ public final class MuseCloud {
         conn.setReadTimeout(30_000);
         conn.setRequestMethod(method);
         conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("X-Muse-Client", CLIENT);
         if (token != null && !token.isEmpty()) {
             conn.setRequestProperty("Authorization", "Bearer " + safeHeader(token));
         }

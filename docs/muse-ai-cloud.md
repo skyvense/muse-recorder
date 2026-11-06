@@ -4,7 +4,7 @@ The default app still uploads straight to your own S3-compatible bucket. Muse AI
 
 Stock builds leave the flag off. Existing S3 settings, the pending-upload queue, and the release APK are unchanged until you opt in.
 
-This repo does not contain the shelf. The client below is the contract the shelf should implement. Billing ($5/mo, 7-day trial) and “Connect Muse” / bring-your-own-model-key stay on the web. The app never sends an AI provider token.
+The paths below are the live Muse AI Cloud shelf (`docs/apk-integration.md` on that repo), not a guessed shape. Nginx on the shelf proxies `/api`. Billing ($5/mo, 7-day trial) and “Connect Muse” / bring-your-own-model-key stay on the web. The app never sends an AI provider token.
 
 ## Turn the feature on
 
@@ -28,7 +28,7 @@ MUSE_CLOUD_ENABLED=true ./build-apk.sh
 
 There is no product flavor. Flavors would rename the `build-apk.sh` / CI output (`assembleRelease` becomes per-flavor) for a switch that is only two fields. The flag is `BuildConfig.MUSE_CLOUD_ENABLED` and `BuildConfig.CLOUD_BASE_URL`.
 
-On the phone: open Settings, enter the URL if it is not already filled in, create an account or sign in, and leave **Upload via Muse AI Cloud** checked. The password is sent once and is not written to preferences. The JWT is stored in the app's private preferences, the same place as the S3 secret. Sign out deletes the token.
+On the phone: open the Settings tab (not the Cloud tab — that tab browses an R2 bucket), enter the URL if it is not already filled in, create an account or sign in, and leave **Upload via Muse AI Cloud** checked. The password is sent once and is not written to preferences. The JWT is stored in the app's private preferences, the same place as the S3 secret. Sign out calls `POST /api/v1/auth/logout` and then deletes the local token.
 
 If that checkbox is off, or the build flag is off, uploads use S3 when S3 is filled in. If Cloud is checked but you are not signed in, S3 is used when it is configured; otherwise the upload line says you still need to sign in.
 
@@ -36,36 +36,88 @@ Wi-Fi-only and “delete local file after upload” apply to both destinations.
 
 ## What the app calls
 
-Base: `{PUBLIC_URL}` such as `http://HOST:8080`. Every path below is under `/api/`. Redirects are not followed.
+Base: `{PUBLIC_URL}` such as `http://HOST:8080`. Redirects are not followed. Do not call `/api/auth/*` or `/api/days/...` — those routes 404 on this shelf.
 
 | Method | Path | Auth | Body | Success |
 | --- | --- | --- | --- | --- |
-| POST | `/api/auth/register` | none | `{"email","password"}` | 200 or 201, JSON token |
-| POST | `/api/auth/login` | none | `{"email","password"}` | 200 or 201, JSON token |
-| GET | `/api/auth/me` | `Bearer` | empty | 200 user JSON. Optional: 404 is ignored |
-| PUT | `/api/days/{yyyy-MM-dd}/segments/{filename}` | `Bearer` | raw audio bytes | 2xx, or 409 if the object is already stored |
-| PUT | `/api/days/{yyyy-MM-dd}/markers` | `Bearer` | raw `events-{date}.jsonl` | 2xx or 409 |
-| PUT | `/api/days/{yyyy-MM-dd}/snapshots/{filename}` | `Bearer` | raw JPEG | 2xx or 409 |
+| POST | `/api/v1/auth/register` | none | `{"email","password","client":"android"}` | 200 or 201 `{"token","user"}` |
+| POST | `/api/v1/auth/login` | none | same | 200 or 201 `{"token","user"}` |
+| GET | `/api/v1/me` | `Bearer` | empty | 200 user JSON. 404 is ignored. 401/403 rejects the token |
+| POST | `/api/v1/auth/logout` | `Bearer` | `{}` | 2xx. Shelf increments `token_version`; the old JWT then 401s |
+| POST | `/api/v1/auth/refresh` | `Bearer` | `{}` | optional. Implemented, not used on the upload path |
+| PUT | `/api/v1/upload/{yyyy-MM-dd}/rec_{yyyy-MM-dd}_{HH-mm-ss}.m4a` | `Bearer` | raw audio, `Content-Type: audio/mp4` | 2xx, or 409 if already stored |
+| PUT | `/api/v1/upload/{yyyy-MM-dd}/note_{yyyy-MM-dd}_{HH-mm-ss}.m4a` | `Bearer` | raw audio, `audio/mp4` | 2xx or 409 |
+| PUT | `/api/v1/upload/markers/events-{yyyy-MM-dd}.jsonl` | `Bearer` | raw JSONL, `application/x-ndjson` | 2xx or 409 |
+| PUT | `/api/v1/upload/snapshot-{yyyy-MM-dd}/snap_{yyyy-MM-dd}_{HH-mm-ss}_back.jpg` | `Bearer` | raw JPEG | 2xx or 409 |
+| PUT | `/api/v1/upload/snapshot-{yyyy-MM-dd}/snap_{…}_front.jpg` | `Bearer` | raw JPEG | 2xx or 409 |
 
-Headers on every call: `Accept: application/json`, `X-Muse-Client: muse-recorder`.
+The upload URL is `PUT /api/v1/upload/{objectKey}` where `{objectKey}` is the same key S3 mode already writes:
 
-Auth requests also send `Content-Type: application/json; charset=utf-8`.
+- `{yyyy-MM-dd}/rec_….m4a` and `{yyyy-MM-dd}/note_….m4a`
+- `markers/events-{yyyy-MM-dd}.jsonl` (the PUT replaces that day's log)
+- `snapshot-{yyyy-MM-dd}/snap_…_back.jpg` or `_front.jpg`
 
-Uploads send `Authorization: Bearer <jwt>`, `Content-Type` (`audio/mp4`, `application/x-ndjson`, or `image/jpeg`), and `Content-Length`. The body is the file itself, not multipart. The object key the shelf should write into its S3-compatible bucket is the same layout the S3 mode already uses:
+Auth requests send `Content-Type: application/json; charset=utf-8` and `Accept: application/json`. Uploads send `Authorization: Bearer <jwt>`, the content type above, and `Content-Length`. The body is the file itself, not multipart.
 
-- `{yyyy-MM-dd}/{filename}` for audio (`.m4a` segments and voice notes)
-- `markers/events-{yyyy-MM-dd}.jsonl` for markers (the PUT replaces that day's log)
-- `snapshot-{yyyy-MM-dd}/{filename}` for optional auto-snapshots
+Re-PUT of the same key overwrites it. The app retries the local queue after failures and treats HTTP 409 as “already stored”.
 
-Re-PUT of the same segment overwrites it. The app retries the local queue after failures and treats HTTP 409 as “already stored”.
+The token field is `token` (a nested `access_token` is still accepted). `GET /api/v1/me` may include `subscription_status` (or a nested `status`) of `trialing`, `active`, `past_due`, `canceled`, `inactive`, `incomplete`, `paused`, `none`, or `expired`. That value is only displayed.
 
-Token JSON, first string value wins: `token`, `access_token`, `accessToken`, or `jwt`, including one level down such as `{"data":{"access_token":"…"}}`.
+`402` means uploads are closed. The upload line says so and points at billing on the web. The app does not start checkout. `401` on upload means sign in again (`/api/v1/auth/refresh` is not called automatically).
 
-Errors should be JSON with a string `message`, `detail`, or `error`. The text is shown on the upload line. `401` / `403` from `/api/auth/me` right after login is treated as a rejected token. `402` (trial over, subscription inactive) is shown as an upload failure and retried later; the app does not start checkout.
+## Curl smoke
 
-`GET /api/auth/me` may include `subscription_status` (or a nested `status`) of `trialing`, `active`, `past_due`, `canceled`, `inactive`, `incomplete`, `paused`, `none`, or `expired`. The value is only displayed. The app does not call billing, Connect Muse, or any model endpoint.
+Replace `HOST` with the shelf. This environment had no shelf listening on port 8080, so these are the exact requests the client sends. A live check should show `/api/auth/register` and `/api/days/...` as **404**, and `/api/v1/upload/...` as **401** without a token.
 
-There is no refresh-token call. When the JWT expires, uploads start failing with the server's 401 text and the user signs in again.
+```bash
+BASE=http://HOST:8080
+EMAIL=apk-smoke@example.com
+PASS='smoke-pass-1'
+
+curl -sS -D- -o /tmp/reg.json -X POST "$BASE/api/v1/auth/register" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"client\":\"android\"}"
+
+curl -sS -D- -o /tmp/login.json -X POST "$BASE/api/v1/auth/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"client\":\"android\"}"
+TOKEN=$(python3 -c 'import json;print(json.load(open("/tmp/login.json"))["token"])')
+
+curl -sS -D- -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/me"
+
+printf 'not-a-real-m4a' > /tmp/rec.m4a
+curl -sS -D- -o /tmp/put.json -X PUT \
+  "$BASE/api/v1/upload/2026-11-06/rec_2026-11-06_12-00-00.m4a" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: audio/mp4' \
+  --data-binary @/tmp/rec.m4a
+
+printf '%s\n' '{"type":"note"}' > /tmp/events.jsonl
+curl -sS -D- -X PUT \
+  "$BASE/api/v1/upload/markers/events-2026-11-06.jsonl" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/x-ndjson' \
+  --data-binary @/tmp/events.jsonl
+
+printf 'jpeg' > /tmp/snap.jpg
+curl -sS -D- -X PUT \
+  "$BASE/api/v1/upload/snapshot-2026-11-06/snap_2026-11-06_12-00-00_back.jpg" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/jpeg' \
+  --data-binary @/tmp/snap.jpg
+
+curl -sS -D- -X POST "$BASE/api/v1/auth/refresh" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+curl -sS -D- -X POST "$BASE/api/v1/auth/logout" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+
+# These must 404 on the live shelf:
+curl -sS -o /dev/null -w 'old-auth %{http_code}\n' -X POST "$BASE/api/auth/register" \
+  -H 'Content-Type: application/json' -d '{"email":"a@b.c","password":"x"}'
+curl -sS -o /dev/null -w 'old-upload %{http_code}\n' -X PUT \
+  "$BASE/api/days/2026-11-06/segments/rec_2026-11-06_12-00-00.m4a" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: audio/mp4' --data-binary @/tmp/rec.m4a
+curl -sS -o /dev/null -w 'v1-no-token %{http_code}\n' -X PUT \
+  "$BASE/api/v1/upload/2026-11-06/rec_2026-11-06_12-00-00.m4a" \
+  -H 'Content-Type: audio/mp4' --data-binary @/tmp/rec.m4a
+```
 
 ## Files
 
@@ -76,8 +128,12 @@ There is no refresh-token call. When the JWT expires, uploads start failing with
 
 ```bash
 javac -encoding UTF-8 -d /tmp/muse-cloud-test \
+  app-project/app/src/test/java/org/xmlpull/v1/XmlPullParser.java \
+  app-project/app/src/test/java/org/xmlpull/v1/XmlPullParserFactory.java \
   app-project/app/src/main/java/personal/muse/recorder/S3.java \
   app-project/app/src/main/java/personal/muse/recorder/MuseCloud.java \
   app-project/app/src/test/java/personal/muse/recorder/MuseCloudManualTest.java
 java -cp /tmp/muse-cloud-test personal.muse.recorder.MuseCloudManualTest
 ```
+
+The two `org.xmlpull` files are desktop stubs so this JDK command can compile `S3.java` (the R2 browser lists objects with Android's XML pull parser). They are under `src/test` and are not in the APK.

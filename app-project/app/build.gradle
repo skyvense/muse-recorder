@@ -51,8 +51,8 @@ android {
         applicationId 'personal.muse.recorder'
         minSdk 26
         targetSdk 34
-        versionCode 29
-        versionName '1.9.3'
+        versionCode 30
+        versionName '1.10.0'
         buildConfigField "String", "CLOUD_BASE_URL", javaStringLiteral(cloudBaseUrl)
         buildConfigField "boolean", "MUSE_CLOUD_ENABLED", cloudEnabled ? "true" : "false"
     }

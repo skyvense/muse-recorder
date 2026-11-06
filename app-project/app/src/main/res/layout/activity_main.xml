@@ -4,124 +4,452 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- No custom header here: the system title bar (Theme.Material.Light
-         ActionBar) already shows the left-aligned "Muse Daily Recorder"
-         title, and the help button lives on it as an action-bar menu item
-         (see res/menu/main_menu.xml + MainActivity.onCreateOptionsMenu). -->
-    <ScrollView
+    <!-- Tab bar: Record / Cloud / Reports / Settings. The record page is
+         the original control page (its settings moved to the Settings tab);
+         Cloud browses the R2 bucket; Reports reads Supabase daily
+         summaries. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/tabRecordButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_record" />
+
+        <Button
+            android:id="@+id/tabCloudButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_cloud" />
+
+        <Button
+            android:id="@+id/tabReportsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_reports" />
+
+        <Button
+            android:id="@+id/tabSettingsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_settings" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#D9D9DE" />
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
+        <!-- ============ Page 1: record / control ============ -->
         <LinearLayout
+            android:id="@+id/pageRecord"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <!-- Record row: button left-aligned, waveform filling the rest
-                 of the row at the same height (92dp). The waveform stays
-                 INVISIBLE (not GONE) when idle so the row never shifts. -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Record row: button left-aligned, waveform filling
+                         the rest of the row at the same height (92dp). The
+                         waveform stays INVISIBLE (not GONE) when idle so
+                         the row never shifts. -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <personal.muse.recorder.RecordButtonView
+                            android:id="@+id/recordButton"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <personal.muse.recorder.WaveformView
+                            android:id="@+id/waveform"
+                            android:layout_width="0dp"
+                            android:layout_height="92dp"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:visibility="invisible" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/statusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="start"
+                        android:text="@string/status_tap_record"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/filesTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:text="@string/files_title"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/pendingContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+
+                    <ProgressBar
+                        android:id="@+id/uploadProgress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/uploadStatusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text=""
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/retryUploadButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/retry_upload"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </ScrollView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#D9D9DE" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FAFAFC"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/events_title"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/lastEventText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="@string/no_events_yet"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/convCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:id="@+id/convCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/conv_card"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/convCardState"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="@string/tap_to_start"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="1dp" />
+
+                    <LinearLayout
+                        android:id="@+id/meetingCard"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:id="@+id/meetingCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/meeting_card"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/meetingCardState"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="@string/tap_to_start"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/selfNoteButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/self_note_button" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ============ Page 2: cloud (R2 browser) ============ -->
+        <LinearLayout
+            android:id="@+id/pageCloud"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:padding="8dp">
 
-                <personal.muse.recorder.RecordButtonView
-                    android:id="@+id/recordButton"
-                    android:layout_width="92dp"
-                    android:layout_height="92dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                <Button
+                    android:id="@+id/cloudBackButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cloud_back"
+                    android:visibility="gone" />
 
-                <personal.muse.recorder.WaveformView
-                    android:id="@+id/waveform"
+                <TextView
+                    android:id="@+id/cloudTitle"
                     android:layout_width="0dp"
-                    android:layout_height="92dp"
-                    android:layout_marginStart="14dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:visibility="invisible" />
+                    android:text="@string/cloud_title"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/cloudRefreshButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cloud_refresh" />
             </LinearLayout>
 
             <TextView
-                android:id="@+id/statusText"
+                android:id="@+id/cloudStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="start"
-                android:text="@string/status_tap_record"
-                android:textSize="15sp" />
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/filesTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="@string/files_title"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+            <ListView
+                android:id="@+id/cloudList"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <LinearLayout
-                android:id="@+id/pendingContainer"
+                android:id="@+id/cloudDetail"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <ProgressBar
-                android:id="@+id/uploadProgress"
-                style="?android:attr/progressBarStyleHorizontal"
+                <TextView
+                    android:id="@+id/cloudDetailTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:textSize="13sp" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/cloudImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:visibility="gone" />
+                </ScrollView>
+
+                <LinearLayout
+                    android:id="@+id/cloudPlayerRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <Button
+                        android:id="@+id/cloudPlayButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/player_play" />
+
+                    <TextView
+                        android:id="@+id/cloudPlayLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ============ Page 3: reports (Supabase) ============ -->
+        <LinearLayout
+            android:id="@+id/pageReports"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:max="100"
-                android:progress="0"
-                android:visibility="gone" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <Button
+                    android:id="@+id/reportsBackButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cloud_back"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/reportsTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="@string/reports_title"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/reportsRefreshButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cloud_refresh" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/uploadStatusText"
+                android:id="@+id/reportsStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text=""
-                android:textSize="14sp" />
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textSize="13sp" />
 
-            <Button
-                android:id="@+id/retryUploadButton"
+            <ListView
+                android:id="@+id/reportsList"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/retry_upload"
-                android:visibility="gone" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
-            <Button
-                android:id="@+id/settingsToggleButton"
+            <ScrollView
+                android:id="@+id/reportsDetail"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/settings_button" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/reportsDetailText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:textIsSelectable="true"
+                    android:textSize="14sp" />
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- ============ Page 4: settings (categorized) ============ -->
+        <ScrollView
+            android:id="@+id/pageSettings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
 
             <LinearLayout
                 android:id="@+id/settingsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:padding="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/language_label"
-                    android:textStyle="bold" />
-
-                <Spinner
-                    android:id="@+id/languageSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" />
-
+                <!-- Muse AI Cloud account. Hidden unless the build flag is on.
+                     The Cloud tab above this page is the R2 browser, not this form. -->
                 <LinearLayout
                     android:id="@+id/cloudSection"
                     android:layout_width="match_parent"
@@ -131,8 +459,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
                         android:text="@string/cloud_section_title"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -216,11 +544,13 @@
                         android:text="@string/cloud_logout" />
                 </LinearLayout>
 
+                <!-- 云存储 (S3 / R2) -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="24dp"
                     android:text="@string/settings_s3_title"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -312,6 +642,15 @@
                     android:layout_marginTop="6dp"
                     android:text="@string/virtual_style_label" />
 
+                <!-- 录音 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/cat_recording"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -327,6 +666,22 @@
                     android:singleLine="true" />
 
                 <CheckBox
+                    android:id="@+id/autoResumeCheck"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/auto_resume_label" />
+
+                <!-- 上传 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/cat_upload"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <CheckBox
                     android:id="@+id/wifiOnlyCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -339,17 +694,20 @@
                     android:layout_height="wrap_content"
                     android:text="@string/delete_after_label" />
 
-                <CheckBox
-                    android:id="@+id/autoResumeCheck"
+                <!-- 自动拍照 -->
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/auto_resume_label" />
+                    android:layout_marginTop="24dp"
+                    android:text="@string/cat_snapshot"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <CheckBox
                     android:id="@+id/snapshotCheck"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="6dp"
                     android:text="@string/snapshot_label" />
 
                 <TextView
@@ -380,127 +738,85 @@
                     android:layout_marginTop="6dp"
                     android:text="@string/snapshot_test_button" />
 
-                <Button
-                    android:id="@+id/saveSettingsButton"
+                <!-- 每日报告 (Supabase) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/cat_reports"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/supabase_url_label" />
+
+                <EditText
+                    android:id="@+id/supabaseUrlInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/save_settings" />
+                    android:hint="https://….supabase.co"
+                    android:inputType="textUri"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/supabase_key_label" />
+
+                <EditText
+                    android:id="@+id/supabaseKeyInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="eyJ…"
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/supabase_hint"
+                    android:textSize="12sp" />
+
+                <!-- 语言与系统 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/cat_system"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/language_label" />
+
+                <Spinner
+                    android:id="@+id/languageSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" />
 
                 <Button
                     android:id="@+id/batteryButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="10dp"
                     android:text="@string/battery_button" />
+
+                <Button
+                    android:id="@+id/saveSettingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/save_settings" />
             </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#D9D9DE" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FAFAFC"
-        android:orientation="vertical"
-        android:padding="14dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/events_title"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/lastEventText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="@string/no_events_yet"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:id="@+id/convCard"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/convCardTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/conv_card"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/convCardState"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="@string/tap_to_start"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="10dp"
-                android:layout_height="1dp" />
-
-            <LinearLayout
-                android:id="@+id/meetingCard"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/meetingCardTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/meeting_card"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/meetingCardState"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="@string/tap_to_start"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/selfNoteButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/self_note_button" />
-    </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
 </LinearLayout>

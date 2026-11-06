@@ -448,12 +448,11 @@ public final class Uploader {
         Arrays.sort(files);
         for (File f : files) {
             if (f.length() == syncedLength(f)) continue;
-            String date = dateOfEvents(f);
             currentFileName = f.getName() + ctx.getString(R.string.up_events_suffix);
             currentSent = 0;
             currentTotal = f.length();
             try {
-                MuseCloud.putFile(base, token, MuseCloud.markersPath(date), f, "application/x-ndjson",
+                MuseCloud.putFile(base, token, MuseCloud.markersPath(f.getName()), f, "application/x-ndjson",
                         (sent, total) -> {
                             currentSent = sent;
                             currentTotal = total;
@@ -466,17 +465,6 @@ public final class Uploader {
             }
         }
         return true;
-    }
-
-    /** Day folder for events-YYYY-MM-DD.jsonl; falls back to the file's mtime day. */
-    private static String dateOfEvents(File f) {
-        String name = f.getName();
-        if (name.startsWith("events-") && name.length() >= 17) {
-            String day = name.substring(7, 17);
-            if (day.length() == 10 && day.charAt(4) == '-' && day.charAt(7) == '-') return day;
-        }
-        return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-                .format(new java.util.Date(f.lastModified()));
     }
 
     private static String cloudTargetInfo(Context ctx, String base) {
