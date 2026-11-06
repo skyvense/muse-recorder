@@ -21,7 +21,9 @@ import android.util.Log;
  * then fires when the angle stays in 72°–108° ("close to 90°") for
  * ~500 ms. After firing it disarms until the phone goes low again, and a
  * 15 s cooldown applies, so normal handling
- * cannot produce a burst of snapshots.
+ * cannot produce a burst of snapshots. It never fires while the screen
+ * is off (background camera access is blocked by the system, so those
+ * attempts could only fail).
  *
  * The feature is strictly opt-in: nothing is registered or triggered unless
  * the user enables it in Settings (Prefs.KEY_SNAPSHOT_ENABLED, default off),
@@ -110,7 +112,14 @@ public final class SnapshotWatcher implements SensorEventListener {
         }
         if (armed && angle >= 72 && angle <= 108) {
             if (uprightSinceMs == 0) uprightSinceMs = now;
-            if (now - uprightSinceMs >= 500
+            // Never fire while the screen is off: Android blocks camera
+            // access for background apps, so those attempts only ever
+            // failed (and, up to v1.9.1, buzzed pointlessly in a pocket).
+            android.os.PowerManager pm =
+                    (android.os.PowerManager) app.getSystemService(Context.POWER_SERVICE);
+            boolean screenOn = pm == null || pm.isInteractive();
+            if (screenOn
+                    && now - uprightSinceMs >= 500
                     && now - lastFiredMs >= 15_000
                     && !Snapshotter.isCapturing()) {
                 lastFiredMs = now;

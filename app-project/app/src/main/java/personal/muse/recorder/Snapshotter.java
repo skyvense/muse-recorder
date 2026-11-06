@@ -61,8 +61,11 @@ public final class Snapshotter {
     public static void capturePair(Context ctx) {
         if (!CAPTURING.compareAndSet(false, true)) return;
         final Context app = ctx.getApplicationContext();
-        EventLog.add(app, EventLog.SNAPSHOT);
-        vibrateTick(app);
+        // NOTE: no vibration and no event marker here. Up to v1.9.1 both
+        // fired at trigger time, so attempts the system then blocked
+        // (camera unavailable while the app is in the background) still
+        // buzzed — the user felt far more buzzes than photos. From v1.9.2
+        // the buzz and the marker mean "a photo was actually saved".
         Thread t = new Thread(() -> {
             HandlerThread ht = new HandlerThread("muse-snapshot");
             ht.start();
@@ -70,17 +73,42 @@ public final class Snapshotter {
             String stamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
                     .format(new Date());
             int mode = Prefs.snapshotCameraMode(app); // 0=both, 1=back, 2=front
+            int saved = 0;
             try {
-                if (mode != 2) captureOne(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back");
-                if (mode != 1) captureOne(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front");
+                if (mode != 2) saved += attempt(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back") ? 1 : 0;
+                if (mode != 1) {
+                    // Give the HAL a moment to fully release the first
+                    // camera; opening the next one too early was losing
+                    // the front shot on some attempts.
+                    try { Thread.sleep(300); } catch (InterruptedException ignored) {}
+                    saved += attempt(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front") ? 1 : 0;
+                }
             } finally {
                 lastSnapshotAtMs = System.currentTimeMillis();
+                if (saved > 0) EventLog.add(app, EventLog.SNAPSHOT);
                 CAPTURING.set(false);
                 ht.quitSafely();
                 Uploader.kick(app);
             }
         }, "muse-snapshot-pair");
         t.start();
+    }
+
+    /**
+     * One camera attempt; on a fast failure (camera busy / blocked, the
+     * attempt returned in under 5 s without an image) retries once after a
+     * short pause. A slow failure (timeout) is not retried, to bound the
+     * total time a pair can take.
+     */
+    private static boolean attempt(Context app, Handler h, int facing, String stamp, String label) {
+        long t0 = System.currentTimeMillis();
+        boolean ok = captureOne(app, h, facing, stamp, label);
+        if (!ok && System.currentTimeMillis() - t0 < 5_000) {
+            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
+            ok = captureOne(app, h, facing, stamp, label);
+        }
+        if (ok) vibrateTick(app);
+        return ok;
     }
 
     private static void vibrateTick(Context ctx) {
@@ -165,13 +193,13 @@ public final class Snapshotter {
         }
     }
 
-    private static void captureOne(Context app, Handler h, int facing, String stamp, String label) {
+    private static boolean captureOne(Context app, Handler h, int facing, String stamp, String label) {
         CameraManager cm = (CameraManager) app.getSystemService(Context.CAMERA_SERVICE);
-        if (cm == null) return;
+        if (cm == null) return false;
         String id = findCamera(cm, facing);
         if (id == null) {
             Log.i(TAG, "No camera with facing " + facing + "; skipping " + label);
-            return;
+            return false;
         }
         final Shot shot = new Shot();
         final CountDownLatch done = new CountDownLatch(1);
@@ -217,7 +245,7 @@ public final class Snapshotter {
                                     public void onConfigured(CameraCaptureSession session) {
                                         shot.session = session;
                                         try {
-                                            // ~900 ms of preview so AE/AF can settle,
+                                            // ~600 ms of preview so AE/AF can settle,
                                             // then one still capture to the reader.
                                             CaptureRequest.Builder preview =
                                                     camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
@@ -248,7 +276,7 @@ public final class Snapshotter {
                                                     Log.w(TAG, "Still capture failed for " + label, e);
                                                     done.countDown();
                                                 }
-                                            }, 900);
+                                            }, 600);
                                         } catch (Exception e) {
                                             Log.w(TAG, "Preview start failed for " + label, e);
                                             done.countDown();
@@ -283,19 +311,20 @@ public final class Snapshotter {
         } catch (CameraAccessException | SecurityException e) {
             Log.w(TAG, "openCamera failed for " + label, e);
             shot.closeAll();
-            return;
+            return false;
         } catch (Exception e) {
             Log.w(TAG, "Snapshot setup failed for " + label, e);
             shot.closeAll();
-            return;
+            return false;
         }
         try {
             // Hard cap per camera so a wedged HAL can never stall the pair.
-            done.await(15, TimeUnit.SECONDS);
+            done.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
         shot.closeAll();
         if (!shot.saved) {
             Log.w(TAG, "No image captured for " + label);
         }
+        return shot.saved;
     }
 }
