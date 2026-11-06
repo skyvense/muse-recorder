@@ -270,6 +270,10 @@ public class MainActivity extends Activity {
             Prefs.get(this).edit()
                     .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
                     .apply();
+            // If recording is already running, upgrade/downgrade the
+            // service's camera foreground type right away — that type is
+            // what makes lock-screen / screen-off snapshots possible.
+            RecordingService.refreshForeground(this);
             if (snapshotCheck.isChecked()
                     && checkSelfPermission(Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -323,6 +327,7 @@ public class MainActivity extends Activity {
                         .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false).apply();
                 toast(getString(R.string.toast_camera_denied));
             }
+            if (granted) RecordingService.refreshForeground(this);
         }
     }
 
@@ -448,6 +453,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Covers the reboot case: if the service was auto-started before
+        // the app was opened, claiming the camera type may have been
+        // refused then; retry now that the app is in the foreground.
+        RecordingService.refreshForeground(this);
         SnapshotWatcher.start(this);
         Uploader.kick(this);
         refresh.run();

@@ -4,9 +4,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -41,6 +43,16 @@ public class RecordingService extends Service {
 
     public static final String ACTION_START = "personal.muse.recorder.START";
     public static final String ACTION_STOP = "personal.muse.recorder.STOP";
+    public static final String ACTION_REFRESH_FG = "personal.muse.recorder.REFRESH_FG";
+
+    /**
+     * True while this service runs in the foreground WITH the camera type,
+     * which is what lets the app open the camera while the screen is off /
+     * the phone is locked. Set by {@link #applyForeground()}.
+     */
+    public static volatile boolean cameraFgsActive = false;
+
+    private String lastNotifText;
 
     // Polled by MainActivity.
     public static volatile boolean isRecording = false;
@@ -84,6 +96,17 @@ public class RecordingService extends Service {
         ctx.startService(i);
     }
 
+    /**
+     * Re-evaluate the foreground-service types (e.g. after the user toggles
+     * auto-snapshot while recording is already running). No-op unless the
+     * service is recording.
+     */
+    public static void refreshForeground(Context ctx) {
+        if (!isRecording) return;
+        Intent i = new Intent(ctx, RecordingService.class).setAction(ACTION_REFRESH_FG);
+        ctx.startService(i);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -104,19 +127,55 @@ public class RecordingService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+        if (ACTION_REFRESH_FG.equals(action)) {
+            if (isRecording) applyForeground();
+            return START_STICKY;
+        }
         if (!isRecording) {
             startRecording();
         }
         return START_STICKY;
     }
 
-    private void startRecording() {
-        Notification n = buildNotification(getString(R.string.notif_preparing));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            startForeground(NOTIFICATION_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
-        } else {
-            startForeground(NOTIFICATION_ID, n);
+    /**
+     * (Re)enter the foreground. When auto-snapshot is enabled and the
+     * camera permission is granted, the service also claims the CAMERA
+     * foreground type — that is the system-sanctioned way for an app to
+     * open the camera while the screen is off or the phone is locked.
+     * Claiming it can be refused (e.g. the service was auto-started after
+     * a reboot, before the app was ever opened); any failure falls back
+     * to microphone-only so recording is never put at risk.
+     */
+    private void applyForeground() {
+        boolean wantCamera = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                && Prefs.snapshotEnabled(this)
+                && checkSelfPermission(Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
+        Notification n = buildNotification(lastNotifText != null
+                ? lastNotifText : getString(R.string.notif_preparing));
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                int types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+                if (wantCamera) types |= ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+                startForeground(NOTIFICATION_ID, n, types);
+            } else {
+                startForeground(NOTIFICATION_ID, n);
+            }
+            cameraFgsActive = wantCamera;
+        } catch (Exception e) {
+            Log.w(TAG, "Foreground with camera type refused; microphone only", e);
+            cameraFgsActive = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                startForeground(NOTIFICATION_ID, n,
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+            } else {
+                startForeground(NOTIFICATION_ID, n);
+            }
         }
+    }
+
+    private void startRecording() {
+        applyForeground();
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
         if (pm != null) {
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MuseRecorder:record");
@@ -225,6 +284,7 @@ public class RecordingService extends Service {
         Uploader.kick(this);
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         wakeLock = null;
+        cameraFgsActive = false;
         stopForeground(STOP_FOREGROUND_REMOVE);
     }
 
@@ -271,6 +331,7 @@ public class RecordingService extends Service {
     }
 
     private void updateNotification(String text) {
+        lastNotifText = text;
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm != null) nm.notify(NOTIFICATION_ID, buildNotification(text));
     }

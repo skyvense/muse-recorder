@@ -22,7 +22,7 @@
     <string name="delete_after_label">上传成功后删除本地片段（省空间）</string>
     <string name="auto_resume_label">手机重启后自动恢复录音</string>
     <string name="snapshot_label">📸 抬起手机自动拍照（抬到接近 90° 时）</string>
-    <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动用后置和前置摄像头各拍一张，排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间（或 App 打开时）有效；关掉就完全不用摄像头。</string>
+    <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动拍照，排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间锁屏、息屏也能拍；手机重启后请先打开一次 App，息屏拍照才会恢复。关掉就完全不用摄像头。</string>
     <string name="row_snapshot">📸 %1$s 快照 · %2$s MB · 待上传</string>
     <string name="snapshot_camera_label">拍照用哪个摄像头（改完立即生效）</string>
     <string name="snapshot_test_button">📸 立即测试拍一次</string>
