@@ -83,7 +83,8 @@ public class MainActivity extends Activity {
     private Button selfNoteButton, retryUploadButton, settingsToggleButton;
     private ProgressBar uploadProgress;
     private View settingsContainer;
-    private Spinner presetSpinner, languageSpinner;
+    private Spinner presetSpinner, languageSpinner, snapshotCameraSpinner;
+    private boolean snapshotSpinnerTouched = false;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
     private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
@@ -151,6 +152,7 @@ public class MainActivity extends Activity {
         deleteAfterUploadCheck = findViewById(R.id.deleteAfterUploadCheck);
         autoResumeCheck = findViewById(R.id.autoResumeCheck);
         snapshotCheck = findViewById(R.id.snapshotCheck);
+        snapshotCameraSpinner = findViewById(R.id.snapshotCameraSpinner);
         settingsContainer = findViewById(R.id.settingsContainer);
         settingsToggleButton = findViewById(R.id.settingsToggleButton);
 
@@ -261,13 +263,51 @@ public class MainActivity extends Activity {
 
         // Enabling auto-snapshot needs the camera permission; ask right
         // away so the feature does not silently stay dead after saving.
+        // The switch (and the camera choice below) apply IMMEDIATELY —
+        // they used to be written only by "Save settings", so toggling
+        // and then killing the app silently lost the change.
         snapshotCheck.setOnClickListener(v -> {
+            Prefs.get(this).edit()
+                    .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
+                    .apply();
             if (snapshotCheck.isChecked()
                     && checkSelfPermission(Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
                 toast(getString(R.string.toast_camera_permission));
             }
+        });
+
+        ArrayAdapter<String> snapshotCameraAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                getResources().getStringArray(R.array.snapshot_camera_options));
+        snapshotCameraSpinner.setAdapter(snapshotCameraAdapter);
+        snapshotCameraSpinner.setOnTouchListener((v, e) -> {
+            snapshotSpinnerTouched = true;
+            return false;
+        });
+        snapshotCameraSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!snapshotSpinnerTouched) return;
+                Prefs.get(MainActivity.this).edit()
+                        .putInt(Prefs.KEY_SNAPSHOT_CAMERA, pos).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        findViewById(R.id.snapshotTestButton).setOnClickListener(v -> {
+            if (checkSelfPermission(Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+                toast(getString(R.string.toast_camera_permission));
+                return;
+            }
+            Snapshotter.capturePair(this);
+            toast(getString(R.string.toast_snapshot_testing));
+            ui.postDelayed(this::refreshStatus, 4000);
         });
     }
 
@@ -279,6 +319,8 @@ public class MainActivity extends Activity {
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED;
             if (!granted && snapshotCheck != null) {
                 snapshotCheck.setChecked(false);
+                Prefs.get(this).edit()
+                        .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false).apply();
                 toast(getString(R.string.toast_camera_denied));
             }
         }
@@ -475,6 +517,7 @@ public class MainActivity extends Activity {
         deleteAfterUploadCheck.setChecked(p.getBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, true));
         autoResumeCheck.setChecked(p.getBoolean(Prefs.KEY_AUTO_RESUME, false));
         snapshotCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false));
+        snapshotCameraSpinner.setSelection(Prefs.snapshotCameraMode(this));
     }
 
     private void saveSettings() {
@@ -495,6 +538,7 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, deleteAfterUploadCheck.isChecked())
                 .putBoolean(Prefs.KEY_AUTO_RESUME, autoResumeCheck.isChecked())
                 .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
+                .putInt(Prefs.KEY_SNAPSHOT_CAMERA, snapshotCameraSpinner.getSelectedItemPosition())
                 .apply();
         SnapshotWatcher.sync(this);
     }

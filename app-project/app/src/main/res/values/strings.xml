@@ -27,6 +27,15 @@
     <string name="snapshot_label">📸 Auto snapshot when the phone is raised upright (near 90°)</string>
     <string name="snapshot_hint">Off by default. When on: raise the phone from flat to upright and hold ~1 second — it takes one back-camera and one front-camera photo and uploads them to snapshot-YYYY-MM-DD/ in the bucket. Works while recording (or while the app is open). Turn it off to stop all camera use.</string>
     <string name="row_snapshot">📸 %1$s snapshot · %2$s MB · Pending upload</string>
+    <string name="snapshot_camera_label">Snapshot cameras (applies immediately)</string>
+    <string name="snapshot_test_button">📸 Test snapshot now</string>
+    <string name="toast_snapshot_testing">Taking a test snapshot… watch the file list below</string>
+
+    <string-array name="snapshot_camera_options">
+        <item>Back + front</item>
+        <item>Back only</item>
+        <item>Front only</item>
+    </string-array>
     <string name="toast_camera_permission">Please allow camera permission for auto snapshots</string>
     <string name="toast_camera_denied">Camera permission denied — auto snapshot stays off</string>
     <string name="save_settings">Save settings</string>

@@ -265,6 +265,27 @@
                     android:text="@string/snapshot_hint"
                     android:textSize="12sp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/snapshot_camera_label" />
+
+                <Spinner
+                    android:id="@+id/snapshotCameraSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="4dp" />
+
+                <Button
+                    android:id="@+id/snapshotTestButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/snapshot_test_button" />
+
                 <Button
                     android:id="@+id/saveSettingsButton"
                     android:layout_width="match_parent"

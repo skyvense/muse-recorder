@@ -16,19 +16,21 @@ import android.util.Log;
  *
  * Geometry: the trigger angle is the angle between the gravity vector and
  * the device's z axis (out of the screen). Lying flat, screen up, it is
- * ~0°; held upright in portrait it is ~90°. The watcher arms only after the
- * phone has been fairly flat (&lt; 45°), then fires when the angle stays in
- * 75°–105° ("close to 90°") for ~600 ms. After firing it disarms until the
- * phone goes flat again, and a 15 s cooldown applies, so normal handling
+ * ~0°; held upright in portrait it is ~90°. The watcher arms after the
+ * phone has been below 60° (flat on a desk, or held low in the hand),
+ * then fires when the angle stays in 72°–108° ("close to 90°") for
+ * ~500 ms. After firing it disarms until the phone goes low again, and a
+ * 15 s cooldown applies, so normal handling
  * cannot produce a burst of snapshots.
  *
  * The feature is strictly opt-in: nothing is registered or triggered unless
  * the user enables it in Settings (Prefs.KEY_SNAPSHOT_ENABLED, default off),
  * and the camera permission must also be granted.
  *
- * Registration is reference-counted: the recording service holds it for its
- * whole lifetime and MainActivity holds it while in the foreground, so the
- * watcher is active when either is alive.
+ * Registration is reference-counted: MuseApp holds it for the whole
+ * process lifetime, and the recording service and MainActivity add their
+ * own holds on top, so the watcher is active whenever the app process is
+ * alive at all — including right after a kill + reopen.
  */
 public final class SnapshotWatcher implements SensorEventListener {
     private static final String TAG = "MuseSnapshotWatcher";
@@ -101,14 +103,14 @@ public final class SnapshotWatcher implements SensorEventListener {
         double angle = Math.toDegrees(Math.acos(cos));
         long now = System.currentTimeMillis();
 
-        if (angle < 45) {
+        if (angle < 60) {
             armed = true;
             uprightSinceMs = 0;
             return;
         }
-        if (armed && angle >= 75 && angle <= 105) {
+        if (armed && angle >= 72 && angle <= 108) {
             if (uprightSinceMs == 0) uprightSinceMs = now;
-            if (now - uprightSinceMs >= 600
+            if (now - uprightSinceMs >= 500
                     && now - lastFiredMs >= 15_000
                     && !Snapshotter.isCapturing()) {
                 lastFiredMs = now;

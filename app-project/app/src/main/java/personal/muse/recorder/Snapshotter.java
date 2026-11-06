@@ -69,9 +69,10 @@ public final class Snapshotter {
             Handler h = new Handler(ht.getLooper());
             String stamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
                     .format(new Date());
+            int mode = Prefs.snapshotCameraMode(app); // 0=both, 1=back, 2=front
             try {
-                captureOne(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back");
-                captureOne(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front");
+                if (mode != 2) captureOne(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back");
+                if (mode != 1) captureOne(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front");
             } finally {
                 lastSnapshotAtMs = System.currentTimeMillis();
                 CAPTURING.set(false);

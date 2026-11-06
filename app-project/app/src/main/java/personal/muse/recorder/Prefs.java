@@ -30,6 +30,7 @@ public final class Prefs {
     public static final String KEY_S3_SECRET_KEY = "s3_secret_key";
     public static final String KEY_S3_VIRTUAL = "s3_virtual_style";
     public static final String KEY_SNAPSHOT_ENABLED = "snapshot_enabled";
+    public static final String KEY_SNAPSHOT_CAMERA = "snapshot_camera"; // 0=both, 1=back only, 2=front only
     public static final String KEY_CONV_ACTIVE = "conv_active";
     public static final String KEY_MEETING_ACTIVE = "meeting_active";
     public static final String KEY_CONV_SINCE = "conv_since";
@@ -122,6 +123,12 @@ public final class Prefs {
     /** Auto-snapshot on the raise gesture; strictly opt-in, default OFF. */
     public static boolean snapshotEnabled(Context ctx) {
         return get(ctx).getBoolean(KEY_SNAPSHOT_ENABLED, false);
+    }
+
+    /** Which cameras a snapshot uses: 0 = both, 1 = back only, 2 = front only. */
+    public static int snapshotCameraMode(Context ctx) {
+        int m = get(ctx).getInt(KEY_SNAPSHOT_CAMERA, 0);
+        return (m >= 0 && m <= 2) ? m : 0;
     }
 
     /** Directory holding snapshot JPEGs waiting for upload. */
