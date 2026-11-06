@@ -43,6 +43,7 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final int REQ_PERMS = 42;
+    private static final int REQ_CAMERA = 43;
 
     // Presets: endpoint, region, virtualStyle. Display names live in the
     // preset_names string-array so they follow the app language.
@@ -86,6 +87,7 @@ public class MainActivity extends Activity {
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
     private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
+    private CheckBox snapshotCheck;
     private boolean spinnerTouched = false;
     private boolean languageTouched = false;
     private long lastConfigSavedAt = 0;
@@ -148,6 +150,7 @@ public class MainActivity extends Activity {
         wifiOnlyCheck = findViewById(R.id.wifiOnlyCheck);
         deleteAfterUploadCheck = findViewById(R.id.deleteAfterUploadCheck);
         autoResumeCheck = findViewById(R.id.autoResumeCheck);
+        snapshotCheck = findViewById(R.id.snapshotCheck);
         settingsContainer = findViewById(R.id.settingsContainer);
         settingsToggleButton = findViewById(R.id.settingsToggleButton);
 
@@ -255,6 +258,30 @@ public class MainActivity extends Activity {
         });
 
         findViewById(R.id.batteryButton).setOnClickListener(v -> openBatterySettings());
+
+        // Enabling auto-snapshot needs the camera permission; ask right
+        // away so the feature does not silently stay dead after saving.
+        snapshotCheck.setOnClickListener(v -> {
+            if (snapshotCheck.isChecked()
+                    && checkSelfPermission(Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+                toast(getString(R.string.toast_camera_permission));
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_CAMERA) {
+            boolean granted = grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (!granted && snapshotCheck != null) {
+                snapshotCheck.setChecked(false);
+                toast(getString(R.string.toast_camera_denied));
+            }
+        }
     }
 
     private void toggleEvent(boolean conversation) {
@@ -379,6 +406,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        SnapshotWatcher.start(this);
         Uploader.kick(this);
         refresh.run();
     }
@@ -386,6 +414,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        SnapshotWatcher.stop(this);
         stopSelfNote();
         ui.removeCallbacks(refresh);
         waveform.stopAnimating();
@@ -445,6 +474,7 @@ public class MainActivity extends Activity {
         wifiOnlyCheck.setChecked(p.getBoolean(Prefs.KEY_WIFI_ONLY, false));
         deleteAfterUploadCheck.setChecked(p.getBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, true));
         autoResumeCheck.setChecked(p.getBoolean(Prefs.KEY_AUTO_RESUME, false));
+        snapshotCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false));
     }
 
     private void saveSettings() {
@@ -464,7 +494,9 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_WIFI_ONLY, wifiOnlyCheck.isChecked())
                 .putBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, deleteAfterUploadCheck.isChecked())
                 .putBoolean(Prefs.KEY_AUTO_RESUME, autoResumeCheck.isChecked())
+                .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
                 .apply();
+        SnapshotWatcher.sync(this);
     }
 
     private boolean ensurePermissions() {
@@ -570,6 +602,7 @@ public class MainActivity extends Activity {
 
         // File list: the in-progress segment first, then pending uploads.
         File[] pending = Uploader.pendingFiles(this);
+        File[] pendingSnaps = Uploader.pendingSnapshots(this);
         long bytes = 0;
         List<String> rows = new ArrayList<>();
         List<Boolean> rowIsRecording = new ArrayList<>();
@@ -593,6 +626,16 @@ public class MainActivity extends Activity {
             else if (isNote && name.length() > 15) datePart = name.substring(5, 15);
             String label = datePart.isEmpty() ? name : datePart + " " + hm.format(new Date(f.lastModified()));
             rows.add(getString(isNote ? R.string.row_note : R.string.row_segment, label,
+                    String.format(Locale.US, "%.1f", f.length() / 1_000_000.0)));
+            rowIsRecording.add(false);
+        }
+        for (File f : pendingSnaps) {
+            bytes += f.length();
+            String name = f.getName();
+            String datePart = name.startsWith("snap_") && name.length() > 15
+                    ? name.substring(5, 15) : "";
+            String label = datePart.isEmpty() ? name : datePart + " " + hm.format(new Date(f.lastModified()));
+            rows.add(getString(R.string.row_snapshot, label,
                     String.format(Locale.US, "%.1f", f.length() / 1_000_000.0)));
             rowIsRecording.add(false);
         }
@@ -638,8 +681,8 @@ public class MainActivity extends Activity {
             tv.setPadding(0, 6, 0, 6);
             pendingContainer.addView(tv);
         }
-        filesTitle.setText(pending.length > 0
-                ? getString(R.string.files_title_pending, pending.length,
+        filesTitle.setText(pending.length + pendingSnaps.length > 0
+                ? getString(R.string.files_title_pending, pending.length + pendingSnaps.length,
                         String.format(Locale.US, "%.1f", bytes / 1_000_000.0))
                 : getString(R.string.files_title));
 
@@ -669,14 +712,15 @@ public class MainActivity extends Activity {
         }
         boolean configJustSaved = lastConfigSavedAt > Uploader.lastResultAt;
         retryUploadButton.setVisibility(
-                (!Uploader.isRunning() && (configJustSaved || failingLong) && pending.length > 0)
+                (!Uploader.isRunning() && (configJustSaved || failingLong)
+                        && pending.length + pendingSnaps.length > 0)
                         ? View.VISIBLE : View.GONE);
 
         // Idle retry: the service only retries while recording, so when the
         // app is open but idle, a failed pass used to sit frozen until the
         // next rotation (onResume's kick). Retry once a minute here too,
         // so the upload status refreshes on its own.
-        if (!recording && !Uploader.isRunning() && pending.length > 0
+        if (!recording && !Uploader.isRunning() && pending.length + pendingSnaps.length > 0
                 && nowMs - lastIdleKickMs >= 60_000L) {
             lastIdleKickMs = nowMs;
             Uploader.kick(this);

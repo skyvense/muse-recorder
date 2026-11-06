@@ -24,6 +24,11 @@
     <string name="wifi_only_label">Upload only on Wi‑Fi / unmetered networks</string>
     <string name="delete_after_label">Delete local segments after a successful upload (saves space)</string>
     <string name="auto_resume_label">Auto-resume recording after the phone restarts</string>
+    <string name="snapshot_label">📸 Auto snapshot when the phone is raised upright (near 90°)</string>
+    <string name="snapshot_hint">Off by default. When on: raise the phone from flat to upright and hold ~1 second — it takes one back-camera and one front-camera photo and uploads them to snapshot-YYYY-MM-DD/ in the bucket. Works while recording (or while the app is open). Turn it off to stop all camera use.</string>
+    <string name="row_snapshot">📸 %1$s snapshot · %2$s MB · Pending upload</string>
+    <string name="toast_camera_permission">Please allow camera permission for auto snapshots</string>
+    <string name="toast_camera_denied">Camera permission denied — auto snapshot stays off</string>
     <string name="save_settings">Save settings</string>
     <string name="battery_button">Allow background running (disable battery optimization)</string>
     <string name="events_title">Event markers</string>

@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Bucket layout:
  *   <yyyy-MM-dd>/rec_<yyyy-MM-dd_HH-mm-ss>.m4a   audio segments
  *   markers/events-<yyyy-MM-dd>.jsonl           event markers (re-PUT on change)
+ *   snapshot-<yyyy-MM-dd>/snap_<...>.jpg        auto snapshots (see Snapshotter)
  *
  * Segments get a local "<name>.done" marker after a successful PUT (and are
  * deleted locally when that setting is on). Marker files are tiny and are
@@ -107,13 +108,26 @@ public final class Uploader {
     }
 
     public static int pendingCount(Context ctx) {
-        return pendingFiles(ctx).length;
+        return pendingFiles(ctx).length + pendingSnapshots(ctx).length;
     }
 
     public static long pendingBytes(Context ctx) {
         long total = 0;
         for (File f : pendingFiles(ctx)) total += f.length();
+        for (File f : pendingSnapshots(ctx)) total += f.length();
         return total;
+    }
+
+    /** Snapshot JPEGs waiting for upload (same ".done" marker scheme). */
+    static File[] pendingSnapshots(Context ctx) {
+        File dir = Prefs.snapshotsDir(ctx);
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".jpg"));
+        if (files == null) return new File[0];
+        File[] pending = Arrays.stream(files)
+                .filter(f -> !Prefs.markerFor(f).exists())
+                .toArray(File[]::new);
+        Arrays.sort(pending);
+        return pending;
     }
 
     static File[] pendingFiles(Context ctx) {
@@ -207,10 +221,11 @@ public final class Uploader {
             }
         }
         File[] pending = real.toArray(new File[0]);
+        File[] snaps = pendingSnapshots(app);
         boolean hadEvents = eventsPending(app);
-        runTotal = pending.length;
+        runTotal = pending.length + snaps.length;
         runDone = 0;
-        if (pending.length == 0 && !hadEvents) {
+        if (pending.length == 0 && snaps.length == 0 && !hadEvents) {
             setResult(stubCount > 0
                     ? ctx.getString(R.string.up_no_valid_segments, stubCount)
                     : ctx.getString(R.string.up_no_pending_files));
@@ -239,6 +254,28 @@ public final class Uploader {
                 return; // stop this pass; a dead endpoint should not be hammered
             }
         }
+        for (File f : snaps) {
+            String name = f.getName();
+            String date = dateOf(name, f);
+            currentFileName = name;
+            currentSent = 0;
+            currentTotal = f.length();
+            try {
+                S3.putObject(cfg, "snapshot-" + date + "/" + name, f, "image/jpeg",
+                        (sent, total) -> {
+                            currentSent = sent;
+                            currentTotal = total;
+                        });
+                markDone(app, f);
+                runDone++;
+                Log.i(TAG, "Uploaded snapshot " + name);
+            } catch (Exception e) {
+                Log.w(TAG, "Snapshot upload failed, will retry later: " + name + " (" + e.getMessage() + ")");
+                setResult(ctx.getString(R.string.up_failed, name, trimErr(e), targetInfo(ctx, cfg)));
+                markFail();
+                return;
+            }
+        }
         if (!syncEvents(app, cfg) && hadEvents) {
             setResult(ctx.getString(R.string.up_events_sync_failed, runDone));
             markFail();
@@ -254,6 +291,7 @@ public final class Uploader {
     private static String dateOf(String name, File f) {
         if (name.startsWith("rec_") && name.length() > 14) return name.substring(4, 14);
         if (name.startsWith("note_") && name.length() > 15) return name.substring(5, 15);
+        if (name.startsWith("snap_") && name.length() > 15) return name.substring(5, 15);
         return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
                 .format(new java.util.Date(f.lastModified()));
     }

@@ -42,6 +42,14 @@
   <li>🎙 <b>Voice note</b>: hold to talk, release to stop. While recording it only writes a start/end marker pair; when idle, holding records a standalone voice-note clip that uploads like any other segment.</li>
 </ul>
 
+<h2>Auto snapshot (raise the phone)</h2>
+<ul>
+  <li>Enable “Auto snapshot when the phone is raised upright” in Settings — it is <b>off by default</b> and asks for camera permission the first time.</li>
+  <li>Trigger: raise the phone from flat (under 45°) to near upright (75°–105°, close to 90°) and hold for about a second. The phone vibrates briefly, then the back and front cameras each take one photo.</li>
+  <li>Photos queue and upload automatically like recordings, into the <code>snapshot-YYYY-MM-DD/</code> folder in your bucket; pending snapshots also appear in the file list.</li>
+  <li>Anti-misfire: after a shot the phone must go flat again to re-arm, and triggers are at least 15 seconds apart. Works while recording (or while the app is open). Turn it off in Settings and the app never uses the camera.</li>
+</ul>
+
 <h2>Settings (⚙️ button)</h2>
 <ul>
   <li>Pick a cloud preset first (Cloudflare R2 by default) — it fills in the endpoint and region, which you can still edit by hand.</li>

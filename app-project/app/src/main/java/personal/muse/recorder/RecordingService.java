@@ -91,6 +91,9 @@ public class RecordingService extends Service {
         thread.start();
         handler = new Handler(thread.getLooper());
         createChannel();
+        // The raise-to-snapshot watcher rides along with this service; it
+        // only ever fires when the user enabled it in Settings.
+        SnapshotWatcher.start(this);
     }
 
     @Override
@@ -227,6 +230,7 @@ public class RecordingService extends Service {
 
     @Override
     public void onDestroy() {
+        SnapshotWatcher.stop(this);
         if (isRecording) stopRecording();
         if (thread != null) thread.quitSafely();
         super.onDestroy();

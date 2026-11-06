@@ -21,6 +21,11 @@
     <string name="wifi_only_label">仅在 Wi‑Fi / 不计流量网络时上传</string>
     <string name="delete_after_label">上传成功后删除本地片段（省空间）</string>
     <string name="auto_resume_label">手机重启后自动恢复录音</string>
+    <string name="snapshot_label">📸 抬起手机自动拍照（抬到接近 90° 时）</string>
+    <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动用后置和前置摄像头各拍一张，排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间（或 App 打开时）有效；关掉就完全不用摄像头。</string>
+    <string name="row_snapshot">📸 %1$s 快照 · %2$s MB · 待上传</string>
+    <string name="toast_camera_permission">请允许相机权限，自动拍照才能用</string>
+    <string name="toast_camera_denied">没有相机权限，自动拍照保持关闭</string>
     <string name="save_settings">保存设置</string>
     <string name="battery_button">允许后台运行（关闭电池优化）</string>
     <string name="events_title">事件标记</string>

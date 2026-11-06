@@ -1,0 +1,127 @@
+package personal.muse.recorder;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Build;
+import android.util.Log;
+
+/**
+ * Watches the accelerometer for a "phone raised upright" gesture and fires
+ * {@link Snapshotter#capturePair} when it happens.
+ *
+ * Geometry: the trigger angle is the angle between the gravity vector and
+ * the device's z axis (out of the screen). Lying flat, screen up, it is
+ * ~0°; held upright in portrait it is ~90°. The watcher arms only after the
+ * phone has been fairly flat (&lt; 45°), then fires when the angle stays in
+ * 75°–105° ("close to 90°") for ~600 ms. After firing it disarms until the
+ * phone goes flat again, and a 15 s cooldown applies, so normal handling
+ * cannot produce a burst of snapshots.
+ *
+ * The feature is strictly opt-in: nothing is registered or triggered unless
+ * the user enables it in Settings (Prefs.KEY_SNAPSHOT_ENABLED, default off),
+ * and the camera permission must also be granted.
+ *
+ * Registration is reference-counted: the recording service holds it for its
+ * whole lifetime and MainActivity holds it while in the foreground, so the
+ * watcher is active when either is alive.
+ */
+public final class SnapshotWatcher implements SensorEventListener {
+    private static final String TAG = "MuseSnapshotWatcher";
+    private static SnapshotWatcher instance;
+    private static int refs = 0;
+
+    private final Context app;
+    private SensorManager sensorManager;
+    private boolean armed = false;
+    private long uprightSinceMs = 0;
+    private static volatile long lastFiredMs = 0;
+
+    private SnapshotWatcher(Context app) {
+        this.app = app;
+    }
+
+    public static synchronized void start(Context ctx) {
+        if (instance == null) instance = new SnapshotWatcher(ctx.getApplicationContext());
+        refs++;
+        if (refs == 1) instance.register();
+    }
+
+    public static synchronized void stop(Context ctx) {
+        if (refs > 0) refs--;
+        if (refs == 0 && instance != null) instance.unregister();
+    }
+
+    /** Re-register after a settings change (cheap; safe to call any time). */
+    public static synchronized void sync(Context ctx) {
+        if (refs > 0 && instance != null) {
+            instance.unregister();
+            instance.register();
+        }
+    }
+
+    private void register() {
+        sensorManager = (SensorManager) app.getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager == null) return;
+        Sensor acc = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (acc == null) {
+            Log.i(TAG, "No accelerometer; snapshot watcher inactive");
+            return;
+        }
+        sensorManager.registerListener(this, acc, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void unregister() {
+        if (sensorManager != null) sensorManager.unregisterListener(this);
+        sensorManager = null;
+        armed = false;
+        uprightSinceMs = 0;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (!Prefs.snapshotEnabled(app)) {
+            armed = false;
+            uprightSinceMs = 0;
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= 23
+                && app.checkSelfPermission(Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        float x = event.values[0], y = event.values[1], z = event.values[2];
+        double g = Math.sqrt(x * x + y * y + z * z);
+        if (g < 1.0) return;
+        double cos = Math.max(-1.0, Math.min(1.0, z / g));
+        double angle = Math.toDegrees(Math.acos(cos));
+        long now = System.currentTimeMillis();
+
+        if (angle < 45) {
+            armed = true;
+            uprightSinceMs = 0;
+            return;
+        }
+        if (armed && angle >= 75 && angle <= 105) {
+            if (uprightSinceMs == 0) uprightSinceMs = now;
+            if (now - uprightSinceMs >= 600
+                    && now - lastFiredMs >= 15_000
+                    && !Snapshotter.isCapturing()) {
+                lastFiredMs = now;
+                armed = false;
+                uprightSinceMs = 0;
+                Log.i(TAG, "Raise gesture detected (angle " + (int) angle + "°); taking snapshot pair");
+                Snapshotter.capturePair(app);
+            }
+        } else {
+            uprightSinceMs = 0;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+}

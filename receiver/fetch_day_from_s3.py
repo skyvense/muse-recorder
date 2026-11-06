@@ -142,7 +142,8 @@ def main():
                      if k.endswith(".m4a") and f"note_{date}_" in k)
     seg_keys += rescued
     marker_keys = [k for k in s3.list_keys("markers/") if k.endswith(f"events-{date}.jsonl")]
-    if not seg_keys and not marker_keys:
+    snap_keys = sorted(k for k in s3.list_keys(f"snapshot-{date}/") if k.endswith(".jpg"))
+    if not seg_keys and not marker_keys and not snap_keys:
         print(f"NO_FILES for {date} in bucket {s3.bucket}")
         return 0
 
@@ -169,7 +170,24 @@ def main():
         data = s3.request("GET", key)
         dest.write_bytes(data)
         print(f"fetched {key} ({len(data)} bytes, {len(data.splitlines())} events)")
-    print(f"DONE {date}: {fetched} new segments, {len(seg_keys)} total in bucket")
+    fetched_snaps = 0
+    for key in snap_keys:
+        dest = base / "snapshots" / date / Path(key).name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.exists() and dest.stat().st_size > 0:
+            continue
+        data = s3.request("GET", key)
+        dest.write_bytes(data)
+        fetched_snaps += 1
+        print(f"fetched {key} ({len(data)} bytes)")
+        if delete_after:
+            try:
+                s3.request("DELETE", key)
+                print(f"deleted cloud copy {key}")
+            except Exception as e:
+                print(f"WARNING: could not delete cloud copy {key}: {e}")
+    print(f"DONE {date}: {fetched} new segments, {len(seg_keys)} total in bucket, "
+          f"{fetched_snaps} new snapshots, {len(snap_keys)} total snapshots")
     return 0
 
 

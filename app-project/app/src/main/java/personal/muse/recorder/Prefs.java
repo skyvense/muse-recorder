@@ -29,6 +29,7 @@ public final class Prefs {
     public static final String KEY_S3_ACCESS_KEY = "s3_access_key";
     public static final String KEY_S3_SECRET_KEY = "s3_secret_key";
     public static final String KEY_S3_VIRTUAL = "s3_virtual_style";
+    public static final String KEY_SNAPSHOT_ENABLED = "snapshot_enabled";
     public static final String KEY_CONV_ACTIVE = "conv_active";
     public static final String KEY_MEETING_ACTIVE = "meeting_active";
     public static final String KEY_CONV_SINCE = "conv_since";
@@ -116,6 +117,22 @@ public final class Prefs {
         S3.Config c = s3Config(ctx);
         return !c.endpoint.isEmpty() && !c.bucket.isEmpty()
                 && !c.accessKey.isEmpty() && !c.secretKey.isEmpty();
+    }
+
+    /** Auto-snapshot on the raise gesture; strictly opt-in, default OFF. */
+    public static boolean snapshotEnabled(Context ctx) {
+        return get(ctx).getBoolean(KEY_SNAPSHOT_ENABLED, false);
+    }
+
+    /** Directory holding snapshot JPEGs waiting for upload. */
+    public static File snapshotsDir(Context ctx) {
+        File dir = new File(ctx.getExternalFilesDir(null), "snapshots");
+        if (!dir.exists()) dir.mkdirs();
+        if (!dir.exists()) {
+            dir = new File(ctx.getFilesDir(), "snapshots");
+            dir.mkdirs();
+        }
+        return dir;
     }
 
     /** Directory holding event-marker files (events-YYYY-MM-DD.jsonl). */
