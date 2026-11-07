@@ -39,12 +39,13 @@ public class SegmentProgressView extends View {
     }
 
     private void init() {
+        Ui.Palette p = Ui.of(getContext());
         bgPaint.setStyle(Paint.Style.FILL);
-        bgPaint.setColor(0xFFE0E0E6);
+        bgPaint.setColor(p.divider);
         fillPaint.setStyle(Paint.Style.FILL);
-        fillPaint.setColor(0xFFFF3B30);
+        fillPaint.setColor(p.accent);
         float density = getResources().getDisplayMetrics().density;
-        textDarkPaint.setColor(0xFF1C1C1E);
+        textDarkPaint.setColor(p.text);
         textDarkPaint.setTextSize(13f * density);
         textDarkPaint.setFakeBoldText(true);
         textDarkPaint.setTextAlign(Paint.Align.CENTER);

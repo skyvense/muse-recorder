@@ -2,6 +2,7 @@ package personal.muse.recorder;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
@@ -39,6 +40,7 @@ import java.util.concurrent.Executors;
 */
 public final class SupabaseReports {
 private final Activity act;
+private final Ui.Palette pal;
 private final Handler ui = new Handler(Looper.getMainLooper());
 private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -80,6 +82,7 @@ tv = new TextView(act);
 tv.setTextSize(16);
 }
 DayRow d = days.get(pos);
+tv.setTextColor(pal.text);
 tv.setPadding(24, 18, 16, 18);
 tv.setText("📅 " + d.day + " · "
 + act.getString(R.string.reports_segments, d.segments));
@@ -89,6 +92,7 @@ return tv;
 
 public SupabaseReports(Activity act) {
 this.act = act;
+this.pal = Ui.of(act);
 title = act.findViewById(R.id.reportsTitle);
 status = act.findViewById(R.id.reportsStatus);
 detailText = act.findViewById(R.id.reportsDetailText);
@@ -98,6 +102,14 @@ sheetButton = act.findViewById(R.id.reportsSheetButton);
 sheetImage = act.findViewById(R.id.reportsSheetImage);
 list = act.findViewById(R.id.reportsList);
 detail = act.findViewById(R.id.reportsDetail);
+title.setTextColor(pal.text);
+status.setTextColor(pal.sub);
+detailText.setTextColor(pal.text);
+Ui.styleGhost(backButton, pal);
+Ui.styleGhost(refreshButton, pal);
+Ui.stylePrimary(sheetButton, pal);
+list.setDivider(new ColorDrawable(pal.divider));
+list.setDividerHeight(1);
 list.setAdapter(adapter);
 backButton.setOnClickListener(v -> onBack());
 refreshButton.setOnClickListener(v -> loadDays());

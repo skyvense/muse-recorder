@@ -22,6 +22,7 @@ public final class Prefs {
     public static final String KEY_SB_KEY = "supabase_key";
     // v1.2: S3-only mode
     public static final String KEY_APP_LANGUAGE = "app_language"; // "system" or a language code
+    public static final String KEY_DARK_MODE = "dark_mode"; // 0=follow system, 1=light, 2=dark
     public static final String KEY_S3_PRESET = "s3_preset";
     public static final String KEY_S3_ENDPOINT = "s3_endpoint";
     public static final String KEY_S3_REGION = "s3_region";
@@ -67,6 +68,12 @@ public final class Prefs {
 
     public static String supabaseKey(Context ctx) {
         return get(ctx).getString(KEY_SB_KEY, "").trim();
+    }
+
+    /** Dark-mode preference: 0 = follow system (default), 1 = light, 2 = dark. */
+    public static int darkMode(Context ctx) {
+        int m = get(ctx).getInt(KEY_DARK_MODE, 0);
+        return (m >= 0 && m <= 2) ? m : 0;
     }
 
     public static boolean wifiOnly(Context ctx) {

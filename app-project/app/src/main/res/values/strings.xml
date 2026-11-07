@@ -141,6 +141,13 @@
     <string name="up_stubs_cleaned">, cleaned up %1$d empty segments</string>
     <string name="up_events_suffix">(event markers)</string>
     <string name="language_label">Language</string>
+    <string name="dark_mode_label">Dark mode</string>
+
+    <string-array name="dark_mode_options">
+        <item>Follow system</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
 
     <string-array name="language_codes">
         <item>system</item>

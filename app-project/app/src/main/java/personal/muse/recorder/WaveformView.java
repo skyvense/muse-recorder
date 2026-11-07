@@ -98,7 +98,7 @@ public class WaveformView extends View {
 
     private void init() {
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xFFFF3B30);
+        paint.setColor(Ui.of(getContext()).accent);
         paint.setStrokeCap(Paint.Cap.ROUND);
     }
 

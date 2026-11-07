@@ -28,10 +28,11 @@ public class RecordButtonView extends View {
     }
 
     private void init() {
+        Ui.Palette p = Ui.of(getContext());
         ringPaint.setStyle(Paint.Style.STROKE);
-        ringPaint.setColor(0xFFC7C7CC);
+        ringPaint.setColor(p.dark ? p.divider : 0xFFC7C7CC);
         fillPaint.setStyle(Paint.Style.FILL);
-        fillPaint.setColor(0xFFFF3B30);
+        fillPaint.setColor(p.danger);
         setContentDescription(getContext().getString(R.string.record_button_desc));
     }
 

@@ -80,6 +80,13 @@
     <string name="up_stubs_cleaned">, пустых сегментов очищено: %1$d</string>
     <string name="up_events_suffix">(метки событий)</string>
     <string name="language_label">Язык</string>
+    <string name="dark_mode_label">Тёмная тема</string>
+
+    <string-array name="dark_mode_options">
+        <item>Как в системе</item>
+        <item>Светлая</item>
+        <item>Тёмная</item>
+    </string-array>
 
     <string-array name="language_names">
         <item>Как в системе</item>

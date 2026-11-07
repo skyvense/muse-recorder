@@ -2,6 +2,7 @@ package personal.muse.recorder;
 
 import android.app.Activity;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,6 +35,7 @@ import java.util.concurrent.Executors;
  */
 public final class R2Browser {
     private final Activity act;
+    private final Ui.Palette pal;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
 
@@ -85,6 +87,7 @@ public final class R2Browser {
                 tv.setTextSize(16);
             }
             tv.setText(r.text);
+            tv.setTextColor(pal.text);
             if (r.type == Row.HEADER) {
                 tv.setPadding(16, 28, 16, 8);
                 tv.setTextSize(15);
@@ -100,6 +103,7 @@ public final class R2Browser {
 
     public R2Browser(Activity act) {
         this.act = act;
+        this.pal = Ui.of(act);
         title = act.findViewById(R.id.cloudTitle);
         status = act.findViewById(R.id.cloudStatus);
         backButton = act.findViewById(R.id.cloudBackButton);
@@ -111,6 +115,15 @@ public final class R2Browser {
         playButton = act.findViewById(R.id.cloudPlayButton);
         playLabel = act.findViewById(R.id.cloudPlayLabel);
         playerRow = act.findViewById(R.id.cloudPlayerRow);
+        title.setTextColor(pal.text);
+        status.setTextColor(pal.sub);
+        detailTitle.setTextColor(pal.sub);
+        playLabel.setTextColor(pal.text);
+        Ui.styleGhost(backButton, pal);
+        Ui.styleGhost(refreshButton, pal);
+        Ui.styleGhost(playButton, pal);
+        list.setDivider(new ColorDrawable(pal.divider));
+        list.setDividerHeight(1);
         list.setAdapter(adapter);
         clearCache();
         backButton.setOnClickListener(v -> onBack());

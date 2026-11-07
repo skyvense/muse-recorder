@@ -80,6 +80,13 @@
     <string name="up_stubs_cleaned">, se limpiaron %1$d segmentos vacíos</string>
     <string name="up_events_suffix">(marcadores de eventos)</string>
     <string name="language_label">Idioma</string>
+    <string name="dark_mode_label">Modo oscuro</string>
+
+    <string-array name="dark_mode_options">
+        <item>Seguir el sistema</item>
+        <item>Claro</item>
+        <item>Oscuro</item>
+    </string-array>
 
     <string-array name="language_names">
         <item>Seguir el sistema</item>

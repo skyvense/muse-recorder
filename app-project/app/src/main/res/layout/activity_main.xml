@@ -1,51 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F6F7F9"
     android:orientation="vertical">
-
-    <!-- Tab bar: Record / Cloud / Reports / Settings. The record page is
-         the original control page (its settings moved to the Settings tab);
-         Cloud browses the R2 bucket; Reports reads Supabase daily
-         summaries. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/tabRecordButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/tab_record" />
-
-        <Button
-            android:id="@+id/tabCloudButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/tab_cloud" />
-
-        <Button
-            android:id="@+id/tabReportsButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/tab_reports" />
-
-        <Button
-            android:id="@+id/tabSettingsButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/tab_settings" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#D9D9DE" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -150,14 +109,16 @@
             </ScrollView>
 
             <View
+                android:id="@+id/footerDivider"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#D9D9DE" />
+                android:background="#E4E7EC" />
 
             <LinearLayout
+                android:id="@+id/recordFooter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FAFAFC"
+                android:background="#FFFFFF"
                 android:orientation="vertical"
                 android:padding="14dp">
 
@@ -726,6 +687,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/dark_mode_label" />
+
+                <Spinner
+                    android:id="@+id/darkModeSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" />
+
                 <Button
                     android:id="@+id/batteryButton"
                     android:layout_width="match_parent"
@@ -742,4 +715,53 @@
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
+
+    <View
+        android:id="@+id/tabDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E4E7EC" />
+
+    <!-- Tab bar (bottom, as in the v1.12 redesign mockups): Record /
+         Cloud / Reports / Settings. The record page is the original
+         control page (its settings moved to the Settings tab); Cloud
+         browses the R2 bucket; Reports reads Supabase daily summaries.
+         Colors and the active-tab pill are applied in code from the
+         theme palette (see MainActivity.applyTheme / selectTab). -->
+    <LinearLayout
+        android:id="@+id/tabBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:orientation="horizontal"
+        android:padding="6dp">
+
+        <Button
+            android:id="@+id/tabRecordButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_record" />
+
+        <Button
+            android:id="@+id/tabCloudButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_cloud" />
+
+        <Button
+            android:id="@+id/tabReportsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_reports" />
+
+        <Button
+            android:id="@+id/tabSettingsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tab_settings" />
+    </LinearLayout>
 </LinearLayout>

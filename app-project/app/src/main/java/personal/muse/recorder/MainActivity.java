@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
@@ -90,8 +89,10 @@ public class MainActivity extends Activity {
     private R2Browser r2Browser;
     private SupabaseReports supabaseReports;
     private EditText supabaseUrlInput, supabaseKeyInput;
-    private Spinner presetSpinner, languageSpinner, snapshotCameraSpinner;
+    private Spinner presetSpinner, languageSpinner, snapshotCameraSpinner, darkModeSpinner;
     private boolean snapshotSpinnerTouched = false;
+    private boolean darkModeTouched = false;
+    private Ui.Palette pal;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
     private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
@@ -128,7 +129,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Pick the matching framework theme before inflating, so native
+        // widgets (spinners, dialogs, menus) follow the app's palette
+        // instead of always rendering light.
+        setTheme(Ui.isDark(this) ? android.R.style.Theme_Material
+                : android.R.style.Theme_Material_Light);
         setContentView(R.layout.activity_main);
+        pal = Ui.of(this);
 
         recordButton = findViewById(R.id.recordButton);
         waveform = findViewById(R.id.waveform);
@@ -163,10 +170,9 @@ public class MainActivity extends Activity {
         settingsContainer = findViewById(R.id.settingsContainer);
         supabaseUrlInput = findViewById(R.id.supabaseUrlInput);
         supabaseKeyInput = findViewById(R.id.supabaseKeyInput);
+        darkModeSpinner = findViewById(R.id.darkModeSpinner);
 
-        selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
-        selfNoteButton.setTextColor(Color.WHITE);
-        selfNoteButton.setAllCaps(false);
+        applyTheme();
 
         // Tabs: record (control) / cloud (R2 browser) / reports (Supabase)
         // / settings. The settings that used to hide behind a toggle button
@@ -226,6 +232,30 @@ public class MainActivity extends Activity {
                 if (code.equals(LocaleHelper.savedCode(MainActivity.this))) return;
                 Prefs.get(MainActivity.this).edit()
                         .putString(Prefs.KEY_APP_LANGUAGE, code).apply();
+                recreate();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Dark mode applies immediately (like the snapshot switch): save
+        // and recreate so every view re-resolves the palette.
+        ArrayAdapter<String> darkModeAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                getResources().getStringArray(R.array.dark_mode_options));
+        darkModeSpinner.setAdapter(darkModeAdapter);
+        darkModeSpinner.setOnTouchListener((v, e) -> {
+            darkModeTouched = true;
+            return false;
+        });
+        darkModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!darkModeTouched) return;
+                if (pos == Prefs.darkMode(MainActivity.this)) return;
+                Prefs.get(MainActivity.this).edit()
+                        .putInt(Prefs.KEY_DARK_MODE, pos).apply();
                 recreate();
             }
 
@@ -409,7 +439,7 @@ public class MainActivity extends Activity {
         }
         noteActive = true;
         vibrateTick();
-        selfNoteButton.setBackground(roundedBg(0xFFFF3B30, 12));
+        selfNoteButton.setBackground(Ui.rounded(this, pal.danger, 16));
         selfNoteButton.setText(R.string.self_note_active);
         refreshStatus();
     }
@@ -443,7 +473,7 @@ public class MainActivity extends Activity {
                 noteFile = null;
             }
         }
-        selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
+        selfNoteButton.setBackground(Ui.rounded(this, pal.accent, 16));
         selfNoteButton.setText(R.string.self_note_button);
         refreshStatus();
     }
@@ -509,8 +539,63 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Paints the whole activity with the current palette: page and tab-bar
+     * backgrounds, text colors, buttons, checkboxes, progress bar. Views
+     * created later (event cards, pending rows, list rows) read the same
+     * palette in refreshStatus / the tab helpers.
+     */
+    private void applyTheme() {
+        findViewById(R.id.rootLayout).setBackgroundColor(pal.bg);
+        findViewById(R.id.tabBar).setBackgroundColor(pal.tabBar);
+        findViewById(R.id.tabDivider).setBackgroundColor(pal.divider);
+        findViewById(R.id.footerDivider).setBackgroundColor(pal.divider);
+        findViewById(R.id.recordFooter).setBackgroundColor(pal.tabBar);
+        statusText.setTextColor(pal.text);
+        lastEventText.setTextColor(pal.sub);
+        filesTitle.setTextColor(pal.text);
+        uploadStatusText.setTextColor(pal.sub);
+        if (uploadProgress.getProgressDrawable() != null) {
+            uploadProgress.getProgressDrawable().setTint(pal.accent);
+        }
+        styleSettingsText(settingsContainer);
+        selfNoteButton.setBackground(Ui.rounded(this, pal.accent, 16));
+        selfNoteButton.setTextColor(Color.WHITE);
+        selfNoteButton.setAllCaps(false);
+        Ui.stylePrimary(retryUploadButton, pal);
+        Ui.stylePrimary((Button) findViewById(R.id.saveSettingsButton), pal);
+        Ui.styleGhost((Button) findViewById(R.id.batteryButton), pal);
+        Ui.styleGhost((Button) findViewById(R.id.snapshotTestButton), pal);
+    }
+
+    /** Recolors the settings form: labels, hints, inputs, checkbox accents. */
+    private void styleSettingsText(View v) {
+        if (v instanceof Button) {
+            // Buttons are styled separately in applyTheme.
+        } else if (v instanceof CheckBox) {
+            CheckBox cb = (CheckBox) v;
+            cb.setTextColor(pal.text);
+            cb.setButtonTintList(
+                    android.content.res.ColorStateList.valueOf(pal.accent));
+        } else if (v instanceof EditText) {
+            EditText et = (EditText) v;
+            et.setTextColor(pal.text);
+            et.setHintTextColor(pal.sub);
+        } else if (v instanceof TextView) {
+            TextView tv = (TextView) v;
+            float sp = tv.getTextSize() / getResources().getDisplayMetrics().scaledDensity;
+            // Small print (hints) is subdued; labels and titles full-strength.
+            tv.setTextColor(sp <= 12.5f ? pal.sub : pal.text);
+        }
+        if (v instanceof android.view.ViewGroup) {
+            android.view.ViewGroup g = (android.view.ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) styleSettingsText(g.getChildAt(i));
+        }
+    }
+
     private void loadSettings() {
         SharedPreferences p = Prefs.get(this);
+        darkModeSpinner.setSelection(Prefs.darkMode(this));
         // Language: position of the saved code in language_codes.
         String savedLang = LocaleHelper.savedCode(this);
         String[] codes = getResources().getStringArray(R.array.language_codes);
@@ -589,9 +674,14 @@ public class MainActivity extends Activity {
         pageSettings.setVisibility(tab == 3 ? View.VISIBLE : View.GONE);
         Button[] tabs = {tabRecordButton, tabCloudButton, tabReportsButton, tabSettingsButton};
         for (int i = 0; i < tabs.length; i++) {
-            tabs[i].setTypeface(null, i == tab
+            boolean activeTab = i == tab;
+            tabs[i].setTypeface(null, activeTab
                     ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-            tabs[i].setBackgroundColor(i == tab ? 0xFFE3E6F3 : 0x00000000);
+            tabs[i].setAllCaps(false);
+            tabs[i].setTextColor(activeTab ? pal.accent : pal.sub);
+            tabs[i].setBackground(activeTab
+                    ? Ui.rounded(this, pal.card2, 20)
+                    : Ui.rounded(this, Color.TRANSPARENT, 20));
         }
         if (tab == 1 && r2Browser != null) r2Browser.onShow();
         if (tab == 2 && supabaseReports != null) supabaseReports.onShow();
@@ -641,36 +731,19 @@ public class MainActivity extends Activity {
         }
     }
 
-    private GradientDrawable ovalBg(int color) {
-        GradientDrawable d = new GradientDrawable();
-        d.setShape(GradientDrawable.OVAL);
-        d.setColor(color);
-        return d;
-    }
-
-    private GradientDrawable roundedBg(int color, int radiusDp) {
-        GradientDrawable d = new GradientDrawable();
-        d.setShape(GradientDrawable.RECTANGLE);
-        d.setColor(color);
-        d.setCornerRadius(radiusDp * getResources().getDisplayMetrics().density);
-        return d;
-    }
-
     private void styleEventCard(LinearLayout card, TextView title, TextView state,
                                 boolean active, int activeColor, long sinceMs) {
         if (active) {
-            card.setBackground(roundedBg(activeColor, 14));
+            card.setBackground(Ui.rounded(this, activeColor, 16));
             title.setTextColor(Color.WHITE);
             long mins = sinceMs > 0 ? (System.currentTimeMillis() - sinceMs) / 60000 : 0;
             state.setText(getString(R.string.card_active, mins));
             state.setTextColor(0xE6FFFFFF);
         } else {
-            GradientDrawable d = roundedBg(Color.WHITE, 14);
-            d.setStroke((int) (1 * getResources().getDisplayMetrics().density), 0xFFE0E0E6);
-            card.setBackground(d);
-            title.setTextColor(0xFF1C1C1E);
+            card.setBackground(Ui.cardBg(this, pal, 16));
+            title.setTextColor(pal.text);
             state.setText(R.string.tap_to_start);
-            state.setTextColor(0xFF8E8E93);
+            state.setTextColor(pal.sub);
         }
     }
 
@@ -703,10 +776,10 @@ public class MainActivity extends Activity {
         }
 
         styleEventCard(convCard, convCardTitle, convCardState,
-                prefs.getBoolean(Prefs.KEY_CONV_ACTIVE, false), 0xFF007AFF,
+                prefs.getBoolean(Prefs.KEY_CONV_ACTIVE, false), pal.accent,
                 prefs.getLong(Prefs.KEY_CONV_SINCE, 0));
         styleEventCard(meetingCard, meetingCardTitle, meetingCardState,
-                prefs.getBoolean(Prefs.KEY_MEETING_ACTIVE, false), 0xFF5856D6,
+                prefs.getBoolean(Prefs.KEY_MEETING_ACTIVE, false), pal.accent2,
                 prefs.getLong(Prefs.KEY_MEETING_SINCE, 0));
 
         // File list: the in-progress segment first, then pending uploads.
@@ -768,7 +841,7 @@ public class MainActivity extends Activity {
                 TextView tv = new TextView(this);
                 tv.setText(getString(R.string.row_recording_label, recLabel));
                 tv.setTextSize(14);
-                tv.setTextColor(0xFFFF3B30);
+                tv.setTextColor(pal.danger);
                 row.addView(tv);
                 SegmentProgressView bar = new SegmentProgressView(this);
                 long segMs = Prefs.segmentMinutes(this) * 60_000L;
@@ -786,7 +859,7 @@ public class MainActivity extends Activity {
             TextView tv = new TextView(this);
             tv.setText(rows.get(i));
             tv.setTextSize(14);
-            if (rowIsRecording.get(i)) tv.setTextColor(0xFFFF3B30);
+            tv.setTextColor(rowIsRecording.get(i) ? pal.danger : pal.text);
             tv.setPadding(0, 6, 0, 6);
             pendingContainer.addView(tv);
         }
