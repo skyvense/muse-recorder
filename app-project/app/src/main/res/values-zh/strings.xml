@@ -58,6 +58,10 @@
     <string name="reports_not_configured">在「配置」页填入 Supabase 的 publishable key 后，这里就能看每日总结</string>
     <string name="reports_failed">加载失败：%1$s</string>
     <string name="reports_segments">%1$d 段录音</string>
+    <string name="reports_sheet_button">📸 看当日活动图（%1$d 张照片 · %2$d 个活动时段）</string>
+    <string name="reports_sheet_hide">收起活动图</string>
+    <string name="reports_sheet_loading">图片加载中…</string>
+    <string name="reports_sheet_failed">活动图没加载出来：%1$s</string>
     <string name="reports_analyses_title">当天分段报告</string>
     <string name="reports_analyses_failed">分段报告没读到（可能还没开只读策略）</string>
 

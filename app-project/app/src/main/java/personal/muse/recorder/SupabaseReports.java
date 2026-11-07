@@ -1,12 +1,16 @@
 package personal.muse.recorder;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -39,13 +43,21 @@ private final Handler ui = new Handler(Looper.getMainLooper());
 private final ExecutorService io = Executors.newSingleThreadExecutor();
 
 private final TextView title, status, detailText;
-private final Button backButton, refreshButton;
+private final Button backButton, refreshButton, sheetButton;
+private final ImageView sheetImage;
 private final ListView list;
 private final View detail;
 
 private boolean detailOpen = false;
 private int generation = 0;
 private long loadedAtMs = 0;
+
+// Daily activity sheet (daily_sheets table): metadata first, the ~1 MB
+// base64 image only when the user taps the button.
+private String sheetDay = null;
+private String sheetButtonLabel = "";
+private Bitmap sheetBitmap = null;
+private boolean sheetBusy = false;
 
 private static final class DayRow {
 String day;
@@ -82,11 +94,14 @@ status = act.findViewById(R.id.reportsStatus);
 detailText = act.findViewById(R.id.reportsDetailText);
 backButton = act.findViewById(R.id.reportsBackButton);
 refreshButton = act.findViewById(R.id.reportsRefreshButton);
+sheetButton = act.findViewById(R.id.reportsSheetButton);
+sheetImage = act.findViewById(R.id.reportsSheetImage);
 list = act.findViewById(R.id.reportsList);
 detail = act.findViewById(R.id.reportsDetail);
 list.setAdapter(adapter);
 backButton.setOnClickListener(v -> onBack());
 refreshButton.setOnClickListener(v -> loadDays());
+sheetButton.setOnClickListener(v -> onSheetButton());
 list.setOnItemClickListener((parent, view, pos, id) -> openDay(days.get(pos)));
 }
 
@@ -98,6 +113,7 @@ if (!detailOpen && System.currentTimeMillis() - loadedAtMs > 60_000) loadDays();
 public boolean onBack() {
 if (!detailOpen) return false;
 detailOpen = false;
+resetSheet();
 detail.setVisibility(View.GONE);
 list.setVisibility(View.VISIBLE);
 backButton.setVisibility(View.GONE);
@@ -150,9 +166,61 @@ act.getString(R.string.reports_failed, trimErr(e))));
 });
 }
 
+private void resetSheet() {
+sheetDay = null;
+sheetBitmap = null;
+sheetBusy = false;
+sheetButton.setVisibility(View.GONE);
+sheetImage.setVisibility(View.GONE);
+sheetImage.setImageBitmap(null);
+}
+
+private void onSheetButton() {
+if (sheetDay == null || sheetBusy) return;
+if (sheetBitmap!= null) {
+boolean show = sheetImage.getVisibility()!= View.VISIBLE;
+sheetImage.setVisibility(show? View.VISIBLE: View.GONE);
+sheetButton.setText(show
+? act.getString(R.string.reports_sheet_hide): sheetButtonLabel);
+return;
+}
+sheetBusy = true;
+sheetButton.setText(act.getString(R.string.reports_sheet_loading));
+final String day = sheetDay;
+final int gen = generation;
+io.execute(() -> {
+try {
+JSONArray arr = new JSONArray(get("/rest/v1/daily_sheets"
++ "?select=image_base64&day=eq." + enc(day)));
+if (arr.length() == 0) throw new java.io.IOException("empty");
+byte[] bytes = Base64.decode(arr.getJSONObject(0).optString("image_base64"),
+Base64.DEFAULT);
+Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+if (bmp == null) throw new java.io.IOException("decode failed");
+ui.post(() -> {
+sheetBusy = false;
+if (gen!= generation ||!detailOpen) return;
+sheetBitmap = bmp;
+sheetImage.setImageBitmap(bmp);
+sheetImage.setVisibility(View.VISIBLE);
+sheetButton.setText(act.getString(R.string.reports_sheet_hide));
+});
+} catch (Exception e) {
+ui.post(() -> {
+sheetBusy = false;
+if (gen!= generation ||!detailOpen) return;
+sheetButton.setText(sheetButtonLabel);
+status.setText(act.getString(R.string.reports_sheet_failed, trimErr(e)));
+});
+}
+});
+}
+
 private void openDay(DayRow d) {
 final int gen = ++generation;
 detailOpen = true;
+resetSheet();
+sheetDay = d.day;
 list.setVisibility(View.GONE);
 detail.setVisibility(View.VISIBLE);
 backButton.setVisibility(View.VISIBLE);
@@ -181,11 +249,30 @@ sb.append("\n\n\n")
 sb.append("\n\n(").append(act.getString(R.string.reports_analyses_failed))
 .append(")");
 }
+// Activity-sheet metadata (no image yet); table may not exist yet.
+int sheetPhotos = -1, sheetClusters = -1;
+try {
+JSONArray sarr = new JSONArray(get("/rest/v1/daily_sheets"
++ "?select=photo_count,cluster_count&day=eq." + enc(d.day)));
+if (sarr.length() > 0) {
+sheetPhotos = sarr.getJSONObject(0).optInt("photo_count");
+sheetClusters = sarr.getJSONObject(0).optInt("cluster_count");
+}
+} catch (Exception ignored) {
+// No sheet for this day (or table not created yet): no button.
+}
 final String text = sb.toString();
+final int fPhotos = sheetPhotos, fClusters = sheetClusters;
 ui.post(() -> {
 if (gen!= generation ||!detailOpen) return;
 detailText.setText(text);
 status.setText("");
+if (fPhotos >= 0) {
+sheetButtonLabel = act.getString(R.string.reports_sheet_button,
+fPhotos, fClusters);
+sheetButton.setText(sheetButtonLabel);
+sheetButton.setVisibility(View.VISIBLE);
+}
 });
 });
 }

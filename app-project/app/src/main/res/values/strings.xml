@@ -61,6 +61,10 @@
     <string name="reports_not_configured">Paste the Supabase publishable key in the Settings tab to read daily summaries here</string>
     <string name="reports_failed">Failed to load: %1$s</string>
     <string name="reports_segments">%1$d segments</string>
+    <string name="reports_sheet_button">📸 Daily activity sheet (%1$d photos · %2$d activities)</string>
+    <string name="reports_sheet_hide">Hide activity sheet</string>
+    <string name="reports_sheet_loading">Loading image…</string>
+    <string name="reports_sheet_failed">Activity sheet could not be loaded: %1$s</string>
     <string name="reports_analyses_title">Window reports of the day</string>
     <string name="reports_analyses_failed">Window reports could not be loaded (read policy may be missing)</string>
 

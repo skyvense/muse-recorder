@@ -424,13 +424,33 @@
                 android:layout_weight="1"
                 android:visibility="gone">
 
-                <TextView
-                    android:id="@+id/reportsDetailText"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textIsSelectable="true"
-                    android:textSize="14sp" />
+                    android:orientation="vertical">
+
+                    <Button
+                        android:id="@+id/reportsSheetButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/reportsSheetImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/reportsDetailText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="16dp"
+                        android:textIsSelectable="true"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </ScrollView>
         </LinearLayout>
 
