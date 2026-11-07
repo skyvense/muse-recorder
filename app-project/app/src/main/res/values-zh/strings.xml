@@ -58,7 +58,7 @@
     <string name="reports_not_configured">在「配置」页填入 Supabase 的 publishable key 后，这里就能看每日总结</string>
     <string name="reports_failed">加载失败：%1$s</string>
     <string name="reports_segments">%1$d 段录音</string>
-    <string name="reports_sheet_button">📸 看当日活动图（%1$d 张照片 · %2$d 个活动时段）</string>
+    <string name="reports_sheet_button">看当日活动图（%1$d 张照片 · %2$d 个活动时段）</string>
     <string name="reports_sheet_hide">收起活动图</string>
     <string name="reports_sheet_loading">图片加载中…</string>
     <string name="reports_sheet_failed">活动图没加载出来：%1$s</string>
@@ -174,4 +174,35 @@
         <item>七牛云 Kodo · 华东（S3兼容）</item>
         <item>自定义</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">录音</string>
+    <string name="title_cloud">云端</string>
+    <string name="title_reports">日报</string>
+    <string name="title_settings">配置</string>
+    <string name="header_recording_today">正在录音 · 今天已录 %1$d 段</string>
+    <string name="seg_info">本段 %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">本段 %1$s / %2$s</string>
+    <string name="seg_state_syncing">自动上传中</string>
+    <string name="seg_state_synced">已同步</string>
+    <string name="conv_desc">日常聊天场景</string>
+    <string name="meeting_desc">多人会议场景</string>
+    <string name="self_note_title">按住说话 · 自述</string>
+    <string name="self_note_sub">松开保存为自述标记</string>
+    <string name="record_pending_count">待上传 %1$d 段</string>
+    <string name="record_pending_synced">待上传 0 段 · R2 已同步</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">存储用量</string>
+    <string name="storage_quota">免费额度 10 GB</string>
+    <string name="cloud_counts">照片 %1$d · 录音 %2$d</string>
+    <string name="cloud_photos_title">照片</string>
+    <string name="cloud_audio_title">语音</string>
+    <string name="reports_subtitle">Supabase · 每日总结与活动图</string>
+    <string name="settings_subtitle">所有设置 · 改完即时生效</string>
+    <string name="group_cloud">云存储</string>
+    <string name="group_recording">录音</string>
+    <string name="group_upload">上传</string>
+    <string name="group_snapshot">自动拍照</string>
+    <string name="group_reports">每日报告</string>
+    <string name="group_system">语言与系统</string>
 </resources>

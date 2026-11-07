@@ -7,11 +7,13 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -44,13 +46,14 @@ private final Ui.Palette pal;
 private final Handler ui = new Handler(Looper.getMainLooper());
 private final ExecutorService io = Executors.newSingleThreadExecutor();
 
-private final TextView title, status, detailText;
+private final TextView title, status, detailText, dayTitle;
 private final Button backButton, refreshButton, sheetButton;
 private final ImageView sheetImage;
 private final ListView list;
-private final View detail;
+private final View detail, header, detailBar;
 
 private boolean detailOpen = false;
+private boolean pendingAutoSheet = false;
 private int generation = 0;
 private long loadedAtMs = 0;
 
@@ -65,6 +68,8 @@ private static final class DayRow {
 String day;
 String summary;
 int segments;
+int sheetPhotos = -1;
+int sheetClusters = -1;
 }
 
 private final List<DayRow> days = new ArrayList<>();
@@ -75,20 +80,81 @@ private final BaseAdapter adapter = new BaseAdapter() {
 
 @Override
 public View getView(int pos, View convert, ViewGroup parent) {
-TextView tv;
-if (convert instanceof TextView) tv = (TextView) convert;
-else {
-tv = new TextView(act);
-tv.setTextSize(16);
-}
+// Mockup day card: bold date + segment count right, one-line summary
+// preview, and (for days with an activity sheet) a primary button that
+// jumps straight into the detail with the sheet shown.
 DayRow d = days.get(pos);
-tv.setTextColor(pal.text);
-tv.setPadding(24, 18, 16, 18);
-tv.setText("📅 " + d.day + " · "
-+ act.getString(R.string.reports_segments, d.segments));
-return tv;
+LinearLayout outer = new LinearLayout(act);
+outer.setOrientation(LinearLayout.VERTICAL);
+outer.setPadding(dp(20), dp(5), dp(20), dp(5));
+LinearLayout card = new LinearLayout(act);
+card.setOrientation(LinearLayout.VERTICAL);
+card.setBackground(Ui.cardBg(act, pal, 16));
+card.setPadding(dp(16), dp(14), dp(16), dp(14));
+outer.addView(card);
+LinearLayout top = new LinearLayout(act);
+top.setOrientation(LinearLayout.HORIZONTAL);
+top.setGravity(Gravity.CENTER_VERTICAL);
+TextView dateTv = new TextView(act);
+dateTv.setText(d.day);
+dateTv.setTextSize(17);
+dateTv.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+dateTv.setTextColor(pal.text);
+top.addView(dateTv);
+TextView segTv = new TextView(act);
+segTv.setText(act.getString(R.string.reports_segments, d.segments));
+segTv.setTextSize(13);
+segTv.setTextColor(pal.sub);
+segTv.setGravity(Gravity.END);
+segTv.setLayoutParams(new LinearLayout.LayoutParams(
+0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+top.addView(segTv);
+card.addView(top);
+String preview = firstLine(d.summary);
+if (!preview.isEmpty()) {
+TextView pv = new TextView(act);
+pv.setText(preview);
+pv.setTextSize(14);
+pv.setTextColor(pal.sub);
+pv.setSingleLine(true);
+pv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
+LinearLayout.LayoutParams.MATCH_PARENT,
+LinearLayout.LayoutParams.WRAP_CONTENT);
+plp.topMargin = dp(6);
+pv.setLayoutParams(plp);
+card.addView(pv);
+}
+if (d.sheetPhotos >= 0) {
+Button b = new Button(act);
+b.setText(act.getString(R.string.reports_sheet_button,
+d.sheetPhotos, d.sheetClusters));
+Ui.stylePrimary(b, pal);
+LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(
+LinearLayout.LayoutParams.MATCH_PARENT,
+LinearLayout.LayoutParams.WRAP_CONTENT);
+blp.topMargin = dp(12);
+b.setLayoutParams(blp);
+b.setOnClickListener(v -> openDay(d, true));
+card.addView(b);
+}
+return outer;
 }
 };
+
+private int dp(float v) {
+return (int) (v * act.getResources().getDisplayMetrics().density + 0.5f);
+}
+
+private static String firstLine(String s) {
+if (s == null) return "";
+String t = s.trim();
+int nl = t.indexOf('\n');
+if (nl >= 0) t = t.substring(0, nl).trim();
+// Skip a leading markdown heading marker for a cleaner preview.
+if (t.startsWith("#")) t = t.replaceFirst("^#+\\s*", "");
+return t;
+}
 
 public SupabaseReports(Activity act) {
 this.act = act;
@@ -96,25 +162,31 @@ this.pal = Ui.of(act);
 title = act.findViewById(R.id.reportsTitle);
 status = act.findViewById(R.id.reportsStatus);
 detailText = act.findViewById(R.id.reportsDetailText);
+dayTitle = act.findViewById(R.id.reportsDayTitle);
 backButton = act.findViewById(R.id.reportsBackButton);
 refreshButton = act.findViewById(R.id.reportsRefreshButton);
 sheetButton = act.findViewById(R.id.reportsSheetButton);
 sheetImage = act.findViewById(R.id.reportsSheetImage);
 list = act.findViewById(R.id.reportsList);
 detail = act.findViewById(R.id.reportsDetail);
+header = act.findViewById(R.id.reportsHeader);
+detailBar = act.findViewById(R.id.reportsDetailBar);
+((TextView) act.findViewById(R.id.reportsAppName)).setTextColor(pal.sub);
+((TextView) act.findViewById(R.id.reportsSubtitle)).setTextColor(pal.sub);
 title.setTextColor(pal.text);
+dayTitle.setTextColor(pal.text);
 status.setTextColor(pal.sub);
 detailText.setTextColor(pal.text);
 Ui.styleGhost(backButton, pal);
 Ui.styleGhost(refreshButton, pal);
 Ui.stylePrimary(sheetButton, pal);
-list.setDivider(new ColorDrawable(pal.divider));
-list.setDividerHeight(1);
+list.setDivider(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+list.setDividerHeight(0);
 list.setAdapter(adapter);
 backButton.setOnClickListener(v -> onBack());
 refreshButton.setOnClickListener(v -> loadDays());
 sheetButton.setOnClickListener(v -> onSheetButton());
-list.setOnItemClickListener((parent, view, pos, id) -> openDay(days.get(pos)));
+list.setOnItemClickListener((parent, view, pos, id) -> openDay(days.get(pos), false));
 }
 
 public void onShow() {
@@ -125,11 +197,12 @@ if (!detailOpen && System.currentTimeMillis() - loadedAtMs > 60_000) loadDays();
 public boolean onBack() {
 if (!detailOpen) return false;
 detailOpen = false;
+pendingAutoSheet = false;
 resetSheet();
 detail.setVisibility(View.GONE);
 list.setVisibility(View.VISIBLE);
-backButton.setVisibility(View.GONE);
-title.setText(act.getString(R.string.reports_title));
+detailBar.setVisibility(View.GONE);
+header.setVisibility(View.VISIBLE);
 status.setText("");
 return true;
 }
@@ -160,6 +233,27 @@ d.day = o.optString("day");
 d.summary = o.optString("summary_text");
 d.segments = o.optInt("segment_count");
 out.add(d);
+}
+// Activity-sheet metadata for every day (one query, no images) so the
+// list cards can show the sheet button; the table may not exist yet.
+try {
+JSONArray sarr = new JSONArray(get("/rest/v1/daily_sheets"
++ "?select=day,photo_count,cluster_count"));
+java.util.Map<String, int[]> sheets = new java.util.HashMap<>();
+for (int i = 0; i < sarr.length(); i++) {
+JSONObject o = sarr.getJSONObject(i);
+sheets.put(o.optString("day"), new int[]{
+o.optInt("photo_count"), o.optInt("cluster_count")});
+}
+for (DayRow d : out) {
+int[] s = sheets.get(d.day);
+if (s != null) {
+d.sheetPhotos = s[0];
+d.sheetClusters = s[1];
+}
+}
+} catch (Exception ignored) {
+// No sheets (or no table): cards simply have no button.
 }
 ui.post(() -> {
 if (gen!= generation) return;
@@ -228,15 +322,17 @@ status.setText(act.getString(R.string.reports_sheet_failed, trimErr(e)));
 });
 }
 
-private void openDay(DayRow d) {
+private void openDay(DayRow d, boolean autoSheet) {
 final int gen = ++generation;
 detailOpen = true;
+pendingAutoSheet = autoSheet;
 resetSheet();
 sheetDay = d.day;
 list.setVisibility(View.GONE);
 detail.setVisibility(View.VISIBLE);
-backButton.setVisibility(View.VISIBLE);
-title.setText(d.day);
+header.setVisibility(View.GONE);
+detailBar.setVisibility(View.VISIBLE);
+dayTitle.setText(d.day);
 detailText.setText(d.summary);
 status.setText(act.getString(R.string.reports_loading));
 io.execute(() -> {
@@ -284,6 +380,12 @@ sheetButtonLabel = act.getString(R.string.reports_sheet_button,
 fPhotos, fClusters);
 sheetButton.setText(sheetButtonLabel);
 sheetButton.setVisibility(View.VISIBLE);
+// Opened from a list card's sheet button: load and show the image
+// right away instead of waiting for a second tap.
+if (pendingAutoSheet) {
+pendingAutoSheet = false;
+onSheetButton();
+}
 }
 });
 });

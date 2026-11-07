@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · 화동(S3 호환)</item>
         <item>사용자 지정</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">녹음</string>
+    <string name="title_cloud">클라우드</string>
+    <string name="title_reports">보고서</string>
+    <string name="title_settings">설정</string>
+    <string name="header_recording_today">녹음 중 · 오늘 %1$d개 세그먼트</string>
+    <string name="seg_info">현재 구간 %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">현재 구간 %1$s / %2$s</string>
+    <string name="seg_state_syncing">자동 업로드 중</string>
+    <string name="seg_state_synced">동기화됨</string>
+    <string name="conv_desc">일상 대화</string>
+    <string name="meeting_desc">여러 명이 참여하는 회의</string>
+    <string name="self_note_title">길게 눌러 말하기 · 음성 메모</string>
+    <string name="self_note_sub">놓으면 음성 메모로 저장됩니다</string>
+    <string name="record_pending_count">업로드 대기 %1$d개</string>
+    <string name="record_pending_synced">업로드 대기 0개 · R2 동기화됨</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">스토리지 사용량</string>
+    <string name="storage_quota">무료 할당량 10 GB</string>
+    <string name="cloud_counts">사진 %1$d · 녹음 %2$d</string>
+    <string name="cloud_photos_title">사진</string>
+    <string name="cloud_audio_title">오디오</string>
+    <string name="reports_subtitle">Supabase · 일일 요약 및 활동 시트</string>
+    <string name="settings_subtitle">모든 설정 · 변경 사항이 바로 적용됩니다</string>
+    <string name="group_cloud">클라우드 스토리지</string>
+    <string name="group_recording">녹음</string>
+    <string name="group_upload">업로드</string>
+    <string name="group_snapshot">자동 스냅샷</string>
+    <string name="group_reports">일일 보고서</string>
+    <string name="group_system">언어 및 시스템</string>
 </resources>

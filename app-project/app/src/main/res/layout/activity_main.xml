@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- v1.13: layouts rebuilt to match the approved "Cloud White Minimal"
+     mockups (design-mockups/v2_* + v2d_*): every tab gets the small app-name
+     line / big title / gray subtitle header, content lives in rounded
+     cards, settings are grouped cards. Colors are applied in code from
+     Ui.Palette; ids used by the Java side are unchanged where they existed. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
@@ -11,143 +16,103 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- ============ Page 1: record / control ============ -->
-        <LinearLayout
+        <!-- ============ Page 1: record ============ -->
+        <ScrollView
             android:id="@+id/pageRecord"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <ScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/recordAppName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/recordTitleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/title_record"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <!-- Live-state subtitle (was the old statusText line). -->
+                <TextView
+                    android:id="@+id/statusText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/status_tap_record"
+                    android:textSize="14sp" />
+
+                <!-- Big record card: button, timer, segment line, waveform,
+                     segment progress. -->
+                <LinearLayout
+                    android:id="@+id/recordCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_horizontal"
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Record row: button left-aligned, waveform filling
-                         the rest of the row at the same height (92dp). The
-                         waveform stays INVISIBLE (not GONE) when idle so
-                         the row never shifts. -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <personal.muse.recorder.RecordButtonView
-                            android:id="@+id/recordButton"
-                            android:layout_width="92dp"
-                            android:layout_height="92dp"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <personal.muse.recorder.WaveformView
-                            android:id="@+id/waveform"
-                            android:layout_width="0dp"
-                            android:layout_height="92dp"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:visibility="invisible" />
-                    </LinearLayout>
+                    <personal.muse.recorder.RecordButtonView
+                        android:id="@+id/recordButton"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:clickable="true"
+                        android:focusable="true" />
 
                     <TextView
-                        android:id="@+id/statusText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:gravity="start"
-                        android:text="@string/status_tap_record"
-                        android:textSize="15sp" />
-
-                    <TextView
-                        android:id="@+id/filesTitle"
+                        android:id="@+id/recordTimer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
-                        android:text="@string/files_title"
-                        android:textSize="16sp"
+                        android:layout_marginTop="16dp"
+                        android:text="00:00:00"
+                        android:textSize="30sp"
                         android:textStyle="bold" />
 
-                    <LinearLayout
-                        android:id="@+id/pendingContainer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="vertical" />
-
-                    <ProgressBar
-                        android:id="@+id/uploadProgress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:max="100"
-                        android:progress="0"
-                        android:visibility="gone" />
-
                     <TextView
-                        android:id="@+id/uploadStatusText"
-                        android:layout_width="match_parent"
+                        android:id="@+id/segInfoText"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text=""
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
-                    <Button
-                        android:id="@+id/retryUploadButton"
+                    <!-- INVISIBLE (not GONE) when idle, as before, so the
+                         card never changes height. -->
+                    <personal.muse.recorder.WaveformView
+                        android:id="@+id/waveform"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/retry_upload"
-                        android:visibility="gone" />
+                        android:layout_height="64dp"
+                        android:layout_marginTop="14dp"
+                        android:visibility="invisible" />
+
+                    <ProgressBar
+                        android:id="@+id/segProgressBar"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="6dp"
+                        android:layout_marginTop="12dp"
+                        android:max="1000"
+                        android:progress="0" />
                 </LinearLayout>
-            </ScrollView>
 
-            <View
-                android:id="@+id/footerDivider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#E4E7EC" />
-
-            <LinearLayout
-                android:id="@+id/recordFooter"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:orientation="vertical"
-                android:padding="14dp">
-
+                <!-- Conversation / meeting cards (mockup: dot + name +
+                     description; the state line doubles as description
+                     when inactive). -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/events_title"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/lastEventText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end"
-                        android:text="@string/no_events_yet"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="horizontal">
 
                     <LinearLayout
@@ -158,27 +123,40 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
-                        <TextView
-                            android:id="@+id/convCardTitle"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/conv_card"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:id="@+id/convDot"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp" />
+
+                            <TextView
+                                android:id="@+id/convCardTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="@string/conv_card"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/convCardState"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="@string/tap_to_start"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/conv_desc"
                             android:textSize="12sp" />
                     </LinearLayout>
 
                     <View
-                        android:layout_width="10dp"
+                        android:layout_width="12dp"
                         android:layout_height="1dp" />
 
                     <LinearLayout
@@ -189,34 +167,127 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
-                        <TextView
-                            android:id="@+id/meetingCardTitle"
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/meeting_card"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:id="@+id/meetingDot"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp" />
+
+                            <TextView
+                                android:id="@+id/meetingCardTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="@string/meeting_card"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/meetingCardState"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="@string/tap_to_start"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/meeting_desc"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <Button
+                <!-- Press-and-hold self-note: two-line accent block (a
+                     LinearLayout so the two lines can differ in size;
+                     the touch handling is unchanged). -->
+                <LinearLayout
                     android:id="@+id/selfNoteButton"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="64dp"
+                    android:layout_marginTop="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/selfNoteTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/self_note_title"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/selfNoteSub"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/self_note_sub"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/lastEventText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="@string/self_note_button" />
+                    android:text="@string/no_events_yet"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/recordStatusLine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:textSize="15sp" />
+
+                <ProgressBar
+                    android:id="@+id/uploadProgress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/uploadStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text=""
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/retryUploadButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/retry_upload"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/filesTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="@string/files_title"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/pendingContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
             </LinearLayout>
-        </LinearLayout>
+        </ScrollView>
 
         <!-- ============ Page 2: cloud (R2 browser) ============ -->
         <LinearLayout
@@ -229,26 +300,41 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:gravity="top"
                 android:orientation="horizontal"
-                android:padding="8dp">
+                android:paddingStart="20dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="20dp">
 
-                <Button
-                    android:id="@+id/cloudBackButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cloud_back"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/cloudTitle"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="@string/cloud_title"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/cloudAppName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/cloudTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/title_cloud"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cloudSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textSize="14sp" />
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/cloudRefreshButton"
@@ -257,72 +343,156 @@
                     android:text="@string/cloud_refresh" />
             </LinearLayout>
 
+            <!-- Storage usage card (total across the whole bucket). -->
+            <LinearLayout
+                android:id="@+id/cloudStorageCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="20dp"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/cloudStorageLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/storage_label"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/cloudStorageTotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="—"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/cloudStorageQuota"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="@string/storage_quota"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/cloudStorageBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="10dp"
+                    android:max="1000"
+                    android:progress="0" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/cloudStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="20dp"
                 android:textSize="13sp" />
 
-            <ListView
-                android:id="@+id/cloudList"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <LinearLayout
-                android:id="@+id/cloudDetail"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/cloudDetailTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:textSize="13sp" />
+                android:layout_weight="1">
 
                 <ScrollView
+                    android:id="@+id/cloudScroll"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1">
+                    android:layout_height="match_parent">
 
-                    <ImageView
-                        android:id="@+id/cloudImage"
+                    <LinearLayout
+                        android:id="@+id/cloudListContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:adjustViewBounds="true"
-                        android:visibility="gone" />
+                        android:orientation="vertical"
+                        android:paddingStart="20dp"
+                        android:paddingTop="8dp"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="16dp" />
                 </ScrollView>
 
                 <LinearLayout
-                    android:id="@+id/cloudPlayerRow"
+                    android:id="@+id/cloudDetail"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
                     android:visibility="gone">
 
-                    <Button
-                        android:id="@+id/cloudPlayButton"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/player_play" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
 
-                    <TextView
-                        android:id="@+id/cloudPlayLabel"
-                        android:layout_width="0dp"
+                        <Button
+                            android:id="@+id/cloudBackButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/cloud_back" />
+
+                        <TextView
+                            android:id="@+id/cloudDetailTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <ScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <ImageView
+                            android:id="@+id/cloudImage"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:adjustViewBounds="true"
+                            android:visibility="gone" />
+                    </ScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/cloudPlayerRow"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1"
-                        android:textSize="13sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp"
+                        android:visibility="gone">
+
+                        <Button
+                            android:id="@+id/cloudPlayButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/player_play" />
+
+                        <TextView
+                            android:id="@+id/cloudPlayLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:textSize="13sp" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
 
         <!-- ============ Page 3: reports (Supabase) ============ -->
@@ -334,28 +504,45 @@
             android:visibility="gone">
 
             <LinearLayout
+                android:id="@+id/reportsHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:gravity="top"
                 android:orientation="horizontal"
-                android:padding="8dp">
+                android:paddingStart="20dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="20dp">
 
-                <Button
-                    android:id="@+id/reportsBackButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cloud_back"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/reportsTitle"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="@string/reports_title"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/reportsAppName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_name"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/reportsTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/title_reports"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/reportsSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/reports_subtitle"
+                        android:textSize="14sp" />
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/reportsRefreshButton"
@@ -364,12 +551,38 @@
                     android:text="@string/cloud_refresh" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/reportsDetailBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/reportsBackButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cloud_back" />
+
+                <TextView
+                    android:id="@+id/reportsDayTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/reportsStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="20dp"
                 android:textSize="13sp" />
 
             <ListView
@@ -415,7 +628,7 @@
             </ScrollView>
         </LinearLayout>
 
-        <!-- ============ Page 4: settings (categorized) ============ -->
+        <!-- ============ Page 4: settings (grouped cards) ============ -->
         <ScrollView
             android:id="@+id/pageSettings"
             android:layout_width="match_parent"
@@ -429,288 +642,389 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- 云存储 (S3 / R2) -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_s3_title"
-                    android:textSize="16sp"
+                    android:tag="sub"
+                    android:text="@string/app_name"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/title_settings"
+                    android:textSize="26sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/preset_label" />
+                    android:layout_marginTop="2dp"
+                    android:tag="sub"
+                    android:text="@string/settings_subtitle"
+                    android:textSize="14sp" />
 
-                <Spinner
-                    android:id="@+id/presetSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" />
-
+                <!-- 云存储 (S3 / R2) -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/endpoint_label" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_cloud" />
 
-                <EditText
-                    android:id="@+id/endpointInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="https://…"
-                    android:inputType="textUri"
-                    android:singleLine="true" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/region_label" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/preset_label" />
+                        <Spinner
+                            android:id="@+id/presetSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
-                <EditText
-                    android:id="@+id/regionInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="auto"
-                    android:inputType="text"
-                    android:singleLine="true" />
+                    <View style="@style/SettingsDivider" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/bucket_label" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/endpoint_label" />
+                        <EditText
+                            android:id="@+id/endpointInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="https://…"
+                            android:inputType="textUri"
+                            android:singleLine="true" />
+                    </LinearLayout>
 
-                <EditText
-                    android:id="@+id/bucketInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="recordings"
-                    android:inputType="text"
-                    android:singleLine="true" />
+                    <View style="@style/SettingsDivider" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/access_key_label" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/region_label" />
+                        <EditText
+                            android:id="@+id/regionInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="auto"
+                            android:inputType="text"
+                            android:singleLine="true" />
+                    </LinearLayout>
 
-                <EditText
-                    android:id="@+id/accessKeyInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="AccessKey"
-                    android:inputType="text"
-                    android:singleLine="true" />
+                    <View style="@style/SettingsDivider" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/secret_label" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/bucket_label" />
+                        <EditText
+                            android:id="@+id/bucketInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="recordings"
+                            android:inputType="text"
+                            android:singleLine="true" />
+                    </LinearLayout>
 
-                <EditText
-                    android:id="@+id/secretKeyInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="SecretKey"
-                    android:inputType="textPassword"
-                    android:singleLine="true" />
+                    <View style="@style/SettingsDivider" />
 
-                <CheckBox
-                    android:id="@+id/virtualStyleCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/virtual_style_label" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/access_key_label" />
+                        <EditText
+                            android:id="@+id/accessKeyInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="AccessKey"
+                            android:inputType="text"
+                            android:singleLine="true" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingsDivider" />
+
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/secret_label" />
+                        <EditText
+                            android:id="@+id/secretKeyInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="SecretKey"
+                            android:inputType="textPassword"
+                            android:singleLine="true" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingsDivider" />
+
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/virtual_style_label" />
+                        <Switch
+                            android:id="@+id/virtualStyleCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- 录音 -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/cat_recording"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_recording" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/segment_minutes_label" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <EditText
-                    android:id="@+id/segmentMinutesInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="60"
-                    android:inputType="number"
-                    android:singleLine="true" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/segment_minutes_label" />
+                        <EditText
+                            android:id="@+id/segmentMinutesInput"
+                            android:layout_width="84dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:hint="60"
+                            android:inputType="number"
+                            android:singleLine="true" />
+                    </LinearLayout>
 
-                <CheckBox
-                    android:id="@+id/autoResumeCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/auto_resume_label" />
+                    <View style="@style/SettingsDivider" />
+
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/auto_resume_label" />
+                        <Switch
+                            android:id="@+id/autoResumeCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- 上传 -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/cat_upload"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_upload" />
 
-                <CheckBox
-                    android:id="@+id/wifiOnlyCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/wifi_only_label" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <CheckBox
-                    android:id="@+id/deleteAfterUploadCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/delete_after_label" />
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/wifi_only_label" />
+                        <Switch
+                            android:id="@+id/wifiOnlyCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingsDivider" />
+
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/delete_after_label" />
+                        <Switch
+                            android:id="@+id/deleteAfterUploadCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- 自动拍照 -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/cat_snapshot"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_snapshot" />
 
-                <CheckBox
-                    android:id="@+id/snapshotCheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/snapshot_label" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:text="@string/snapshot_hint"
-                    android:textSize="12sp" />
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/snapshot_label" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:tag="sub"
+                                android:text="@string/snapshot_hint"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                        <Switch
+                            android:id="@+id/snapshotCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/snapshot_camera_label" />
+                    <View style="@style/SettingsDivider" />
 
-                <Spinner
-                    android:id="@+id/snapshotCameraSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginTop="4dp" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/snapshot_camera_label" />
+                        <Spinner
+                            android:id="@+id/snapshotCameraSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
-                <Button
-                    android:id="@+id/snapshotTestButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/snapshot_test_button" />
+                    <View style="@style/SettingsDivider" />
+
+                    <Button
+                        android:id="@+id/snapshotTestButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="12dp"
+                        android:text="@string/snapshot_test_button" />
+                </LinearLayout>
 
                 <!-- 每日报告 (Supabase) -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/cat_reports"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_reports" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/supabase_url_label" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <EditText
-                    android:id="@+id/supabaseUrlInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="https://….supabase.co"
-                    android:inputType="textUri"
-                    android:singleLine="true" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/supabase_url_label" />
+                        <EditText
+                            android:id="@+id/supabaseUrlInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="https://….supabase.co"
+                            android:inputType="textUri"
+                            android:singleLine="true" />
+                    </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/supabase_key_label" />
+                    <View style="@style/SettingsDivider" />
 
-                <EditText
-                    android:id="@+id/supabaseKeyInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="eyJ…"
-                    android:inputType="text"
-                    android:singleLine="true" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/supabase_hint"
-                    android:textSize="12sp" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/supabase_key_label" />
+                        <EditText
+                            android:id="@+id/supabaseKeyInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="eyJ…"
+                            android:inputType="text"
+                            android:singleLine="true" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:tag="sub"
+                            android:text="@string/supabase_hint"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- 语言与系统 -->
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="@string/cat_system"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    style="@style/SettingsSectionTitle"
+                    android:tag="sub"
+                    android:text="@string/group_system" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/language_label" />
+                <LinearLayout
+                    style="@style/SettingsGroupCard"
+                    android:tag="groupCard">
 
-                <Spinner
-                    android:id="@+id/languageSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/language_label" />
+                        <Spinner
+                            android:id="@+id/languageSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/dark_mode_label" />
+                    <View style="@style/SettingsDivider" />
 
-                <Spinner
-                    android:id="@+id/darkModeSpinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" />
+                    <LinearLayout style="@style/SettingsRow">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/dark_mode_label" />
+                        <Spinner
+                            android:id="@+id/darkModeSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
-                <Button
-                    android:id="@+id/batteryButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/battery_button" />
+                    <View style="@style/SettingsDivider" />
+
+                    <Button
+                        android:id="@+id/batteryButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="12dp"
+                        android:text="@string/battery_button" />
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/saveSettingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:text="@string/save_settings" />
             </LinearLayout>
         </ScrollView>
@@ -722,12 +1036,7 @@
         android:layout_height="1dp"
         android:background="#E4E7EC" />
 
-    <!-- Tab bar (bottom, as in the v1.12 redesign mockups): Record /
-         Cloud / Reports / Settings. The record page is the original
-         control page (its settings moved to the Settings tab); Cloud
-         browses the R2 bucket; Reports reads Supabase daily summaries.
-         Colors and the active-tab pill are applied in code from the
-         theme palette (see MainActivity.applyTheme / selectTab). -->
+    <!-- Tab bar (bottom, from the v1.12 redesign; unchanged). -->
     <LinearLayout
         android:id="@+id/tabBar"
         android:layout_width="match_parent"

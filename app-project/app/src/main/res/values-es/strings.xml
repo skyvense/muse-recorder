@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · Este de China (compatible con S3)</item>
         <item>Personalizado</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">Grabación</string>
+    <string name="title_cloud">Nube</string>
+    <string name="title_reports">Informes</string>
+    <string name="title_settings">Ajustes</string>
+    <string name="header_recording_today">Grabando · %1$d segmentos hoy</string>
+    <string name="seg_info">Segmento %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">Segmento %1$s / %2$s</string>
+    <string name="seg_state_syncing">Subida automática en curso</string>
+    <string name="seg_state_synced">Sincronizado</string>
+    <string name="conv_desc">Conversaciones cotidianas</string>
+    <string name="meeting_desc">Reuniones con varias personas</string>
+    <string name="self_note_title">Mantén pulsado para hablar · Nota de voz</string>
+    <string name="self_note_sub">Suelta para guardar como nota de voz</string>
+    <string name="record_pending_count">%1$d segmentos pendientes</string>
+    <string name="record_pending_synced">0 segmentos pendientes · R2 sincronizado</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">Almacenamiento usado</string>
+    <string name="storage_quota">Cuota gratuita 10 GB</string>
+    <string name="cloud_counts">%1$d fotos · %2$d audios</string>
+    <string name="cloud_photos_title">Fotos</string>
+    <string name="cloud_audio_title">Audio</string>
+    <string name="reports_subtitle">Supabase · Resúmenes diarios y hojas de actividad</string>
+    <string name="settings_subtitle">Todos los ajustes · Los cambios se aplican al instante</string>
+    <string name="group_cloud">Almacenamiento en la nube</string>
+    <string name="group_recording">Grabación</string>
+    <string name="group_upload">Subida</string>
+    <string name="group_snapshot">Instantánea automática</string>
+    <string name="group_reports">Informes diarios</string>
+    <string name="group_system">Idioma y sistema</string>
 </resources>

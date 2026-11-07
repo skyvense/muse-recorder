@@ -231,6 +231,8 @@ public class RecordingService extends Service {
             recorder.prepare();
             recorder.start();
             activeRecorder = recorder;
+            // Bookkeeping only (record-page "segments today" subtitle).
+            Prefs.noteSegmentStarted(this);
             updateNotification(getString(R.string.notif_recording, name));
             long segMs = Prefs.segmentMinutes(this) * 60_000L;
             handler.postDelayed(rotateTask, segMs);

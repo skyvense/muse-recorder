@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · Leste da China (compatível com S3)</item>
         <item>Personalizado</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">Gravação</string>
+    <string name="title_cloud">Nuvem</string>
+    <string name="title_reports">Relatórios</string>
+    <string name="title_settings">Definições</string>
+    <string name="header_recording_today">A gravar · %1$d segmentos hoje</string>
+    <string name="seg_info">Segmento %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">Segmento %1$s / %2$s</string>
+    <string name="seg_state_syncing">Envio automático em curso</string>
+    <string name="seg_state_synced">Sincronizado</string>
+    <string name="conv_desc">Conversas do dia a dia</string>
+    <string name="meeting_desc">Reuniões com várias pessoas</string>
+    <string name="self_note_title">Mantenha premido para falar · Nota de voz</string>
+    <string name="self_note_sub">Solte para guardar como nota de voz</string>
+    <string name="record_pending_count">%1$d segmentos pendentes</string>
+    <string name="record_pending_synced">0 segmentos pendentes · R2 sincronizado</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">Armazenamento usado</string>
+    <string name="storage_quota">Quota gratuita 10 GB</string>
+    <string name="cloud_counts">%1$d fotos · %2$d áudios</string>
+    <string name="cloud_photos_title">Fotos</string>
+    <string name="cloud_audio_title">Áudio</string>
+    <string name="reports_subtitle">Supabase · Resumos diários e folhas de atividade</string>
+    <string name="settings_subtitle">Todas as definições · As alterações aplicam-se de imediato</string>
+    <string name="group_cloud">Armazenamento na nuvem</string>
+    <string name="group_recording">Gravação</string>
+    <string name="group_upload">Envio</string>
+    <string name="group_snapshot">Fotografia automática</string>
+    <string name="group_reports">Relatórios diários</string>
+    <string name="group_system">Idioma e sistema</string>
 </resources>

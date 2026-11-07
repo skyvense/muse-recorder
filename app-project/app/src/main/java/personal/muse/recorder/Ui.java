@@ -1,10 +1,12 @@
 package personal.muse.recorder;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.widget.Button;
+import android.widget.Switch;
 
 /**
  * "Cloud White Minimal" theme (v1.12 redesign): one palette for light,
@@ -92,5 +94,24 @@ public final class Ui {
         b.setBackground(cardBg(b.getContext(), p, 12));
         b.setTextColor(p.text);
         b.setAllCaps(false);
+    }
+
+    /** Solid oval (dots, play buttons). */
+    public static GradientDrawable oval(int fill) {
+        GradientDrawable d = new GradientDrawable();
+        d.setShape(GradientDrawable.OVAL);
+        d.setColor(fill);
+        return d;
+    }
+
+    /** Settings switch: accent track when on, neutral track/thumb otherwise. */
+    public static void styleSwitch(Switch sw, Palette p) {
+        sw.setTextColor(p.text);
+        sw.setTrackTintList(new ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{p.accent, p.dark ? 0xFF3A3F4A : 0xFFD1D5DB}));
+        sw.setThumbTintList(new ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{Color.WHITE, p.dark ? 0xFFB0B7C3 : 0xFFF9FAFB}));
     }
 }

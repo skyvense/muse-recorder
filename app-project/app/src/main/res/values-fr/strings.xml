@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · Chine de l’Est (compatible S3)</item>
         <item>Personnalisé</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">Enregistrement</string>
+    <string name="title_cloud">Cloud</string>
+    <string name="title_reports">Rapports</string>
+    <string name="title_settings">Réglages</string>
+    <string name="header_recording_today">Enregistrement · %1$d segments aujourd\'hui</string>
+    <string name="seg_info">Segment %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">Segment %1$s / %2$s</string>
+    <string name="seg_state_syncing">Envoi automatique en cours</string>
+    <string name="seg_state_synced">Synchronisé</string>
+    <string name="conv_desc">Conversations quotidiennes</string>
+    <string name="meeting_desc">Réunions à plusieurs</string>
+    <string name="self_note_title">Maintenir pour parler · Note vocale</string>
+    <string name="self_note_sub">Relâchez pour enregistrer comme note vocale</string>
+    <string name="record_pending_count">%1$d segments en attente</string>
+    <string name="record_pending_synced">0 segment en attente · R2 synchronisé</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">Stockage utilisé</string>
+    <string name="storage_quota">Quota gratuit 10 Go</string>
+    <string name="cloud_counts">%1$d photos · %2$d audios</string>
+    <string name="cloud_photos_title">Photos</string>
+    <string name="cloud_audio_title">Audio</string>
+    <string name="reports_subtitle">Supabase · Résumés quotidiens et feuilles d\'activité</string>
+    <string name="settings_subtitle">Tous les réglages · Les modifications s\'appliquent immédiatement</string>
+    <string name="group_cloud">Stockage cloud</string>
+    <string name="group_recording">Enregistrement</string>
+    <string name="group_upload">Envoi</string>
+    <string name="group_snapshot">Instantané auto</string>
+    <string name="group_reports">Rapports quotidiens</string>
+    <string name="group_system">Langue et système</string>
 </resources>

@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · Восточный Китай (совместим с S3)</item>
         <item>Свой вариант</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">Запись</string>
+    <string name="title_cloud">Облако</string>
+    <string name="title_reports">Отчёты</string>
+    <string name="title_settings">Настройки</string>
+    <string name="header_recording_today">Идёт запись · сегодня сегментов: %1$d</string>
+    <string name="seg_info">Сегмент %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">Сегмент %1$s / %2$s</string>
+    <string name="seg_state_syncing">Автозагрузка</string>
+    <string name="seg_state_synced">Синхронизировано</string>
+    <string name="conv_desc">Повседневные разговоры</string>
+    <string name="meeting_desc">Совещания с несколькими участниками</string>
+    <string name="self_note_title">Удерживайте и говорите · Голосовая заметка</string>
+    <string name="self_note_sub">Отпустите, чтобы сохранить как голосовую заметку</string>
+    <string name="record_pending_count">Ожидают загрузки: %1$d</string>
+    <string name="record_pending_synced">Ожидают загрузки: 0 · R2 синхронизирован</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">Занято</string>
+    <string name="storage_quota">Бесплатный лимит 10 ГБ</string>
+    <string name="cloud_counts">Фото: %1$d · Аудио: %2$d</string>
+    <string name="cloud_photos_title">Фото</string>
+    <string name="cloud_audio_title">Аудио</string>
+    <string name="reports_subtitle">Supabase · Ежедневные сводки и листы активности</string>
+    <string name="settings_subtitle">Все настройки · Изменения применяются сразу</string>
+    <string name="group_cloud">Облачное хранилище</string>
+    <string name="group_recording">Запись</string>
+    <string name="group_upload">Загрузка</string>
+    <string name="group_snapshot">Автоснимок</string>
+    <string name="group_reports">Ежедневные отчёты</string>
+    <string name="group_system">Язык и система</string>
 </resources>

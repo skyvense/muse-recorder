@@ -32,6 +32,8 @@ public final class Prefs {
     public static final String KEY_S3_VIRTUAL = "s3_virtual_style";
     public static final String KEY_SNAPSHOT_ENABLED = "snapshot_enabled";
     public static final String KEY_SNAPSHOT_CAMERA = "snapshot_camera"; // 0=both, 1=back only, 2=front only
+    public static final String KEY_SEG_TODAY_DATE = "seg_today_date"; // yyyy-MM-dd
+    public static final String KEY_SEG_TODAY_COUNT = "seg_today_count";
     public static final String KEY_CONV_ACTIVE = "conv_active";
     public static final String KEY_MEETING_ACTIVE = "meeting_active";
     public static final String KEY_CONV_SINCE = "conv_since";
@@ -161,6 +163,47 @@ public final class Prefs {
             dir.mkdirs();
         }
         return dir;
+    }
+
+    private static String todayStamp() {
+        return new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(new java.util.Date());
+    }
+
+    /** rec_<today>_*.m4a files currently in the segments directory. */
+    private static int localSegmentsToday(Context ctx) {
+        String prefix = "rec_" + todayStamp() + "_";
+        File[] fs = segmentsDir(ctx).listFiles();
+        int n = 0;
+        if (fs != null) for (File f : fs) if (f.getName().startsWith(prefix)) n++;
+        return n;
+    }
+
+    /**
+     * Bookkeeping for the record-page subtitle ("segments recorded today"):
+     * called by RecordingService each time a segment actually starts. On a
+     * new day the counter seeds from the segment files already on disk for
+     * today (the just-created current file included), then increments.
+     */
+    public static void noteSegmentStarted(Context ctx) {
+        SharedPreferences p = get(ctx);
+        String today = todayStamp();
+        if (!today.equals(p.getString(KEY_SEG_TODAY_DATE, ""))) {
+            p.edit().putString(KEY_SEG_TODAY_DATE, today)
+                    .putInt(KEY_SEG_TODAY_COUNT, localSegmentsToday(ctx)).apply();
+        } else {
+            p.edit().putInt(KEY_SEG_TODAY_COUNT,
+                    p.getInt(KEY_SEG_TODAY_COUNT, 0) + 1).apply();
+        }
+    }
+
+    /** Segments started today (persisted counter; local files as fallback). */
+    public static int segmentsStartedToday(Context ctx) {
+        SharedPreferences p = get(ctx);
+        if (todayStamp().equals(p.getString(KEY_SEG_TODAY_DATE, ""))) {
+            return Math.max(p.getInt(KEY_SEG_TODAY_COUNT, 0), localSegmentsToday(ctx));
+        }
+        return localSegmentsToday(ctx);
     }
 
     /** A segment counts as uploaded once a "<name>.done" marker exists next to it. */

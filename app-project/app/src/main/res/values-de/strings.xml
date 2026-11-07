@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · Ostchina (S3-kompatibel)</item>
         <item>Benutzerdefiniert</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">Aufnahme</string>
+    <string name="title_cloud">Cloud</string>
+    <string name="title_reports">Berichte</string>
+    <string name="title_settings">Einstellungen</string>
+    <string name="header_recording_today">Aufnahme läuft · %1$d Segmente heute</string>
+    <string name="seg_info">Segment %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">Segment %1$s / %2$s</string>
+    <string name="seg_state_syncing">Automatischer Upload läuft</string>
+    <string name="seg_state_synced">Synchronisiert</string>
+    <string name="conv_desc">Alltagsgespräche</string>
+    <string name="meeting_desc">Besprechungen mit mehreren Personen</string>
+    <string name="self_note_title">Gedrückt halten zum Sprechen · Sprachnotiz</string>
+    <string name="self_note_sub">Loslassen, um als Sprachnotiz zu speichern</string>
+    <string name="record_pending_count">%1$d Segmente ausstehend</string>
+    <string name="record_pending_synced">0 Segmente ausstehend · R2 synchronisiert</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">Speicher belegt</string>
+    <string name="storage_quota">Gratis-Kontingent 10 GB</string>
+    <string name="cloud_counts">%1$d Fotos · %2$d Audio</string>
+    <string name="cloud_photos_title">Fotos</string>
+    <string name="cloud_audio_title">Audio</string>
+    <string name="reports_subtitle">Supabase · Tagesberichte &amp; Aktivitätsblätter</string>
+    <string name="settings_subtitle">Alle Einstellungen · Änderungen wirken sofort</string>
+    <string name="group_cloud">Cloud-Speicher</string>
+    <string name="group_recording">Aufnahme</string>
+    <string name="group_upload">Upload</string>
+    <string name="group_snapshot">Auto-Schnappschuss</string>
+    <string name="group_reports">Tagesberichte</string>
+    <string name="group_system">Sprache &amp; System</string>
 </resources>

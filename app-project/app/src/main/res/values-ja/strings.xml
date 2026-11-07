@@ -117,4 +117,35 @@
         <item>Qiniu Kodo · 華東（S3互換）</item>
         <item>カスタム</item>
     </string-array>
+
+    <!-- v1.13 mockup-layout strings -->
+    <string name="title_record">録音</string>
+    <string name="title_cloud">クラウド</string>
+    <string name="title_reports">レポート</string>
+    <string name="title_settings">設定</string>
+    <string name="header_recording_today">録音中 · 今日 %1$d 件のセグメント</string>
+    <string name="seg_info">現在のセグメント %1$s / %2$s · %3$s</string>
+    <string name="seg_info_idle">現在のセグメント %1$s / %2$s</string>
+    <string name="seg_state_syncing">自動アップロード中</string>
+    <string name="seg_state_synced">同期済み</string>
+    <string name="conv_desc">日常の会話</string>
+    <string name="meeting_desc">複数人の会議</string>
+    <string name="self_note_title">長押しで話す · 音声メモ</string>
+    <string name="self_note_sub">離すと音声メモとして保存</string>
+    <string name="record_pending_count">アップロード待ち %1$d 件</string>
+    <string name="record_pending_synced">アップロード待ち 0 件 · R2 同期済み</string>
+    <string name="cloud_subtitle">Cloudflare R2 · %1$s</string>
+    <string name="storage_label">ストレージ使用量</string>
+    <string name="storage_quota">無料枠 10 GB</string>
+    <string name="cloud_counts">写真 %1$d · 録音 %2$d</string>
+    <string name="cloud_photos_title">写真</string>
+    <string name="cloud_audio_title">音声</string>
+    <string name="reports_subtitle">Supabase · 日次サマリーと活動シート</string>
+    <string name="settings_subtitle">すべての設定 · 変更はすぐに反映</string>
+    <string name="group_cloud">クラウドストレージ</string>
+    <string name="group_recording">録音</string>
+    <string name="group_upload">アップロード</string>
+    <string name="group_snapshot">自動スナップショット</string>
+    <string name="group_reports">日次レポート</string>
+    <string name="group_system">言語とシステム</string>
 </resources>

@@ -24,11 +24,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,10 +77,13 @@ public class MainActivity extends Activity {
     private RecordButtonView recordButton;
     private WaveformView waveform;
     private TextView statusText, lastEventText, filesTitle, uploadStatusText;
+    private TextView recordTimer, segInfoText, recordStatusLine;
+    private TextView selfNoteTitle, selfNoteSub;
+    private View recordCard, convDot, meetingDot, selfNoteButton;
     private LinearLayout convCard, meetingCard, pendingContainer;
     private TextView convCardTitle, convCardState, meetingCardTitle, meetingCardState;
-    private Button selfNoteButton, retryUploadButton;
-    private ProgressBar uploadProgress;
+    private Button retryUploadButton;
+    private ProgressBar uploadProgress, segProgressBar;
     private View settingsContainer;
     // Tabs
     private Button tabRecordButton, tabCloudButton, tabReportsButton, tabSettingsButton;
@@ -95,8 +98,8 @@ public class MainActivity extends Activity {
     private Ui.Palette pal;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
-    private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
-    private CheckBox snapshotCheck;
+    private Switch virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
+    private Switch snapshotCheck;
     private boolean spinnerTouched = false;
     private boolean languageTouched = false;
     private long lastConfigSavedAt = 0;
@@ -104,6 +107,7 @@ public class MainActivity extends Activity {
     private MediaRecorder noteRecorder = null;
     private File noteFile = null;
     private boolean noteActive = false;
+    private long noteStartMs = 0;
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private long lastIdleKickMs = 0;
@@ -150,6 +154,15 @@ public class MainActivity extends Activity {
         meetingCardTitle = findViewById(R.id.meetingCardTitle);
         meetingCardState = findViewById(R.id.meetingCardState);
         selfNoteButton = findViewById(R.id.selfNoteButton);
+        selfNoteTitle = findViewById(R.id.selfNoteTitle);
+        selfNoteSub = findViewById(R.id.selfNoteSub);
+        recordCard = findViewById(R.id.recordCard);
+        recordTimer = findViewById(R.id.recordTimer);
+        segInfoText = findViewById(R.id.segInfoText);
+        recordStatusLine = findViewById(R.id.recordStatusLine);
+        segProgressBar = findViewById(R.id.segProgressBar);
+        convDot = findViewById(R.id.convDot);
+        meetingDot = findViewById(R.id.meetingDot);
         retryUploadButton = findViewById(R.id.retryUploadButton);
         pendingContainer = findViewById(R.id.pendingContainer);
         uploadProgress = findViewById(R.id.uploadProgress);
@@ -438,9 +451,11 @@ public class MainActivity extends Activity {
             }
         }
         noteActive = true;
+        noteStartMs = System.currentTimeMillis();
         vibrateTick();
         selfNoteButton.setBackground(Ui.rounded(this, pal.danger, 16));
-        selfNoteButton.setText(R.string.self_note_active);
+        selfNoteTitle.setText(R.string.self_note_active);
+        selfNoteSub.setVisibility(View.GONE);
         refreshStatus();
     }
 
@@ -474,7 +489,8 @@ public class MainActivity extends Activity {
             }
         }
         selfNoteButton.setBackground(Ui.rounded(this, pal.accent, 16));
-        selfNoteButton.setText(R.string.self_note_button);
+        selfNoteTitle.setText(R.string.self_note_title);
+        selfNoteSub.setVisibility(View.VISIBLE);
         refreshStatus();
     }
 
@@ -549,34 +565,50 @@ public class MainActivity extends Activity {
         findViewById(R.id.rootLayout).setBackgroundColor(pal.bg);
         findViewById(R.id.tabBar).setBackgroundColor(pal.tabBar);
         findViewById(R.id.tabDivider).setBackgroundColor(pal.divider);
-        findViewById(R.id.footerDivider).setBackgroundColor(pal.divider);
-        findViewById(R.id.recordFooter).setBackgroundColor(pal.tabBar);
-        statusText.setTextColor(pal.text);
+        // Record page: header + big card + status lines.
+        ((TextView) findViewById(R.id.recordAppName)).setTextColor(pal.sub);
+        ((TextView) findViewById(R.id.recordTitleText)).setTextColor(pal.text);
+        statusText.setTextColor(pal.sub);
+        recordCard.setBackground(Ui.cardBg(this, pal, 16));
+        recordTimer.setTextColor(pal.text);
+        segInfoText.setTextColor(pal.sub);
+        recordStatusLine.setTextColor(pal.text);
         lastEventText.setTextColor(pal.sub);
         filesTitle.setTextColor(pal.text);
         uploadStatusText.setTextColor(pal.sub);
         if (uploadProgress.getProgressDrawable() != null) {
             uploadProgress.getProgressDrawable().setTint(pal.accent);
         }
+        if (segProgressBar.getProgressDrawable() != null) {
+            segProgressBar.getProgressDrawable().setTint(pal.accent);
+        }
         styleSettingsText(settingsContainer);
         selfNoteButton.setBackground(Ui.rounded(this, pal.accent, 16));
-        selfNoteButton.setTextColor(Color.WHITE);
-        selfNoteButton.setAllCaps(false);
+        selfNoteTitle.setTextColor(Color.WHITE);
+        selfNoteSub.setTextColor(0xE6FFFFFF);
         Ui.stylePrimary(retryUploadButton, pal);
         Ui.stylePrimary((Button) findViewById(R.id.saveSettingsButton), pal);
         Ui.styleGhost((Button) findViewById(R.id.batteryButton), pal);
         Ui.styleGhost((Button) findViewById(R.id.snapshotTestButton), pal);
     }
 
-    /** Recolors the settings form: labels, hints, inputs, checkbox accents. */
+    /**
+     * Recolors the settings form: group cards get the card background,
+     * divider rows the divider color, labels/hints/inputs the text colors,
+     * switches the accent tint. Views tagged "sub" (section titles, hint
+     * lines, the header subtitle) always use the sub color.
+     */
     private void styleSettingsText(View v) {
+        Object tag = v.getTag();
+        if ("groupCard".equals(tag)) {
+            v.setBackground(Ui.cardBg(this, pal, 16));
+        } else if ("divider".equals(tag)) {
+            v.setBackgroundColor(pal.divider);
+        }
         if (v instanceof Button) {
             // Buttons are styled separately in applyTheme.
-        } else if (v instanceof CheckBox) {
-            CheckBox cb = (CheckBox) v;
-            cb.setTextColor(pal.text);
-            cb.setButtonTintList(
-                    android.content.res.ColorStateList.valueOf(pal.accent));
+        } else if (v instanceof Switch) {
+            Ui.styleSwitch((Switch) v, pal);
         } else if (v instanceof EditText) {
             EditText et = (EditText) v;
             et.setTextColor(pal.text);
@@ -585,7 +617,7 @@ public class MainActivity extends Activity {
             TextView tv = (TextView) v;
             float sp = tv.getTextSize() / getResources().getDisplayMetrics().scaledDensity;
             // Small print (hints) is subdued; labels and titles full-strength.
-            tv.setTextColor(sp <= 12.5f ? pal.sub : pal.text);
+            tv.setTextColor("sub".equals(tag) || sp <= 12.5f ? pal.sub : pal.text);
         }
         if (v instanceof android.view.ViewGroup) {
             android.view.ViewGroup g = (android.view.ViewGroup) v;
@@ -732,19 +764,37 @@ public class MainActivity extends Activity {
     }
 
     private void styleEventCard(LinearLayout card, TextView title, TextView state,
-                                boolean active, int activeColor, long sinceMs) {
+                                View dot, boolean active, int activeColor, long sinceMs,
+                                int descRes) {
         if (active) {
             card.setBackground(Ui.rounded(this, activeColor, 16));
             title.setTextColor(Color.WHITE);
+            dot.setBackground(Ui.oval(Color.WHITE));
             long mins = sinceMs > 0 ? (System.currentTimeMillis() - sinceMs) / 60000 : 0;
             state.setText(getString(R.string.card_active, mins));
             state.setTextColor(0xE6FFFFFF);
         } else {
             card.setBackground(Ui.cardBg(this, pal, 16));
             title.setTextColor(pal.text);
-            state.setText(R.string.tap_to_start);
+            dot.setBackground(Ui.oval(activeColor));
+            // Mockup: the second line is the scene description when idle.
+            state.setText(descRes);
             state.setTextColor(pal.sub);
         }
+    }
+
+    /** HH:MM:SS with unbounded hours (a session can run past a day). */
+    private static String fmtClock(long ms) {
+        long s = Math.max(0, ms / 1000);
+        return String.format(Locale.US, "%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60);
+    }
+
+    /** MM:SS, or H:MM:SS once past an hour. */
+    private static String fmtDur(long sec) {
+        if (sec >= 3600) {
+            return String.format(Locale.US, "%d:%02d:%02d", sec / 3600, (sec % 3600) / 60, sec % 60);
+        }
+        return String.format(Locale.US, "%02d:%02d", sec / 60, sec % 60);
     }
 
     private void refreshStatus() {
@@ -761,26 +811,51 @@ public class MainActivity extends Activity {
             waveform.setVisibility(View.INVISIBLE);
             waveform.stopAnimating();
         }
+        // Header subtitle: live state, per the approved mockup.
         if (recording) {
-            // The minutes line is gone: segment progress now lives in the
-            // in-progress file row's bar, so this text only repeats it.
-            statusText.setVisibility(View.GONE);
+            statusText.setText(getString(R.string.header_recording_today,
+                    Prefs.segmentsStartedToday(this)));
         } else if (noteActive) {
-            statusText.setVisibility(View.VISIBLE);
             statusText.setText(R.string.self_note_recording);
         } else {
-            statusText.setVisibility(View.VISIBLE);
             statusText.setText(Prefs.s3Configured(this)
                     ? getString(R.string.status_tap_record)
                     : getString(R.string.status_tap_record_no_s3));
         }
+        // Big card: session timer, current-segment line, segment progress.
+        long sessionMs = recording && RecordingService.recordingSinceMs > 0
+                ? System.currentTimeMillis() - RecordingService.recordingSinceMs
+                : (noteActive && noteStartMs > 0
+                        ? System.currentTimeMillis() - noteStartMs : 0);
+        recordTimer.setText(fmtClock(sessionMs));
+        long segTotalSec = Prefs.segmentMinutes(this) * 60L;
+        if (recording && RecordingService.currentSegmentStartMs > 0) {
+            long segElapsedSec = Math.max(0,
+                    (System.currentTimeMillis() - RecordingService.currentSegmentStartMs) / 1000);
+            segProgressBar.setProgress((int) Math.min(1000,
+                    segElapsedSec * 1000 / Math.max(1, segTotalSec)));
+            String state;
+            if (Uploader.isRunning()) state = getString(R.string.seg_state_syncing);
+            else if (Uploader.pendingCount(this) == 0) state = getString(R.string.seg_state_synced);
+            else state = getString(R.string.record_pending_count, Uploader.pendingCount(this));
+            File curSeg = RecordingService.currentSegmentFile;
+            if (curSeg != null && curSeg.exists()) {
+                state = String.format(Locale.US, "%.1f MB · ", curSeg.length() / 1_000_000.0) + state;
+            }
+            segInfoText.setText(getString(R.string.seg_info,
+                    fmtDur(segElapsedSec), fmtDur(segTotalSec), state));
+        } else {
+            segProgressBar.setProgress(0);
+            segInfoText.setText(getString(R.string.seg_info_idle,
+                    fmtDur(0), fmtDur(segTotalSec)));
+        }
 
-        styleEventCard(convCard, convCardTitle, convCardState,
+        styleEventCard(convCard, convCardTitle, convCardState, convDot,
                 prefs.getBoolean(Prefs.KEY_CONV_ACTIVE, false), pal.accent,
-                prefs.getLong(Prefs.KEY_CONV_SINCE, 0));
-        styleEventCard(meetingCard, meetingCardTitle, meetingCardState,
+                prefs.getLong(Prefs.KEY_CONV_SINCE, 0), R.string.conv_desc);
+        styleEventCard(meetingCard, meetingCardTitle, meetingCardState, meetingDot,
                 prefs.getBoolean(Prefs.KEY_MEETING_ACTIVE, false), pal.accent2,
-                prefs.getLong(Prefs.KEY_MEETING_SINCE, 0));
+                prefs.getLong(Prefs.KEY_MEETING_SINCE, 0), R.string.meeting_desc);
 
         // File list: the in-progress segment first, then pending uploads.
         File[] pending = Uploader.pendingFiles(this);
@@ -871,16 +946,23 @@ public class MainActivity extends Activity {
         long nowMs = System.currentTimeMillis();
         boolean failingLong = Uploader.failingSinceMs > 0
                 && nowMs - Uploader.failingSinceMs >= 30 * 60_000L;
+        int pendingTotal = pending.length + pendingSnaps.length;
         if (Uploader.isRunning()) {
             long total = Uploader.currentTotal;
             int pct = total > 0 ? (int) (Uploader.currentSent * 100 / total) : 0;
             uploadProgress.setVisibility(View.VISIBLE);
             uploadProgress.setProgress(pct);
-            uploadStatusText.setText(getString(R.string.uploading,
+            // Mockup status line carries the live uploading text while a
+            // run is in flight; the small line below stays for afterwards.
+            recordStatusLine.setText(getString(R.string.uploading,
                     Math.min(Uploader.runDone + 1, Math.max(Uploader.runTotal, 1)),
                     Math.max(Uploader.runTotal, 1), Uploader.currentFileName, pct));
+            uploadStatusText.setVisibility(View.GONE);
         } else {
             uploadProgress.setVisibility(View.GONE);
+            recordStatusLine.setText(pendingTotal > 0
+                    ? getString(R.string.record_pending_count, pendingTotal)
+                    : getString(R.string.record_pending_synced));
             String text = "";
             if (!Uploader.lastResult.isEmpty()) {
                 String when = new SimpleDateFormat("HH:mm:ss", Locale.US)
@@ -891,6 +973,7 @@ public class MainActivity extends Activity {
                 text = getString(R.string.failing_warning, text);
             }
             uploadStatusText.setText(text);
+            uploadStatusText.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
         }
         boolean configJustSaved = lastConfigSavedAt > Uploader.lastResultAt;
         retryUploadButton.setVisibility(
