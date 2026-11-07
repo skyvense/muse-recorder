@@ -147,13 +147,12 @@ return (int) (v * act.getResources().getDisplayMetrics().density + 0.5f);
 }
 
 private static String firstLine(String s) {
-if (s == null) return "";
-String t = s.trim();
-int nl = t.indexOf('\n');
-if (nl >= 0) t = t.substring(0, nl).trim();
-// Skip a leading markdown heading marker for a cleaner preview.
-if (t.startsWith("#")) t = t.replaceFirst("^#+\\s*", "");
-return t;
+// Clean one-line preview: strip all markdown markers, not just ##.
+return Markdown.stripToPlain(s);
+}
+
+private CharSequence renderMd(String text) {
+return Markdown.render(act, text, pal, detailText.getTextSize());
 }
 
 public SupabaseReports(Activity act) {
@@ -333,7 +332,7 @@ detail.setVisibility(View.VISIBLE);
 header.setVisibility(View.GONE);
 detailBar.setVisibility(View.VISIBLE);
 dayTitle.setText(d.day);
-detailText.setText(d.summary);
+detailText.setText(renderMd(d.summary));
 status.setText(act.getString(R.string.reports_loading));
 io.execute(() -> {
 StringBuilder sb = new StringBuilder(d.summary);
@@ -345,8 +344,8 @@ String path = "/rest/v1/analyses?select=window_start,window_end,analysis_text"
 + "&window_start=lt." + enc(next + " 00:00");
 JSONArray arr = new JSONArray(get(path));
 if (arr.length() > 0) {
-sb.append("\n\n—— ").append(act.getString(R.string.reports_analyses_title))
-.append(" ——");
+// A real markdown heading, so the renderer styles it as one.
+sb.append("\n\n## ").append(act.getString(R.string.reports_analyses_title));
 for (int i = 0; i < arr.length(); i++) {
 JSONObject o = arr.getJSONObject(i);
 sb.append("\n\n\n")
@@ -373,7 +372,7 @@ final String text = sb.toString();
 final int fPhotos = sheetPhotos, fClusters = sheetClusters;
 ui.post(() -> {
 if (gen!= generation ||!detailOpen) return;
-detailText.setText(text);
+detailText.setText(renderMd(text));
 status.setText("");
 if (fPhotos >= 0) {
 sheetButtonLabel = act.getString(R.string.reports_sheet_button,
