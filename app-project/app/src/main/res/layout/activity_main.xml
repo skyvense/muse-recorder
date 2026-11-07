@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v1.13: layouts rebuilt to match the approved "Cloud White Minimal"
-     mockups (design-mockups/v2_* + v2d_*): every tab gets the small app-name
-     line / big title / gray subtitle header, content lives in rounded
-     cards, settings are grouped cards. Colors are applied in code from
+<!-- v1.13 rebuilt the layouts to match the approved "Cloud White Minimal"
+     mockups (design-mockups/v2_* + v2d_*): header blocks, rounded cards,
+     grouped settings cards. v1.14: the record page went back to its
+     original v1.12 layout (button + waveform row, scrollable file list,
+     fixed footer with event cards + self-note button) at Zhang's request —
+     the v1.13 version took too much vertical space. The other three tabs
+     keep the v1.13 mockup layouts. Colors are applied in code from
      Ui.Palette; ids used by the Java side are unchanged where they existed. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rootLayout"
@@ -16,103 +19,143 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- ============ Page 1: record ============ -->
-        <ScrollView
+        <!-- ============ Page 1: record / control ============ -->
+        <LinearLayout
             android:id="@+id/pageRecord"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/recordAppName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/app_name"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/recordTitleText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/title_record"
-                    android:textSize="26sp"
-                    android:textStyle="bold" />
-
-                <!-- Live-state subtitle (was the old statusText line). -->
-                <TextView
-                    android:id="@+id/statusText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/status_tap_record"
-                    android:textSize="14sp" />
-
-                <!-- Big record card: button, timer, segment line, waveform,
-                     segment progress. -->
                 <LinearLayout
-                    android:id="@+id/recordCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center_horizontal"
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <personal.muse.recorder.RecordButtonView
-                        android:id="@+id/recordButton"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:clickable="true"
-                        android:focusable="true" />
+                    <!-- Record row: button left-aligned, waveform filling
+                         the rest of the row at the same height (92dp). The
+                         waveform stays INVISIBLE (not GONE) when idle so
+                         the row never shifts. -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <personal.muse.recorder.RecordButtonView
+                            android:id="@+id/recordButton"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <personal.muse.recorder.WaveformView
+                            android:id="@+id/waveform"
+                            android:layout_width="0dp"
+                            android:layout_height="92dp"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:visibility="invisible" />
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/recordTimer"
+                        android:id="@+id/statusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="start"
+                        android:text="@string/status_tap_record"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/filesTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="00:00:00"
-                        android:textSize="30sp"
+                        android:layout_marginTop="22dp"
+                        android:text="@string/files_title"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/segInfoText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:textSize="13sp" />
-
-                    <!-- INVISIBLE (not GONE) when idle, as before, so the
-                         card never changes height. -->
-                    <personal.muse.recorder.WaveformView
-                        android:id="@+id/waveform"
+                    <LinearLayout
+                        android:id="@+id/pendingContainer"
                         android:layout_width="match_parent"
-                        android:layout_height="64dp"
-                        android:layout_marginTop="14dp"
-                        android:visibility="invisible" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
 
                     <ProgressBar
-                        android:id="@+id/segProgressBar"
+                        android:id="@+id/uploadProgress"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="6dp"
-                        android:layout_marginTop="12dp"
-                        android:max="1000"
-                        android:progress="0" />
-                </LinearLayout>
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:visibility="gone" />
 
-                <!-- Conversation / meeting cards (mockup: dot + name +
-                     description; the state line doubles as description
-                     when inactive). -->
+                    <TextView
+                        android:id="@+id/uploadStatusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text=""
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/retryUploadButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/retry_upload"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </ScrollView>
+
+            <View
+                android:id="@+id/footerDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E4E7EC" />
+
+            <LinearLayout
+                android:id="@+id/recordFooter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="vertical"
+                android:padding="14dp">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/events_title"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/lastEventText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="@string/no_events_yet"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
                     android:orientation="horizontal">
 
                     <LinearLayout
@@ -123,40 +166,27 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="vertical"
-                        android:padding="14dp">
+                        android:padding="12dp">
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/convCardTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <View
-                                android:id="@+id/convDot"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp" />
-
-                            <TextView
-                                android:id="@+id/convCardTitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:text="@string/conv_card"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                            android:text="@string/conv_card"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/convCardState"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/conv_desc"
+                            android:layout_marginTop="3dp"
+                            android:text="@string/tap_to_start"
                             android:textSize="12sp" />
                     </LinearLayout>
 
                     <View
-                        android:layout_width="12dp"
+                        android:layout_width="10dp"
                         android:layout_height="1dp" />
 
                     <LinearLayout
@@ -167,127 +197,34 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:orientation="vertical"
-                        android:padding="14dp">
+                        android:padding="12dp">
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/meetingCardTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <View
-                                android:id="@+id/meetingDot"
-                                android:layout_width="14dp"
-                                android:layout_height="14dp" />
-
-                            <TextView
-                                android:id="@+id/meetingCardTitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:text="@string/meeting_card"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                            android:text="@string/meeting_card"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/meetingCardState"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/meeting_desc"
+                            android:layout_marginTop="3dp"
+                            android:text="@string/tap_to_start"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Press-and-hold self-note: two-line accent block (a
-                     LinearLayout so the two lines can differ in size;
-                     the touch handling is unchanged). -->
-                <LinearLayout
+                <Button
                     android:id="@+id/selfNoteButton"
                     android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:layout_marginTop="16dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/selfNoteTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/self_note_title"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/selfNoteSub"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/self_note_sub"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/lastEventText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="52dp"
                     android:layout_marginTop="10dp"
-                    android:text="@string/no_events_yet"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/recordStatusLine"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:textSize="15sp" />
-
-                <ProgressBar
-                    android:id="@+id/uploadProgress"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:max="100"
-                    android:progress="0"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/uploadStatusText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text=""
-                    android:textSize="13sp" />
-
-                <Button
-                    android:id="@+id/retryUploadButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/retry_upload"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/filesTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
-                    android:text="@string/files_title"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:id="@+id/pendingContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical" />
+                    android:text="@string/self_note_button" />
             </LinearLayout>
-        </ScrollView>
+        </LinearLayout>
 
         <!-- ============ Page 2: cloud (R2 browser) ============ -->
         <LinearLayout
