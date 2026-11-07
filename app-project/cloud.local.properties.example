@@ -1,0 +1,8 @@
+# Copy to cloud.local.properties (gitignored) in this directory.
+# A non-empty CLOUD_BASE_URL turns Muse AI Cloud on and prefills Settings.
+# MUSE_CLOUD_ENABLED=true shows the sign-in form even when the URL is blank,
+# so you can type the shelf's PUBLIC_URL on the phone.
+# Do not put passwords or tokens in this file.
+
+CLOUD_BASE_URL=http://127.0.0.1:8080
+MUSE_CLOUD_ENABLED=true

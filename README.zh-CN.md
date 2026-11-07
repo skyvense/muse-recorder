@@ -10,7 +10,7 @@ Muse 本身没有持续监听麦克风的能力，所以这套方案由三部分
 2. **事件标记**：录音时可以随手标记重要时刻（见下），标记会一起传到桶里。
 3. **每日总结**（在 Muse 这边）：用 `receiver/fetch_day_from_s3.py` 从桶里拉前一天的录音和标记 → 转写 → Muse 整理成日报。
 
-v1.2 起 App **只支持 S3 模式**（v1.0 的自建接收端、v1.1 的 Supabase 直传已移除；接收端脚本还保留在 `receiver/` 里供参考）。
+v1.2 起默认 App **只支持 S3 模式**（v1.0 的自建接收端、v1.1 的 Supabase 直传已移除；接收端脚本还保留在 `receiver/` 里供参考）。可选的 **Muse AI Cloud** 登录要用 `CLOUD_BASE_URL` / `MUSE_CLOUD_ENABLED` 编进包里，不设置就保持关闭，已有的 S3 安装不受影响。见 [docs/muse-ai-cloud.md](docs/muse-ai-cloud.md)。
 
 ## 一、准备一个 S3 桶（以 Cloudflare R2 为例）
 
@@ -62,5 +62,5 @@ python3 receiver/summarize_day.py   --date 2026-10-23
 - `receiver/summarize_day.py`：转写 + 日报草稿；`receiver/server.py`、`fetch_day_from_supabase.py` 为旧方案存档。
 - `build-apk.sh`：用 Android SDK build-tools 直接构建 APK。
 - `.github/workflows/build.yml`：CI 在每次推送到 master 后自动构建，并发布两份同样的 APK：一份是滚动更新的 `latest` release（永远是最新版），一份是按版本打 tag 的正式 release（`vX.Y.Z`，永久保留）。最新版随时在这里下载：https://github.com/skyvense/muse-recorder/releases/tag/latest
-- `docs/`：本 README 的日/韩/西/法/德/葡/俄译本。
+- `docs/`：本 README 的日/韩/西/法/德/葡/俄译本。`docs/muse-ai-cloud.md` 是可选的 Muse AI Cloud 登录，以及服务端需要对齐的 `/api/` 约定。
 - `muse-recorder.keystore` + `keystore-info.txt`：签名密钥，**务必保留**，升级必须用它重新签名，否则无法覆盖安装。加密副本在 `vault/` 里（AES-256-CBC + PBKDF2）。

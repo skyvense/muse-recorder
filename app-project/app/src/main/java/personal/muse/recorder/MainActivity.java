@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends Activity {
     private static final int REQ_PERMS = 42;
@@ -96,6 +97,12 @@ public class MainActivity extends Activity {
     private EditText segmentMinutesInput;
     private CheckBox virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
     private CheckBox snapshotCheck;
+    private View cloudSection;
+    private EditText cloudBaseInput, cloudEmailInput, cloudPasswordInput;
+    private CheckBox cloudUseCheck;
+    private TextView cloudStatusText;
+    private Button cloudRegisterButton, cloudLoginButton, cloudLogoutButton;
+    private final AtomicBoolean cloudAuthBusy = new AtomicBoolean(false);
     private boolean spinnerTouched = false;
     private boolean languageTouched = false;
     private long lastConfigSavedAt = 0;
@@ -163,6 +170,18 @@ public class MainActivity extends Activity {
         settingsContainer = findViewById(R.id.settingsContainer);
         supabaseUrlInput = findViewById(R.id.supabaseUrlInput);
         supabaseKeyInput = findViewById(R.id.supabaseKeyInput);
+        cloudSection = findViewById(R.id.cloudSection);
+        cloudBaseInput = findViewById(R.id.cloudBaseInput);
+        cloudEmailInput = findViewById(R.id.cloudEmailInput);
+        cloudPasswordInput = findViewById(R.id.cloudPasswordInput);
+        cloudUseCheck = findViewById(R.id.cloudUseCheck);
+        cloudStatusText = findViewById(R.id.cloudStatusText);
+        cloudRegisterButton = findViewById(R.id.cloudRegisterButton);
+        cloudLoginButton = findViewById(R.id.cloudLoginButton);
+        cloudLogoutButton = findViewById(R.id.cloudLogoutButton);
+        if (!BuildConfig.MUSE_CLOUD_ENABLED) {
+            cloudSection.setVisibility(View.GONE);
+        }
 
         selfNoteButton.setBackground(roundedBg(0xFF1C1C1E, 12));
         selfNoteButton.setTextColor(Color.WHITE);
@@ -171,6 +190,8 @@ public class MainActivity extends Activity {
         // Tabs: record (control) / cloud (R2 browser) / reports (Supabase)
         // / settings. The settings that used to hide behind a toggle button
         // on the record page now live on their own tab, categorized.
+        // Muse AI Cloud sign-in is a block on the Settings tab, not this
+        // R2 browser tab.
         tabRecordButton = findViewById(R.id.tabRecordButton);
         tabCloudButton = findViewById(R.id.tabCloudButton);
         tabReportsButton = findViewById(R.id.tabReportsButton);
@@ -234,6 +255,7 @@ public class MainActivity extends Activity {
         });
 
         loadSettings();
+        wireCloudAuth();
 
         recordButton.setOnClickListener(v -> {
             if (RecordingService.isRecording) {
@@ -551,6 +573,13 @@ public class MainActivity extends Activity {
         supabaseUrlInput.setText(sbUrl.isEmpty()
                 ? "https://xpmorezsouevzihgjpxe.supabase.co" : sbUrl);
         supabaseKeyInput.setText(Prefs.supabaseKey(this));
+        String cloudBase = p.getString(Prefs.KEY_CLOUD_BASE_URL, "");
+        if (cloudBase == null || cloudBase.trim().isEmpty()) cloudBase = BuildConfig.CLOUD_BASE_URL;
+        cloudBaseInput.setText(cloudBase);
+        cloudEmailInput.setText(p.getString(Prefs.KEY_CLOUD_EMAIL, ""));
+        cloudPasswordInput.setText("");
+        cloudUseCheck.setChecked(p.getBoolean(Prefs.KEY_CLOUD_USE, false));
+        refreshCloudStatusLabel();
     }
 
     private void saveSettings() {
@@ -558,7 +587,7 @@ public class MainActivity extends Activity {
         try {
             minutes = Integer.parseInt(segmentMinutesInput.getText().toString().trim());
         } catch (NumberFormatException ignored) {}
-        Prefs.get(this).edit()
+        SharedPreferences.Editor editor = Prefs.get(this).edit()
                 .putString(Prefs.KEY_S3_PRESET, String.valueOf(presetSpinner.getSelectedItemPosition()))
                 .putString(Prefs.KEY_S3_ENDPOINT, endpointInput.getText().toString().trim())
                 .putString(Prefs.KEY_S3_REGION, regionInput.getText().toString().trim())
@@ -573,8 +602,20 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
                 .putInt(Prefs.KEY_SNAPSHOT_CAMERA, snapshotCameraSpinner.getSelectedItemPosition())
                 .putString(Prefs.KEY_SB_URL, supabaseUrlInput.getText().toString().trim())
-                .putString(Prefs.KEY_SB_KEY, supabaseKeyInput.getText().toString().trim())
-                .apply();
+                .putString(Prefs.KEY_SB_KEY, supabaseKeyInput.getText().toString().trim());
+        // Stock builds do not touch cloud prefs, so Save cannot clear a URL
+        // left behind by a cloud-enabled install.
+        if (BuildConfig.MUSE_CLOUD_ENABLED) {
+            editor.putString(Prefs.KEY_CLOUD_BASE_URL, MuseCloud.normalizeBaseUrl(
+                            cloudBaseInput.getText().toString()))
+                    .putString(Prefs.KEY_CLOUD_EMAIL, cloudEmailInput.getText().toString().trim())
+                    .putBoolean(Prefs.KEY_CLOUD_USE, cloudUseCheck.isChecked());
+        }
+        editor.apply();
+        if (BuildConfig.MUSE_CLOUD_ENABLED) {
+            cloudBaseInput.setText(Prefs.cloudBaseUrl(this));
+            refreshCloudStatusLabel();
+        }
         SnapshotWatcher.sync(this);
     }
 
@@ -697,9 +738,14 @@ public class MainActivity extends Activity {
             statusText.setText(R.string.self_note_recording);
         } else {
             statusText.setVisibility(View.VISIBLE);
-            statusText.setText(Prefs.s3Configured(this)
-                    ? getString(R.string.status_tap_record)
-                    : getString(R.string.status_tap_record_no_s3));
+            boolean backendReady = Prefs.cloudSessionReady(this) || Prefs.s3Configured(this);
+            if (backendReady) {
+                statusText.setText(R.string.status_tap_record);
+            } else if (BuildConfig.MUSE_CLOUD_ENABLED) {
+                statusText.setText(R.string.status_tap_record_no_backend);
+            } else {
+                statusText.setText(R.string.status_tap_record_no_s3);
+            }
         }
 
         styleEventCard(convCard, convCardTitle, convCardState,
@@ -748,7 +794,8 @@ public class MainActivity extends Activity {
                     String.format(Locale.US, "%.1f", f.length() / 1_000_000.0)));
             rowIsRecording.add(false);
         }
-        if (rows.isEmpty()) rows.add(Prefs.s3Configured(this)
+        boolean backendReady = Prefs.cloudSessionReady(this) || Prefs.s3Configured(this);
+        if (rows.isEmpty()) rows.add(backendReady
                 ? getString(R.string.no_pending_ok) : getString(R.string.no_files_yet));
         if (Uploader.eventsPending(this)) rows.add(getString(R.string.events_pending_row));
         while (rowIsRecording.size() < rows.size()) rowIsRecording.add(false);
@@ -838,5 +885,141 @@ public class MainActivity extends Activity {
 
     private void toast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private void refreshCloudStatusLabel() {
+        if (cloudStatusText == null) return;
+        String email = Prefs.cloudEmail(this);
+        String plan = Prefs.cloudPlan(this);
+        boolean signedIn = !Prefs.cloudToken(this).isEmpty();
+        if (!signedIn) {
+            cloudStatusText.setText(R.string.cloud_status_logged_out);
+        } else if (cloudUseCheck.isChecked()) {
+            if (plan.isEmpty()) {
+                cloudStatusText.setText(getString(R.string.cloud_status_ready, email));
+            } else {
+                cloudStatusText.setText(getString(R.string.cloud_status_ready_plan, email, plan));
+            }
+        } else {
+            cloudStatusText.setText(getString(R.string.cloud_status_signed_in_s3, email));
+        }
+    }
+
+    private void wireCloudAuth() {
+        cloudUseCheck.setOnClickListener(v -> {
+            Prefs.get(this).edit()
+                    .putBoolean(Prefs.KEY_CLOUD_USE, cloudUseCheck.isChecked())
+                    .apply();
+            refreshCloudStatusLabel();
+            Uploader.kick(this);
+        });
+        cloudRegisterButton.setOnClickListener(v -> cloudAuthenticate(true));
+        cloudLoginButton.setOnClickListener(v -> cloudAuthenticate(false));
+        cloudLogoutButton.setOnClickListener(v -> {
+            if (!cloudAuthBusy.compareAndSet(false, true)) return;
+            final String base = Prefs.cloudBaseUrl(this);
+            final String token = Prefs.cloudToken(this);
+            setCloudAuthEnabled(false);
+            new Thread(() -> {
+                try {
+                    if (!token.isEmpty()) MuseCloud.logout(base, token);
+                } catch (Exception ignored) {
+                    // Still drop the local JWT. A failed logout leaves it
+                    // valid on the shelf until it expires.
+                }
+                runOnUiThread(this::finishCloudLogout);
+            }, "muse-cloud-logout").start();
+        });
+    }
+
+    /** Register or sign in. The password stays in the field only until this returns. */
+    private void cloudAuthenticate(boolean register) {
+        if (!cloudAuthBusy.compareAndSet(false, true)) return;
+        String base = MuseCloud.normalizeBaseUrl(cloudBaseInput.getText().toString());
+        String email = cloudEmailInput.getText().toString().trim();
+        String password = cloudPasswordInput.getText().toString();
+        String action = getString(register ? R.string.cloud_register : R.string.cloud_login);
+        if (base.isEmpty()) {
+            cloudAuthBusy.set(false);
+            cloudStatusText.setText(R.string.cloud_need_url);
+            return;
+        }
+        if (email.isEmpty() || password.isEmpty()) {
+            cloudAuthBusy.set(false);
+            cloudStatusText.setText(R.string.cloud_need_credentials);
+            return;
+        }
+        setCloudAuthEnabled(false);
+        cloudStatusText.setText(R.string.cloud_working);
+        final String baseFinal = base;
+        new Thread(() -> {
+            MuseCloud.AuthResult result;
+            try {
+                result = register
+                        ? MuseCloud.register(baseFinal, email, password)
+                        : MuseCloud.login(baseFinal, email, password);
+            } catch (Exception e) {
+                String message = e.getMessage() == null ? e.toString() : e.getMessage();
+                runOnUiThread(() -> finishCloudAuth(false, null, null,
+                        getString(R.string.cloud_auth_failed, action, message), baseFinal, email));
+                return;
+            }
+            if (!result.ok || result.token == null) {
+                String message = result.message == null ? ("HTTP " + result.httpCode) : result.message;
+                runOnUiThread(() -> finishCloudAuth(false, null, null,
+                        getString(R.string.cloud_auth_failed, action, message), baseFinal, email));
+                return;
+            }
+            runOnUiThread(() -> finishCloudAuth(true, result.token, result.plan, null, baseFinal, email));
+        }, "muse-cloud-auth").start();
+    }
+
+    private void finishCloudAuth(boolean ok, String token, String plan, String error,
+                                  String base, String email) {
+        cloudAuthBusy.set(false);
+        // Persist even if this activity is already going away (rotation).
+        // The password is not written.
+        if (ok) {
+            Prefs.get(getApplicationContext()).edit()
+                    .putString(Prefs.KEY_CLOUD_BASE_URL, base)
+                    .putString(Prefs.KEY_CLOUD_EMAIL, email)
+                    .putString(Prefs.KEY_CLOUD_TOKEN, token)
+                    .putString(Prefs.KEY_CLOUD_SUBSCRIPTION, plan == null ? "" : plan)
+                    .putBoolean(Prefs.KEY_CLOUD_USE, true)
+                    .apply();
+            Uploader.kick(getApplicationContext());
+        }
+        if (isFinishing()) return;
+        setCloudAuthEnabled(true);
+        if (!ok) {
+            cloudStatusText.setText(error);
+            return;
+        }
+        cloudBaseInput.setText(base);
+        cloudPasswordInput.setText("");
+        cloudUseCheck.setChecked(true);
+        refreshCloudStatusLabel();
+        refreshStatus();
+    }
+
+    private void finishCloudLogout() {
+        cloudAuthBusy.set(false);
+        Prefs.get(getApplicationContext()).edit()
+                .remove(Prefs.KEY_CLOUD_TOKEN)
+                .remove(Prefs.KEY_CLOUD_SUBSCRIPTION)
+                .putBoolean(Prefs.KEY_CLOUD_USE, false)
+                .apply();
+        if (isFinishing()) return;
+        setCloudAuthEnabled(true);
+        cloudUseCheck.setChecked(false);
+        cloudPasswordInput.setText("");
+        refreshCloudStatusLabel();
+        toast(getString(R.string.cloud_signed_out));
+    }
+
+    private void setCloudAuthEnabled(boolean enabled) {
+        cloudRegisterButton.setEnabled(enabled);
+        cloudLoginButton.setEnabled(enabled);
+        cloudLogoutButton.setEnabled(enabled);
     }
 }

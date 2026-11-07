@@ -10,7 +10,7 @@ Muse itself cannot listen to the microphone continuously, so this setup has thre
 2. **Event markers**: mark important moments while recording (see below); markers are uploaded to the bucket together with the audio.
 3. **Daily summary** (on Muse's side): `receiver/fetch_day_from_s3.py` pulls the previous day's audio and markers from the bucket → transcribes → Muse turns it into a daily report.
 
-Since v1.2 the app is **S3-only** (v1.0's self-hosted receiver and v1.1's Supabase direct upload were removed; the old receiver scripts are still kept in `receiver/` for reference).
+Since v1.2 the default app is **S3-only** (v1.0's self-hosted receiver and v1.1's Supabase direct upload were removed; the old receiver scripts are still kept in `receiver/` for reference). An optional **Muse AI Cloud** sign-in can be compiled in with `CLOUD_BASE_URL` / `MUSE_CLOUD_ENABLED`. It stays off unless you set that, so existing S3 installs are unchanged. See [docs/muse-ai-cloud.md](docs/muse-ai-cloud.md).
 
 ## 1. Prepare an S3 bucket (Cloudflare R2 example)
 
@@ -62,5 +62,5 @@ Transcription, two options: set `OPENAI_API_KEY` (Whisper API), or `pip install 
 - `receiver/summarize_day.py`: transcription + report draft; `receiver/server.py` and `fetch_day_from_supabase.py` are archives of the old approach.
 - `build-apk.sh`: builds the APK directly with the Android SDK build-tools.
 - `.github/workflows/build.yml`: CI builds on every push to master and publishes two releases holding the same APK — a rolling `latest` release (always the newest build) and a versioned release per version (tag `vX.Y.Z`, kept forever). Download the newest build any time at https://github.com/skyvense/muse-recorder/releases/tag/latest
-- `docs/`: this README translated into Japanese, Korean, Spanish, French, German, Portuguese and Russian.
+- `docs/`: this README translated into Japanese, Korean, Spanish, French, German, Portuguese and Russian. `docs/muse-ai-cloud.md` is the optional Muse AI Cloud sign-in and the `/api/` contract the shelf should match.
 - `muse-recorder.keystore` + `keystore-info.txt`: the signing key — **keep them safe**. Upgrades must be signed with the same key, or they cannot install over the old version. Encrypted copies live in `vault/` (AES-256-CBC + PBKDF2).

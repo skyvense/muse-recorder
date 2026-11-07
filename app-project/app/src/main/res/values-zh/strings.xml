@@ -4,10 +4,12 @@
     <string name="seconds_short">秒</string>
     <string name="status_tap_record">点红色按钮开始录音</string>
     <string name="status_tap_record_no_s3">点红色按钮开始录音（S3 还没配置好，录音会先存手机里）</string>
+    <string name="status_tap_record_no_backend">点红色按钮开始录音（先登录 Muse AI Cloud，或填好 S3；在此之前录音只留在手机里）</string>
     <string name="files_title">录音文件</string>
     <string name="files_title_pending">录音文件（待上传 %1$d 段 · %2$s MB）</string>
     <string name="retry_upload">立即重试上传</string>
     <string name="settings_button">⚙️ 配置（S3 与录音设置）</string>
+    <string name="settings_button_cloud">⚙️ 配置（Cloud、S3 与录音）</string>
     <string name="settings_collapse">收起配置</string>
     <string name="settings_s3_title">S3 存储设置（改完点保存，会自动上传一次）</string>
     <string name="preset_label">云厂商预置（选中自动填好地址和区域，可再手改）</string>
@@ -123,6 +125,8 @@
     <string name="up_target_info">\n实际请求：桶「%1$s」@ %2$s（%3$s风格，区域 %4$s）</string>
     <string name="up_err_placeholder">未上传：Endpoint 里还是占位符 &lt;AccountID&gt;，请换成你的真实 R2 Account ID</string>
     <string name="up_err_not_configured">未上传：S3 设置还没填完整（点“配置”检查 Endpoint、桶名和两个 Key）</string>
+    <string name="up_err_cloud_signed_out">未上传：已选择 Muse AI Cloud，但还没登录。请登录，或关掉 Cloud 上传改用 S3。</string>
+    <string name="up_cloud_target">\nMuse AI Cloud：%1$s</string>
     <string name="up_err_wifi_only">未上传：已开启“仅 Wi‑Fi 上传”，当前网络是计流量网络</string>
     <string name="up_no_valid_segments">没有有效的待上传片段（已清理 %1$d 个空片段）</string>
     <string name="up_no_pending_files">没有待上传的文件</string>
@@ -133,6 +137,24 @@
     <string name="up_stubs_cleaned">，已清理空片段 %1$d 个</string>
     <string name="up_events_suffix">（事件标记）</string>
     <string name="language_label">语言</string>
+    <string name="cloud_section_title">Muse AI Cloud</string>
+    <string name="cloud_section_hint">登录你的 Muse AI Cloud 账号。服务端保存每一天的录音和标记。在网页上连接 Muse 和 $5/月订阅（7 天试用）——本 App 不发送任何 AI 密钥。关掉 Cloud 上传就会继续用 S3。</string>
+    <string name="cloud_base_url_label">云端地址（PUBLIC_URL，不要带 /api）</string>
+    <string name="cloud_email_label">邮箱</string>
+    <string name="cloud_password_label">密码（只用来登录，不会保存在手机里）</string>
+    <string name="cloud_use_label">通过 Muse AI Cloud 上传（关掉则在已配置 S3 时继续用 S3）</string>
+    <string name="cloud_register">注册账号</string>
+    <string name="cloud_login">登录</string>
+    <string name="cloud_logout">退出登录</string>
+    <string name="cloud_working">正在连接 Muse AI Cloud…</string>
+    <string name="cloud_need_url">请先填写云端地址（例如 http://HOST:8080）</string>
+    <string name="cloud_need_credentials">请填写邮箱和密码</string>
+    <string name="cloud_auth_failed">%1$s失败：%2$s</string>
+    <string name="cloud_status_logged_out">未登录。已配置 S3 时会使用 S3。</string>
+    <string name="cloud_status_ready">已登录 %1$s。上传会发到 Muse AI Cloud。</string>
+    <string name="cloud_status_ready_plan">已登录 %1$s（%2$s）。上传会发到 Muse AI Cloud。</string>
+    <string name="cloud_status_signed_in_s3">已登录 %1$s。Cloud 上传已关闭，因此使用 S3。</string>
+    <string name="cloud_signed_out">已退出。已配置 S3 时会使用 S3。</string>
 
     <string-array name="language_names">
         <item>跟随系统</item>
