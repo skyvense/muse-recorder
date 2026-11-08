@@ -26,8 +26,9 @@ import android.util.Log;
  * cannot produce a burst of snapshots. Exception (v1.21.0): if the
  * phone stays at >= 80° after a shot, it re-fires every repeat interval
  * (Prefs.snapshotRepeatMs, default 3 min, 0 = off) without needing to
- * be laid flat first. The 15 s cooldown itself ends the moment the
- * phone goes low (v1.22.0), and a raise skipped by the cooldown is
+ * be laid flat first. The 15 s cooldown runs from the shot regardless
+ * of posture; it ends early only when the phone is deliberately laid
+ * flat (< 25° for ~1 s, v1.23.0). A raise skipped by the cooldown is
  * completely silent — vibration is reserved for captures that
  * actually start (short tick) and photos actually saved (longer buzz).
  * With the screen off it fires only
@@ -53,6 +54,7 @@ public final class SnapshotWatcher implements SensorEventListener {
     private SensorManager sensorManager;
     private boolean armed = false;
     private long uprightSinceMs = 0;
+    private long flatSinceMs = 0;
     private static volatile long lastFiredMs = 0;
 
     // Live gesture state for the record page's practice line (v1.20.0).
@@ -106,6 +108,7 @@ public final class SnapshotWatcher implements SensorEventListener {
         sensorManager = null;
         armed = false;
         uprightSinceMs = 0;
+        flatSinceMs = 0;
     }
 
     @Override
@@ -130,16 +133,26 @@ public final class SnapshotWatcher implements SensorEventListener {
         long now = System.currentTimeMillis();
         angleDeg = (int) Math.round(angle);
 
+        if (angle < 25) {
+            // Deliberately laid flat (v1.23.0): held near-flat for ~1 s
+            // clears the cooldown on the spot, as Zhang asked. v1.22.0
+            // cleared it on ANY dip below 65°, but normal handling dips
+            // that low constantly — the cooldown effectively never
+            // applied and snapshots fired far too easily.
+            if (flatSinceMs == 0) flatSinceMs = now;
+            if (now - flatSinceMs >= 1_000) {
+                lastFiredMs = 0;
+                cooldownEndsMs = 0;
+                nextRepeatAtMs = 0;
+            }
+        } else {
+            flatSinceMs = 0;
+        }
         if (angle < 65) {
-            // Low again: (re)arm, forget any raise in progress, and clear
-            // the cooldown immediately (v1.22.0, Zhang's request: laying
-            // the phone flat ends the cooldown on the spot, so the next
-            // raise can fire right away instead of waiting out 15 s).
+            // Low again: (re)arm and forget any raise in progress. The
+            // cooldown itself is NOT cleared here (see above).
             armed = true;
             uprightSinceMs = 0;
-            lastFiredMs = 0;
-            cooldownEndsMs = 0;
-            nextRepeatAtMs = 0;
             gestureState = STATE_WAITING;
             return;
         }
