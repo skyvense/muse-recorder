@@ -890,6 +890,30 @@
 
                     <View style="@style/SettingsDivider" />
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/snapshot_repeat_label" />
+                        <EditText
+                            android:id="@+id/snapshotRepeatInput"
+                            android:layout_width="84dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:hint="3"
+                            android:inputType="number"
+                            android:singleLine="true" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingsDivider" />
+
                     <Button
                         android:id="@+id/snapshotTestButton"
                         android:layout_width="match_parent"

@@ -70,6 +70,8 @@
     <string name="snap_status_raising">📸 检测到抬起 %1$d°，继续抬到 80°</string>
     <string name="snap_status_pose">📸 已检测到姿势 %1$d°，保持住…</string>
     <string name="snap_status_high">📸 已拍摄，把手机放低后可再次抬起</string>
+    <string name="snap_status_held">📸 竖置保持中，%1$d 秒后自动再拍</string>
+    <string name="snapshot_repeat_label">竖置保持时自动再拍间隔（分钟，0 = 关）</string>
     <string name="snap_status_capturing">📸 正在拍照…</string>
     <string name="snap_status_cooldown">📸 冷却中，还剩 %1$d 秒</string>
     <string name="snap_status_no_permission">📸 拍照检测：需要相机权限</string>

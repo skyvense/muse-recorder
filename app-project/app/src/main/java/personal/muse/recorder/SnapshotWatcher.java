@@ -23,7 +23,10 @@ import android.util.Log;
  * a phone bolt upright looks conspicuous — and the 60° tried briefly in
  * v1.18.0, which fired too easily). After firing it disarms until the
  * phone goes low again, and a 15 s cooldown applies, so normal handling
- * cannot produce a burst of snapshots. Vibration tells the two states
+ * cannot produce a burst of snapshots. Exception (v1.21.0): if the
+ * phone stays at >= 80° after a shot, it re-fires every repeat interval
+ * (Prefs.snapshotRepeatMs, default 3 min, 0 = off) without needing to
+ * be laid flat first. Vibration tells the two states
  * apart (v1.19.0): one short tick when a capture starts, a double pulse
  * when a raise lands inside the cooldown and is skipped (once per
  * raise). With the screen off it fires only
@@ -61,6 +64,8 @@ public final class SnapshotWatcher implements SensorEventListener {
     public static volatile int gestureState = STATE_OFF;
     public static volatile int angleDeg = 0;
     public static volatile long cooldownEndsMs = 0;
+    /** When the held-upright auto-repeat fires next (0 = repeat off). */
+    public static volatile long nextRepeatAtMs = 0;
 
     private SnapshotWatcher(Context app) {
         this.app = app;
@@ -134,8 +139,7 @@ public final class SnapshotWatcher implements SensorEventListener {
             gestureState = STATE_WAITING;
             return;
         }
-        if (armed && angle >= 80) {
-            if (uprightSinceMs == 0) uprightSinceMs = now;
+        if (angle >= 80) {
             // Firing with the screen off only works while the recording
             // service runs with the CAMERA foreground type (v1.9.3+);
             // without it Android blocks background camera access and the
@@ -145,23 +149,32 @@ public final class SnapshotWatcher implements SensorEventListener {
             boolean screenOn = pm == null || pm.isInteractive();
             boolean allowed = screenOn || RecordingService.cameraFgsActive;
             boolean coolingDown = now - lastFiredMs < 15_000;
-            if (allowed && coolingDown && !cooldownSignaled
-                    && !Snapshotter.isCapturing()) {
+            boolean capturing = Snapshotter.isCapturing();
+            if (allowed && coolingDown && !cooldownSignaled && !capturing) {
                 // Distinct double pulse: "raise seen, but still cooling
                 // down — no photo this time". Once per raise.
                 cooldownSignaled = true;
                 Snapshotter.signalCooldown(app);
             }
-            if (allowed
-                    && now - uprightSinceMs >= 250
-                    && !coolingDown
-                    && !Snapshotter.isCapturing()) {
-                lastFiredMs = now;
-                cooldownEndsMs = now + 15_000;
-                armed = false;
-                uprightSinceMs = 0;
-                Log.i(TAG, "Raise gesture detected (angle " + (int) angle + "°); taking snapshot pair");
-                Snapshotter.capturePair(app);
+            if (armed) {
+                if (uprightSinceMs == 0) uprightSinceMs = now;
+                if (allowed
+                        && now - uprightSinceMs >= 250
+                        && !coolingDown
+                        && !capturing) {
+                    fire(now, "Raise gesture detected");
+                }
+            } else if (allowed && !capturing) {
+                // Held upright after a shot (v1.21.0): until now the phone
+                // had to be laid flat before any next detection, so a
+                // phone kept upright (on a stand, in a cradle) never shot
+                // again. With the repeat interval set, staying at >= 80°
+                // re-fires every interval without a re-arm.
+                long intervalMs = Prefs.snapshotRepeatMs(app);
+                if (intervalMs > 0 && lastFiredMs > 0
+                        && now - lastFiredMs >= intervalMs) {
+                    fire(now, "Held upright; auto-repeat snapshot");
+                }
             }
         }
         // 65°–80° is a hysteresis band: keep the current state so a raise
@@ -174,6 +187,21 @@ public final class SnapshotWatcher implements SensorEventListener {
         } else {
             gestureState = STATE_RAISING;
         }
+    }
+
+    /** Shared fire path for the raise gesture and the held-upright repeat. */
+    private void fire(long now, String why) {
+        lastFiredMs = now;
+        cooldownEndsMs = now + 15_000;
+        long intervalMs = Prefs.snapshotRepeatMs(app);
+        nextRepeatAtMs = intervalMs > 0 ? now + intervalMs : 0;
+        armed = false;
+        uprightSinceMs = 0;
+        // Suppress the cooldown pulse for this shot's own cooldown while
+        // the phone simply stays up; it re-arms when the phone goes low.
+        cooldownSignaled = true;
+        Log.i(TAG, why + " (angle " + angleDeg + "°); taking snapshot pair");
+        Snapshotter.capturePair(app);
     }
 
     @Override

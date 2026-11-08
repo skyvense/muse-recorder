@@ -96,6 +96,7 @@ public class MainActivity extends Activity {
     private Ui.Palette pal;
     private EditText endpointInput, regionInput, bucketInput, accessKeyInput, secretKeyInput;
     private EditText segmentMinutesInput;
+    private EditText snapshotRepeatInput;
     private Switch virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
     private Switch snapshotCheck;
     private Switch snapshotFilterCheck;
@@ -171,9 +172,17 @@ public class MainActivity extends Activity {
             case SnapshotWatcher.STATE_POSE:
                 snapshotStatusText.setText(getString(R.string.snap_status_pose, angle));
                 break;
-            case SnapshotWatcher.STATE_HIGH:
-                snapshotStatusText.setText(R.string.snap_status_high);
+            case SnapshotWatcher.STATE_HIGH: {
+                long nextMs = SnapshotWatcher.nextRepeatAtMs;
+                long leftMs = nextMs - System.currentTimeMillis();
+                if (nextMs > 0 && leftMs > 0) {
+                    snapshotStatusText.setText(getString(R.string.snap_status_held,
+                            (int) Math.ceil(leftMs / 1000.0)));
+                } else {
+                    snapshotStatusText.setText(R.string.snap_status_high);
+                }
                 break;
+            }
             default:
                 snapshotStatusText.setText(getString(R.string.snap_status_waiting, angle));
                 break;
@@ -227,6 +236,7 @@ public class MainActivity extends Activity {
         autoResumeCheck = findViewById(R.id.autoResumeCheck);
         snapshotCheck = findViewById(R.id.snapshotCheck);
         snapshotFilterCheck = findViewById(R.id.snapshotFilterCheck);
+        snapshotRepeatInput = findViewById(R.id.snapshotRepeatInput);
         snapshotCameraSpinner = findViewById(R.id.snapshotCameraSpinner);
         settingsContainer = findViewById(R.id.settingsContainer);
         supabaseUrlInput = findViewById(R.id.supabaseUrlInput);
@@ -712,6 +722,7 @@ public class MainActivity extends Activity {
         autoResumeCheck.setChecked(p.getBoolean(Prefs.KEY_AUTO_RESUME, false));
         snapshotCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false));
         snapshotFilterCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_FILTER, true));
+        snapshotRepeatInput.setText(String.valueOf(Prefs.snapshotRepeatMinutes(this)));
         snapshotCameraSpinner.setSelection(Prefs.snapshotCameraMode(this));
         String sbUrl = Prefs.supabaseUrl(this);
         supabaseUrlInput.setText(sbUrl.isEmpty()
@@ -724,6 +735,12 @@ public class MainActivity extends Activity {
         try {
             minutes = Integer.parseInt(segmentMinutesInput.getText().toString().trim());
         } catch (NumberFormatException ignored) {}
+        int repeatMinutes = 3;
+        try {
+            repeatMinutes = Integer.parseInt(snapshotRepeatInput.getText().toString().trim());
+        } catch (NumberFormatException ignored) {}
+        if (repeatMinutes < 0) repeatMinutes = 0;
+        if (repeatMinutes > 120) repeatMinutes = 120;
         Prefs.get(this).edit()
                 .putString(Prefs.KEY_S3_PRESET, String.valueOf(presetSpinner.getSelectedItemPosition()))
                 .putString(Prefs.KEY_S3_ENDPOINT, endpointInput.getText().toString().trim())
@@ -738,6 +755,7 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_AUTO_RESUME, autoResumeCheck.isChecked())
                 .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
                 .putBoolean(Prefs.KEY_SNAPSHOT_FILTER, snapshotFilterCheck.isChecked())
+                .putInt(Prefs.KEY_SNAPSHOT_REPEAT_MINUTES, repeatMinutes)
                 .putInt(Prefs.KEY_SNAPSHOT_CAMERA, snapshotCameraSpinner.getSelectedItemPosition())
                 .putString(Prefs.KEY_SB_URL, supabaseUrlInput.getText().toString().trim())
                 .putString(Prefs.KEY_SB_KEY, supabaseKeyInput.getText().toString().trim())

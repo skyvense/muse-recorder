@@ -73,6 +73,8 @@
     <string name="snap_status_raising">📸 Raising detected at %1$d° — keep going to 80°</string>
     <string name="snap_status_pose">📸 Pose detected at %1$d° — hold it…</string>
     <string name="snap_status_high">📸 Snapshot done — lower the phone to get ready again</string>
+    <string name="snap_status_held">📸 Holding upright — next auto shot in %1$d s</string>
+    <string name="snapshot_repeat_label">Auto-repeat while held upright, minutes (0 = off)</string>
     <string name="snap_status_capturing">📸 Taking snapshot…</string>
     <string name="snap_status_cooldown">📸 Cooldown — %1$d s left</string>
     <string name="snap_status_no_permission">📸 Snapshot detection: camera permission needed</string>

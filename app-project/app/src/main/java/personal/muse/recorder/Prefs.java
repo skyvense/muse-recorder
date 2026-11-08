@@ -33,6 +33,7 @@ public final class Prefs {
     public static final String KEY_SNAPSHOT_ENABLED = "snapshot_enabled";
     public static final String KEY_SNAPSHOT_CAMERA = "snapshot_camera"; // 0=both, 1=back only, 2=front only
     public static final String KEY_SNAPSHOT_FILTER = "snapshot_filter"; // drop blank frames on-device
+    public static final String KEY_SNAPSHOT_REPEAT_MINUTES = "snapshot_repeat_minutes"; // held-upright auto-repeat
     public static final String KEY_SEG_TODAY_DATE = "seg_today_date"; // yyyy-MM-dd
     public static final String KEY_SEG_TODAY_COUNT = "seg_today_count";
     public static final String KEY_CONV_ACTIVE = "conv_active";
@@ -147,6 +148,23 @@ public final class Prefs {
      */
     public static boolean snapshotFilterEnabled(Context ctx) {
         return get(ctx).getBoolean(KEY_SNAPSHOT_FILTER, true);
+    }
+
+    /**
+     * Held-upright auto-repeat interval in minutes (v1.21.0): while the
+     * phone stays raised after a snapshot, shoot again every this many
+     * minutes instead of waiting for it to be laid flat. Default 3;
+     * 0 = off (the pre-v1.21 behaviour).
+     */
+    public static int snapshotRepeatMinutes(Context ctx) {
+        int m = get(ctx).getInt(KEY_SNAPSHOT_REPEAT_MINUTES, 3);
+        if (m < 0) m = 0;
+        if (m > 120) m = 120;
+        return m;
+    }
+
+    public static long snapshotRepeatMs(Context ctx) {
+        return snapshotRepeatMinutes(ctx) * 60_000L;
     }
 
     /** Which cameras a snapshot uses: 0 = both, 1 = back only, 2 = front only. */
