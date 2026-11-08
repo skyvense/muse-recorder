@@ -170,8 +170,13 @@ public final class Snapshotter {
             }
         } catch (Exception ignored) {}
         if (facing == CameraMetadata.LENS_FACING_FRONT) {
-            int r = (sensorDeg + deviceDeg) % 360;
-            return (360 - r) % 360;
+            // Front: sensor + device (Android docs: display rotation acts
+            // clockwise for front cameras). The old code returned
+            // (360 - (sensor + device)) % 360 instead, which on this phone
+            // (front sensor 270, device 0) wrote 90 (EXIF 6, same as the
+            // back camera) instead of 270 (EXIF 8) — front photos came out
+            // 180 degrees off. Verified against the 2026-11-06 19:19 pair.
+            return (sensorDeg + deviceDeg) % 360;
         }
         return (sensorDeg - deviceDeg + 360) % 360;
     }

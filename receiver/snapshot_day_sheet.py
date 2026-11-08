@@ -94,9 +94,13 @@ def build_sheet(chosen, date_str, stats, target_kb):
     for i, it in enumerate(chosen):
         try:
             with Image.open(it["path"]) as im:
+                exif_orientation = im.getexif().get(274)
                 im = ImageOps.exif_transpose(im)
-                if it["camera"] == "front":
-                    im = im.rotate(180)  # front EXIF bug workaround for display
+                # Pre-fix (v1.15.0 and earlier) front frames only: the app
+                # wrote EXIF 6 instead of 8, so turn 180 degrees. v1.16.0
+                # writes the correct EXIF and must not be turned again.
+                if it["camera"] == "front" and exif_orientation == 6:
+                    im = im.rotate(180)
                 im = im.convert("RGB")
                 im.thumbnail((cell_w, cell_h))
                 x = (i % cols) * cell_w + (cell_w - im.width) // 2

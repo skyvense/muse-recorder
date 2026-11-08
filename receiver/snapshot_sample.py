@@ -8,8 +8,10 @@ The 4-hour report worker cannot view hundreds of snapshots. This script:
   - picks evenly spaced samples, at most --max, preferring clear frames and
     including front-camera shots when present
   - writes a labelled contact-sheet JPG (EXIF orientation applied; front
-    frames get the extra 180-degree turn so they display upright until the
-    app-side EXIF bug is fixed) plus a JSON manifest with stats.
+    frames taken by app v1.15.0 or earlier carry the back camera's EXIF
+    value (6 instead of 8 in portrait) and get an extra 180-degree turn so
+    they display upright; frames from v1.16.0 onward already carry the
+    correct EXIF and are left alone) plus a JSON manifest with stats.
 
 Usage:
   snapshot_sample.py --start "2026-11-07 10:00" --end "2026-11-07 14:00" \
@@ -124,10 +126,14 @@ def build_sheet(chosen, out_path):
     for i, it in enumerate(chosen):
         try:
             with Image.open(it["path"]) as im:
+                exif_orientation = im.getexif().get(274)
                 im = ImageOps.exif_transpose(im)
-                if it["camera"] == "front":
-                    # Front frames carry the back camera's EXIF value; turn
-                    # 180 degrees so the content displays upright.
+                if it["camera"] == "front" and exif_orientation == 6:
+                    # Only pre-fix (v1.15.0 and earlier) front frames: the
+                    # app wrote the back camera's EXIF value (6) instead of
+                    # 8, so the content is 180 degrees off after transpose.
+                    # v1.16.0 writes the correct EXIF (8 in portrait), so
+                    # those frames must NOT be turned again.
                     im = im.rotate(180)
                 im = im.convert("RGB")
                 im.thumbnail((cell_w, cell_h))
