@@ -26,10 +26,11 @@ import android.util.Log;
  * cannot produce a burst of snapshots. Exception (v1.21.0): if the
  * phone stays at >= 80° after a shot, it re-fires every repeat interval
  * (Prefs.snapshotRepeatMs, default 3 min, 0 = off) without needing to
- * be laid flat first. Vibration tells the two states
- * apart (v1.19.0): one short tick when a capture starts, a double pulse
- * when a raise lands inside the cooldown and is skipped (once per
- * raise). With the screen off it fires only
+ * be laid flat first. The 15 s cooldown itself ends the moment the
+ * phone goes low (v1.22.0), and a raise skipped by the cooldown is
+ * completely silent — vibration is reserved for captures that
+ * actually start (short tick) and photos actually saved (longer buzz).
+ * With the screen off it fires only
  * while the recording service holds the camera foreground-service type;
  * otherwise the system would block the camera and the attempt could only
  * fail.
@@ -52,7 +53,6 @@ public final class SnapshotWatcher implements SensorEventListener {
     private SensorManager sensorManager;
     private boolean armed = false;
     private long uprightSinceMs = 0;
-    private boolean cooldownSignaled = false;
     private static volatile long lastFiredMs = 0;
 
     // Live gesture state for the record page's practice line (v1.20.0).
@@ -106,7 +106,6 @@ public final class SnapshotWatcher implements SensorEventListener {
         sensorManager = null;
         armed = false;
         uprightSinceMs = 0;
-        cooldownSignaled = false;
     }
 
     @Override
@@ -132,10 +131,15 @@ public final class SnapshotWatcher implements SensorEventListener {
         angleDeg = (int) Math.round(angle);
 
         if (angle < 65) {
-            // Low again: (re)arm and forget any raise in progress.
+            // Low again: (re)arm, forget any raise in progress, and clear
+            // the cooldown immediately (v1.22.0, Zhang's request: laying
+            // the phone flat ends the cooldown on the spot, so the next
+            // raise can fire right away instead of waiting out 15 s).
             armed = true;
             uprightSinceMs = 0;
-            cooldownSignaled = false;
+            lastFiredMs = 0;
+            cooldownEndsMs = 0;
+            nextRepeatAtMs = 0;
             gestureState = STATE_WAITING;
             return;
         }
@@ -148,14 +152,10 @@ public final class SnapshotWatcher implements SensorEventListener {
                     (android.os.PowerManager) app.getSystemService(Context.POWER_SERVICE);
             boolean screenOn = pm == null || pm.isInteractive();
             boolean allowed = screenOn || RecordingService.cameraFgsActive;
-            boolean coolingDown = now - lastFiredMs < 15_000;
+            boolean coolingDown = lastFiredMs > 0 && now - lastFiredMs < 15_000;
             boolean capturing = Snapshotter.isCapturing();
-            if (allowed && coolingDown && !cooldownSignaled && !capturing) {
-                // Distinct double pulse: "raise seen, but still cooling
-                // down — no photo this time". Once per raise.
-                cooldownSignaled = true;
-                Snapshotter.signalCooldown(app);
-            }
+            // A raise inside the cooldown is skipped SILENTLY (v1.22.0):
+            // no photo, no vibration, no reaction at all.
             if (armed) {
                 if (uprightSinceMs == 0) uprightSinceMs = now;
                 if (allowed
@@ -197,9 +197,6 @@ public final class SnapshotWatcher implements SensorEventListener {
         nextRepeatAtMs = intervalMs > 0 ? now + intervalMs : 0;
         armed = false;
         uprightSinceMs = 0;
-        // Suppress the cooldown pulse for this shot's own cooldown while
-        // the phone simply stays up; it re-arms when the phone goes low.
-        cooldownSignaled = true;
         Log.i(TAG, why + " (angle " + angleDeg + "°); taking snapshot pair");
         Snapshotter.capturePair(app);
     }

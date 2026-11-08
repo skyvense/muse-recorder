@@ -63,11 +63,6 @@ public final class Snapshotter {
         vibratePattern(ctx, new long[]{0, 40});
     }
 
-    /** Double pulse: "raise seen, but still in cooldown" (v1.19.0). */
-    public static void signalCooldown(Context ctx) {
-        vibratePattern(ctx, new long[]{0, 40, 90, 40});
-    }
-
     private static void vibratePattern(Context ctx, long[] timings) {
         try {
             Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
