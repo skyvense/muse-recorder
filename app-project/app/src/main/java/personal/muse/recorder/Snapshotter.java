@@ -58,14 +58,41 @@ public final class Snapshotter {
         return CAPTURING.get();
     }
 
+    /** Short single tick: "a capture is starting" (v1.19.0). */
+    public static void signalCaptureStart(Context ctx) {
+        vibratePattern(ctx, new long[]{0, 40});
+    }
+
+    /** Double pulse: "raise seen, but still in cooldown" (v1.19.0). */
+    public static void signalCooldown(Context ctx) {
+        vibratePattern(ctx, new long[]{0, 40, 90, 40});
+    }
+
+    private static void vibratePattern(Context ctx, long[] timings) {
+        try {
+            Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+            if (v == null) return;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createWaveform(timings, -1));
+            } else if (timings.length == 2) {
+                //noinspection deprecation
+                v.vibrate(timings[1]);
+            }
+        } catch (Exception ignored) {}
+    }
+
     public static void capturePair(Context ctx) {
         if (!CAPTURING.compareAndSet(false, true)) return;
         final Context app = ctx.getApplicationContext();
-        // NOTE: no vibration and no event marker here. Up to v1.9.1 both
-        // fired at trigger time, so attempts the system then blocked
-        // (camera unavailable while the app is in the background) still
-        // buzzed — the user felt far more buzzes than photos. From v1.9.2
-        // the buzz and the marker mean "a photo was actually saved".
+        // Vibration semantics: up to v1.9.1 the buzz fired at trigger time,
+        // so attempts the system then blocked still buzzed — the user felt
+        // far more buzzes than photos. From v1.9.2 the per-save tick in
+        // attempt() means "a photo was actually saved", and the event
+        // marker follows the same rule. v1.19.0 adds one distinct signal
+        // on top, at the user's request: signalCaptureStart above says
+        // only "starting" — a start tick with no save tick after it means
+        // the attempt failed or the frame was filtered as blank.
+        signalCaptureStart(app);
         Thread t = new Thread(() -> {
             HandlerThread ht = new HandlerThread("muse-snapshot");
             ht.start();
@@ -280,18 +307,13 @@ public final class Snapshotter {
         }
     }
 
+    /**
+     * Per-save buzz: "a photo was actually saved" (since v1.9.2). One
+     * longer buzz (120 ms) so it reads differently from the short 40 ms
+     * capture-start tick and from the cooldown double pulse.
+     */
     private static void vibrateTick(Context ctx) {
-        try {
-            Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
-            if (v != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    v.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE));
-                } else {
-                    //noinspection deprecation
-                    v.vibrate(40);
-                }
-            }
-        } catch (Exception ignored) {}
+        vibratePattern(ctx, new long[]{0, 120});
     }
 
     private static String findCamera(CameraManager cm, int facing) {

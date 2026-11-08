@@ -24,7 +24,7 @@
     <string name="wifi_only_label">Upload only on Wi‑Fi / unmetered networks</string>
     <string name="delete_after_label">Delete local segments after a successful upload (saves space)</string>
     <string name="auto_resume_label">Auto-resume recording after the phone restarts</string>
-    <string name="snapshot_label">📸 Auto snapshot when the phone is raised past ~60°</string>
+    <string name="snapshot_label">📸 Auto snapshot when the phone is raised past ~80°</string>
     <string name="snapshot_hint">Off by default. When on: raise the phone from flat to upright and hold ~1 second — it takes photos, shrinks them to ~1024 px / ≤500 KB on the phone, and uploads them to snapshot-YYYY-MM-DD/ in the bucket. While recording runs it also works with the screen locked or off; after a phone reboot, open the app once to restore screen-off capture. Turn it off to stop all camera use.</string>
     <string name="row_snapshot">📸 %1$s snapshot · %2$s MB · Pending upload</string>
     <string name="tab_record">🎙 Record</string>

@@ -17,14 +17,16 @@ import android.util.Log;
  * Geometry: the trigger angle is the angle between the gravity vector and
  * the device's z axis (out of the screen). Lying flat, screen up, it is
  * ~0°; held upright in portrait it is ~90°. The watcher arms after the
- * phone has been below 50° (flat on a desk, or held low in the hand),
- * then fires once the raise crosses 60° and holds there for ~250 ms
- * (v1.18.0: firing at 60° instead of near 90° — holding a phone bolt
- * upright looks conspicuous, and the camera's own startup latency means
- * the phone has kept rising towards upright by the time the still is
- * actually taken). After firing it disarms until the phone goes low
- * again, and a 15 s cooldown applies, so normal handling
- * cannot produce a burst of snapshots. With the screen off it fires only
+ * phone has been below 65° (flat on a desk, or held low in the hand),
+ * then fires once the raise crosses 80° and holds there for ~250 ms
+ * (v1.19.0: 80° settles between the original near-90° trigger — holding
+ * a phone bolt upright looks conspicuous — and the 60° tried briefly in
+ * v1.18.0, which fired too easily). After firing it disarms until the
+ * phone goes low again, and a 15 s cooldown applies, so normal handling
+ * cannot produce a burst of snapshots. Vibration tells the two states
+ * apart (v1.19.0): one short tick when a capture starts, a double pulse
+ * when a raise lands inside the cooldown and is skipped (once per
+ * raise). With the screen off it fires only
  * while the recording service holds the camera foreground-service type;
  * otherwise the system would block the camera and the attempt could only
  * fail.
@@ -47,6 +49,7 @@ public final class SnapshotWatcher implements SensorEventListener {
     private SensorManager sensorManager;
     private boolean armed = false;
     private long uprightSinceMs = 0;
+    private boolean cooldownSignaled = false;
     private static volatile long lastFiredMs = 0;
 
     private SnapshotWatcher(Context app) {
@@ -88,6 +91,7 @@ public final class SnapshotWatcher implements SensorEventListener {
         sensorManager = null;
         armed = false;
         uprightSinceMs = 0;
+        cooldownSignaled = false;
     }
 
     @Override
@@ -109,13 +113,14 @@ public final class SnapshotWatcher implements SensorEventListener {
         double angle = Math.toDegrees(Math.acos(cos));
         long now = System.currentTimeMillis();
 
-        if (angle < 50) {
+        if (angle < 65) {
             // Low again: (re)arm and forget any raise in progress.
             armed = true;
             uprightSinceMs = 0;
+            cooldownSignaled = false;
             return;
         }
-        if (armed && angle >= 60) {
+        if (armed && angle >= 80) {
             if (uprightSinceMs == 0) uprightSinceMs = now;
             // Firing with the screen off only works while the recording
             // service runs with the CAMERA foreground type (v1.9.3+);
@@ -125,9 +130,17 @@ public final class SnapshotWatcher implements SensorEventListener {
                     (android.os.PowerManager) app.getSystemService(Context.POWER_SERVICE);
             boolean screenOn = pm == null || pm.isInteractive();
             boolean allowed = screenOn || RecordingService.cameraFgsActive;
+            boolean coolingDown = now - lastFiredMs < 15_000;
+            if (allowed && coolingDown && !cooldownSignaled
+                    && !Snapshotter.isCapturing()) {
+                // Distinct double pulse: "raise seen, but still cooling
+                // down — no photo this time". Once per raise.
+                cooldownSignaled = true;
+                Snapshotter.signalCooldown(app);
+            }
             if (allowed
                     && now - uprightSinceMs >= 250
-                    && now - lastFiredMs >= 15_000
+                    && !coolingDown
                     && !Snapshotter.isCapturing()) {
                 lastFiredMs = now;
                 armed = false;
@@ -136,7 +149,7 @@ public final class SnapshotWatcher implements SensorEventListener {
                 Snapshotter.capturePair(app);
             }
         }
-        // 50°–60° is a hysteresis band: keep the current state so a raise
+        // 65°–80° is a hysteresis band: keep the current state so a raise
         // passing slowly through it neither arms nor resets the timer.
     }
 
