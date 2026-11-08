@@ -97,6 +97,7 @@ public class MainActivity extends Activity {
     private EditText segmentMinutesInput;
     private Switch virtualStyleCheck, wifiOnlyCheck, deleteAfterUploadCheck, autoResumeCheck;
     private Switch snapshotCheck;
+    private Switch snapshotFilterCheck;
     private boolean spinnerTouched = false;
     private boolean languageTouched = false;
     private long lastConfigSavedAt = 0;
@@ -166,6 +167,7 @@ public class MainActivity extends Activity {
         deleteAfterUploadCheck = findViewById(R.id.deleteAfterUploadCheck);
         autoResumeCheck = findViewById(R.id.autoResumeCheck);
         snapshotCheck = findViewById(R.id.snapshotCheck);
+        snapshotFilterCheck = findViewById(R.id.snapshotFilterCheck);
         snapshotCameraSpinner = findViewById(R.id.snapshotCameraSpinner);
         settingsContainer = findViewById(R.id.settingsContainer);
         supabaseUrlInput = findViewById(R.id.supabaseUrlInput);
@@ -329,6 +331,14 @@ public class MainActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
                 toast(getString(R.string.toast_camera_permission));
             }
+        });
+
+        // The blank-frame filter also applies immediately (same reasoning
+        // as the snapshot switch above).
+        snapshotFilterCheck.setOnClickListener(v -> {
+            Prefs.get(this).edit()
+                    .putBoolean(Prefs.KEY_SNAPSHOT_FILTER, snapshotFilterCheck.isChecked())
+                    .apply();
         });
 
         ArrayAdapter<String> snapshotCameraAdapter = new ArrayAdapter<>(this,
@@ -639,6 +649,7 @@ public class MainActivity extends Activity {
         deleteAfterUploadCheck.setChecked(p.getBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, true));
         autoResumeCheck.setChecked(p.getBoolean(Prefs.KEY_AUTO_RESUME, false));
         snapshotCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_ENABLED, false));
+        snapshotFilterCheck.setChecked(p.getBoolean(Prefs.KEY_SNAPSHOT_FILTER, true));
         snapshotCameraSpinner.setSelection(Prefs.snapshotCameraMode(this));
         String sbUrl = Prefs.supabaseUrl(this);
         supabaseUrlInput.setText(sbUrl.isEmpty()
@@ -664,6 +675,7 @@ public class MainActivity extends Activity {
                 .putBoolean(Prefs.KEY_DELETE_AFTER_UPLOAD, deleteAfterUploadCheck.isChecked())
                 .putBoolean(Prefs.KEY_AUTO_RESUME, autoResumeCheck.isChecked())
                 .putBoolean(Prefs.KEY_SNAPSHOT_ENABLED, snapshotCheck.isChecked())
+                .putBoolean(Prefs.KEY_SNAPSHOT_FILTER, snapshotFilterCheck.isChecked())
                 .putInt(Prefs.KEY_SNAPSHOT_CAMERA, snapshotCameraSpinner.getSelectedItemPosition())
                 .putString(Prefs.KEY_SB_URL, supabaseUrlInput.getText().toString().trim())
                 .putString(Prefs.KEY_SB_KEY, supabaseKeyInput.getText().toString().trim())

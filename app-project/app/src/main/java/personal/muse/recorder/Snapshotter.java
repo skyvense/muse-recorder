@@ -74,18 +74,27 @@ public final class Snapshotter {
                     .format(new Date());
             int mode = Prefs.snapshotCameraMode(app); // 0=both, 1=back, 2=front
             int saved = 0;
+            int filtered = 0;
             try {
-                if (mode != 2) saved += attempt(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back") ? 1 : 0;
+                if (mode != 2) {
+                    int r = attempt(app, h, CameraMetadata.LENS_FACING_BACK, stamp, "back");
+                    if (r == RESULT_SAVED) saved++; else if (r == RESULT_FILTERED) filtered++;
+                }
                 if (mode != 1) {
                     // Give the HAL a moment to fully release the first
                     // camera; opening the next one too early was losing
                     // the front shot on some attempts.
                     try { Thread.sleep(300); } catch (InterruptedException ignored) {}
-                    saved += attempt(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front") ? 1 : 0;
+                    int r = attempt(app, h, CameraMetadata.LENS_FACING_FRONT, stamp, "front");
+                    if (r == RESULT_SAVED) saved++; else if (r == RESULT_FILTERED) filtered++;
                 }
             } finally {
                 lastSnapshotAtMs = System.currentTimeMillis();
                 if (saved > 0) EventLog.add(app, EventLog.SNAPSHOT);
+                // Filtered frames get their own marker (one per frame) so
+                // the daily pipeline can still report how many snapshots
+                // were taken and dropped on-device as blank.
+                for (int i = 0; i < filtered; i++) EventLog.add(app, EventLog.SNAPSHOT_FILTERED);
                 CAPTURING.set(false);
                 ht.quitSafely();
                 Uploader.kick(app);
@@ -94,21 +103,181 @@ public final class Snapshotter {
         t.start();
     }
 
+    // captureOne() outcomes.
+    private static final int RESULT_FAILED = 0;
+    private static final int RESULT_SAVED = 1;
+    private static final int RESULT_FILTERED = 2; // captured fine, dropped as blank
+
     /**
      * One camera attempt; on a fast failure (camera busy / blocked, the
      * attempt returned in under 5 s without an image) retries once after a
      * short pause. A slow failure (timeout) is not retried, to bound the
-     * total time a pair can take.
+     * total time a pair can take. A filtered (blank) frame is a successful
+     * capture, so it is never retried and never buzzes.
      */
-    private static boolean attempt(Context app, Handler h, int facing, String stamp, String label) {
+    private static int attempt(Context app, Handler h, int facing, String stamp, String label) {
         long t0 = System.currentTimeMillis();
-        boolean ok = captureOne(app, h, facing, stamp, label);
-        if (!ok && System.currentTimeMillis() - t0 < 5_000) {
+        int r = captureOne(app, h, facing, stamp, label);
+        if (r == RESULT_FAILED && System.currentTimeMillis() - t0 < 5_000) {
             try { Thread.sleep(400); } catch (InterruptedException ignored) {}
-            ok = captureOne(app, h, facing, stamp, label);
+            r = captureOne(app, h, facing, stamp, label);
         }
-        if (ok) vibrateTick(app);
-        return ok;
+        if (r == RESULT_SAVED) vibrateTick(app);
+        return r;
+    }
+
+    /**
+     * Scores a captured JPEG on-device and reports whether it is blank:
+     * near-black, or detail-free (lens covered / in a pocket / badly
+     * blurred). Mirrors the receiver-side score in snapshot_sample.py with
+     * the same thresholds calibrated on real frames (real scenes: gradient
+     * >= ~6, Laplacian variance in the hundreds; covered/blurry frames:
+     * gradient < 2, Laplacian variance < 60). Runs on a copy downscaled to
+     * ~256 px, so it costs a few ms — far less than the JPEG encode and
+     * upload it can save. Any scoring error means "keep the photo".
+     */
+    private static boolean looksBlank(byte[] jpeg) {
+        android.graphics.Bitmap bmp = null;
+        try {
+            android.graphics.BitmapFactory.Options bounds =
+                    new android.graphics.BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            android.graphics.BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return false;
+            int sample = 1;
+            while (bounds.outWidth / (sample * 2) >= 256
+                    || bounds.outHeight / (sample * 2) >= 256) sample *= 2;
+            android.graphics.BitmapFactory.Options opts =
+                    new android.graphics.BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            bmp = android.graphics.BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length, opts);
+            if (bmp == null) return false;
+            int w = bmp.getWidth(), ht = bmp.getHeight();
+            if (w < 3 || ht < 3) return false;
+            int[] px = new int[w * ht];
+            bmp.getPixels(px, 0, w, 0, 0, w, ht);
+            double[] g = new double[w * ht];
+            double sum = 0;
+            for (int i = 0; i < px.length; i++) {
+                int c = px[i];
+                double lum = 0.299 * ((c >> 16) & 0xFF)
+                        + 0.587 * ((c >> 8) & 0xFF)
+                        + 0.114 * (c & 0xFF);
+                g[i] = lum;
+                sum += lum;
+            }
+            double brightness = sum / g.length;
+            double gradSum = 0;
+            long gradN = 0;
+            for (int y = 0; y < ht; y++) {
+                for (int x = 0; x < w - 1; x++) {
+                    gradSum += Math.abs(g[y * w + x + 1] - g[y * w + x]);
+                    gradN++;
+                }
+            }
+            for (int y = 0; y < ht - 1; y++) {
+                for (int x = 0; x < w; x++) {
+                    gradSum += Math.abs(g[(y + 1) * w + x] - g[y * w + x]);
+                    gradN++;
+                }
+            }
+            double grad = gradN == 0 ? 0 : gradSum / gradN;
+            double lapMean = 0;
+            long lapN = 0;
+            for (int y = 1; y < ht - 1; y++) {
+                for (int x = 1; x < w - 1; x++) {
+                    lapMean += -4 * g[y * w + x] + g[(y - 1) * w + x] + g[(y + 1) * w + x]
+                            + g[y * w + x - 1] + g[y * w + x + 1];
+                    lapN++;
+                }
+            }
+            double lapVar = 0;
+            if (lapN > 0) {
+                lapMean /= lapN;
+                for (int y = 1; y < ht - 1; y++) {
+                    for (int x = 1; x < w - 1; x++) {
+                        double lap = -4 * g[y * w + x] + g[(y - 1) * w + x]
+                                + g[(y + 1) * w + x] + g[y * w + x - 1] + g[y * w + x + 1];
+                        lapVar += (lap - lapMean) * (lap - lapMean);
+                    }
+                }
+                lapVar /= lapN;
+            }
+            boolean blank = brightness < 12 || grad < 2.0 || lapVar < 60;
+            Log.i(TAG, "Snapshot score: brightness=" + String.format(Locale.US, "%.1f", brightness)
+                    + " grad=" + String.format(Locale.US, "%.2f", grad)
+                    + " lapVar=" + String.format(Locale.US, "%.0f", lapVar)
+                    + " blank=" + blank);
+            return blank;
+        } catch (Exception e) {
+            Log.w(TAG, "Blank scoring failed; keeping photo", e);
+            return false;
+        } finally {
+            if (bmp != null) bmp.recycle();
+        }
+    }
+
+    /**
+     * Shrinks a captured JPEG for upload (v1.17.0, Zhang's request): the
+     * photos only feed rough scene recognition, so ~1024 px wide and
+     * <= ~500 KB is plenty, versus several MB for the original.
+     *
+     * Re-encoding through a Bitmap drops the EXIF orientation tag, so the
+     * pixels are physically rotated by the capture's JPEG orientation
+     * first — the result displays upright everywhere with no EXIF at all
+     * (this also makes the shrunk file immune to the front-camera EXIF
+     * history). Quality steps down (then width, once) until the size fits.
+     * Any failure returns the original bytes unchanged.
+     */
+    private static byte[] shrinkForUpload(byte[] jpeg, int orientationDeg) {
+        android.graphics.Bitmap bmp = null;
+        try {
+            android.graphics.BitmapFactory.Options bounds =
+                    new android.graphics.BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            android.graphics.BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return jpeg;
+            int sample = 1;
+            while (bounds.outWidth / (sample * 2) >= 2048) sample *= 2;
+            android.graphics.BitmapFactory.Options opts =
+                    new android.graphics.BitmapFactory.Options();
+            opts.inSampleSize = sample;
+            bmp = android.graphics.BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length, opts);
+            if (bmp == null) return jpeg;
+
+            if (orientationDeg % 360 != 0) {
+                android.graphics.Matrix m = new android.graphics.Matrix();
+                m.postRotate(orientationDeg);
+                android.graphics.Bitmap rotated = android.graphics.Bitmap
+                        .createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
+                if (rotated != bmp) {
+                    bmp.recycle();
+                    bmp = rotated;
+                }
+            }
+
+            int[][] plans = { {1024, 85}, {1024, 70}, {1024, 55}, {800, 60}, {800, 45} };
+            byte[] best = null;
+            for (int[] plan : plans) {
+                android.graphics.Bitmap scaled = bmp;
+                if (bmp.getWidth() > plan[0]) {
+                    int w = plan[0];
+                    int h = Math.max(1, Math.round((float) bmp.getHeight() * w / bmp.getWidth()));
+                    scaled = android.graphics.Bitmap.createScaledBitmap(bmp, w, h, true);
+                }
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, plan[1], bos);
+                if (scaled != bmp) scaled.recycle();
+                best = bos.toByteArray();
+                if (best.length <= 500 * 1024) break;
+            }
+            return best != null ? best : jpeg;
+        } catch (Exception e) {
+            Log.w(TAG, "Snapshot shrink failed; keeping original", e);
+            return jpeg;
+        } finally {
+            if (bmp != null) bmp.recycle();
+        }
     }
 
     private static void vibrateTick(Context ctx) {
@@ -188,6 +357,7 @@ public final class Snapshotter {
         ImageReader reader;
         SurfaceTexture texture;
         volatile boolean saved = false;
+        volatile boolean filtered = false;
 
         void closeAll() {
             try { if (session != null) session.close(); } catch (Exception ignored) {}
@@ -198,13 +368,13 @@ public final class Snapshotter {
         }
     }
 
-    private static boolean captureOne(Context app, Handler h, int facing, String stamp, String label) {
+    private static int captureOne(Context app, Handler h, int facing, String stamp, String label) {
         CameraManager cm = (CameraManager) app.getSystemService(Context.CAMERA_SERVICE);
-        if (cm == null) return false;
+        if (cm == null) return RESULT_FAILED;
         String id = findCamera(cm, facing);
         if (id == null) {
             Log.i(TAG, "No camera with facing " + facing + "; skipping " + label);
-            return false;
+            return RESULT_FAILED;
         }
         final Shot shot = new Shot();
         final CountDownLatch done = new CountDownLatch(1);
@@ -222,15 +392,30 @@ public final class Snapshotter {
                     ImageFormat.JPEG, 2);
             shot.reader.setOnImageAvailableListener(reader -> {
                 try (Image image = reader.acquireLatestImage()) {
-                    if (image == null || shot.saved) return;
+                    if (image == null || shot.saved || shot.filtered) return;
                     ByteBuffer buf = image.getPlanes()[0].getBuffer();
                     byte[] bytes = new byte[buf.remaining()];
                     buf.get(bytes);
+                    // On-device blank filter (v1.17.0): score the JPEG in
+                    // memory; a blank frame is never written, so it is
+                    // never uploaded either.
+                    if (Prefs.snapshotFilterEnabled(app) && looksBlank(bytes)) {
+                        shot.filtered = true;
+                        Log.i(TAG, "Snapshot filtered as blank: " + label
+                                + " (" + bytes.length + " bytes not saved)");
+                        return;
+                    }
+                    // Snapshots only feed rough scene recognition, so the
+                    // multi-MB original is wasteful: shrink to ~1024 px
+                    // wide / <= ~500 KB before saving (upload sees only
+                    // the shrunk file).
+                    byte[] uploadBytes = shrinkForUpload(bytes, orientation);
                     try (FileOutputStream fos = new FileOutputStream(out)) {
-                        fos.write(bytes);
+                        fos.write(uploadBytes);
                     }
                     shot.saved = true;
-                    Log.i(TAG, "Saved snapshot " + out.getName() + " (" + bytes.length + " bytes)");
+                    Log.i(TAG, "Saved snapshot " + out.getName() + " (" + uploadBytes.length
+                            + " bytes, original " + bytes.length + ")");
                 } catch (Exception e) {
                     Log.w(TAG, "Snapshot save failed for " + label, e);
                 } finally {
@@ -316,20 +501,22 @@ public final class Snapshotter {
         } catch (CameraAccessException | SecurityException e) {
             Log.w(TAG, "openCamera failed for " + label, e);
             shot.closeAll();
-            return false;
+            return RESULT_FAILED;
         } catch (Exception e) {
             Log.w(TAG, "Snapshot setup failed for " + label, e);
             shot.closeAll();
-            return false;
+            return RESULT_FAILED;
         }
         try {
             // Hard cap per camera so a wedged HAL can never stall the pair.
             done.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {}
         shot.closeAll();
+        if (shot.filtered) return RESULT_FILTERED;
         if (!shot.saved) {
             Log.w(TAG, "No image captured for " + label);
+            return RESULT_FAILED;
         }
-        return shot.saved;
+        return RESULT_SAVED;
     }
 }

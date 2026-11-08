@@ -853,6 +853,32 @@
 
                     <View style="@style/SettingsDivider" />
 
+                    <LinearLayout style="@style/SettingsSwitchRow">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/snapshot_filter_label" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:tag="sub"
+                                android:text="@string/snapshot_filter_hint"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                        <Switch
+                            android:id="@+id/snapshotFilterCheck"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <View style="@style/SettingsDivider" />
+
                     <Button
                         android:id="@+id/snapshotTestButton"
                         android:layout_width="match_parent"

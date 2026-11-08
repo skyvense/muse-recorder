@@ -22,7 +22,7 @@
     <string name="delete_after_label">上传成功后删除本地片段（省空间）</string>
     <string name="auto_resume_label">手机重启后自动恢复录音</string>
     <string name="snapshot_label">📸 抬起手机自动拍照（抬到接近 90° 时）</string>
-    <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动拍照，排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间锁屏、息屏也能拍；手机重启后请先打开一次 App，息屏拍照才会恢复。关掉就完全不用摄像头。</string>
+    <string name="snapshot_hint">默认关闭。开启后：把手机从平放抬到直立并停稳约 1 秒，自动拍照，先在本机缩到约 1024 宽、500 KB 以内，再排队上传到桶里的 snapshot-日期/ 文件夹。录音运行期间锁屏、息屏也能拍；手机重启后请先打开一次 App，息屏拍照才会恢复。关掉就完全不用摄像头。</string>
     <string name="row_snapshot">📸 %1$s 快照 · %2$s MB · 待上传</string>
     <string name="tab_record">🎙 录音</string>
     <string name="tab_cloud">☁️ 云端</string>
@@ -66,6 +66,8 @@
     <string name="reports_analyses_failed">分段报告没读到（可能还没开只读策略）</string>
 
     <string name="snapshot_camera_label">拍照用哪个摄像头（改完立即生效）</string>
+    <string name="snapshot_filter_label">在本机过滤无内容快照</string>
+    <string name="snapshot_filter_hint">默认开启。每张照片先在本机打分（几毫秒）；近乎全黑或没有细节的帧（镜头被遮挡、在口袋里）不保存也不上传，只记录一个计数。关掉则每张都上传。</string>
     <string name="snapshot_test_button">📸 立即测试拍一次</string>
     <string name="toast_snapshot_testing">正在测试拍照…留意下面的文件列表</string>
 

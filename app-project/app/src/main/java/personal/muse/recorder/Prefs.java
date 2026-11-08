@@ -32,6 +32,7 @@ public final class Prefs {
     public static final String KEY_S3_VIRTUAL = "s3_virtual_style";
     public static final String KEY_SNAPSHOT_ENABLED = "snapshot_enabled";
     public static final String KEY_SNAPSHOT_CAMERA = "snapshot_camera"; // 0=both, 1=back only, 2=front only
+    public static final String KEY_SNAPSHOT_FILTER = "snapshot_filter"; // drop blank frames on-device
     public static final String KEY_SEG_TODAY_DATE = "seg_today_date"; // yyyy-MM-dd
     public static final String KEY_SEG_TODAY_COUNT = "seg_today_count";
     public static final String KEY_CONV_ACTIVE = "conv_active";
@@ -136,6 +137,17 @@ public final class Prefs {
 
     // The reports tab reuses the legacy supabaseUrl()/supabaseKey() above
     // (KEY_SB_URL / KEY_SB_KEY) — same SharedPreferences keys.
+
+    /**
+     * On-device blank-frame filter for snapshots (v1.17.0): frames that are
+     * near-black or detail-free (lens covered / in a pocket / badly blurred)
+     * are scored on the phone and never uploaded. Default ON; the scoring
+     * itself is a few ms on a downscaled copy, far cheaper than the upload
+     * it saves.
+     */
+    public static boolean snapshotFilterEnabled(Context ctx) {
+        return get(ctx).getBoolean(KEY_SNAPSHOT_FILTER, true);
+    }
 
     /** Which cameras a snapshot uses: 0 = both, 1 = back only, 2 = front only. */
     public static int snapshotCameraMode(Context ctx) {

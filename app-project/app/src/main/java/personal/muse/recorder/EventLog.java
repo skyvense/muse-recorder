@@ -25,6 +25,7 @@ public final class EventLog {
     public static final String SELF_NOTE_START = "self_note_start";
     public static final String SELF_NOTE_END = "self_note_end";
     public static final String SNAPSHOT = "snapshot";
+    public static final String SNAPSHOT_FILTERED = "snapshot_filtered";
 
     private EventLog() {}
 
