@@ -52,6 +52,16 @@ public final class SnapshotWatcher implements SensorEventListener {
     private boolean cooldownSignaled = false;
     private static volatile long lastFiredMs = 0;
 
+    // Live gesture state for the record page's practice line (v1.20.0).
+    public static final int STATE_OFF = 0;     // disabled or no permission
+    public static final int STATE_WAITING = 1; // low / armed, waiting for a raise
+    public static final int STATE_RAISING = 2; // in the 65°–80° band, on the way up
+    public static final int STATE_POSE = 3;    // >= 80°, holding before the shot
+    public static final int STATE_HIGH = 4;    // still high after firing; lower to re-arm
+    public static volatile int gestureState = STATE_OFF;
+    public static volatile int angleDeg = 0;
+    public static volatile long cooldownEndsMs = 0;
+
     private SnapshotWatcher(Context app) {
         this.app = app;
     }
@@ -99,11 +109,13 @@ public final class SnapshotWatcher implements SensorEventListener {
         if (!Prefs.snapshotEnabled(app)) {
             armed = false;
             uprightSinceMs = 0;
+            gestureState = STATE_OFF;
             return;
         }
         if (Build.VERSION.SDK_INT >= 23
                 && app.checkSelfPermission(Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
+            gestureState = STATE_OFF;
             return;
         }
         float x = event.values[0], y = event.values[1], z = event.values[2];
@@ -112,12 +124,14 @@ public final class SnapshotWatcher implements SensorEventListener {
         double cos = Math.max(-1.0, Math.min(1.0, z / g));
         double angle = Math.toDegrees(Math.acos(cos));
         long now = System.currentTimeMillis();
+        angleDeg = (int) Math.round(angle);
 
         if (angle < 65) {
             // Low again: (re)arm and forget any raise in progress.
             armed = true;
             uprightSinceMs = 0;
             cooldownSignaled = false;
+            gestureState = STATE_WAITING;
             return;
         }
         if (armed && angle >= 80) {
@@ -143,6 +157,7 @@ public final class SnapshotWatcher implements SensorEventListener {
                     && !coolingDown
                     && !Snapshotter.isCapturing()) {
                 lastFiredMs = now;
+                cooldownEndsMs = now + 15_000;
                 armed = false;
                 uprightSinceMs = 0;
                 Log.i(TAG, "Raise gesture detected (angle " + (int) angle + "°); taking snapshot pair");
@@ -151,6 +166,14 @@ public final class SnapshotWatcher implements SensorEventListener {
         }
         // 65°–80° is a hysteresis band: keep the current state so a raise
         // passing slowly through it neither arms nor resets the timer.
+        // Publish the practice-line state from the final pose each event.
+        if (!armed) {
+            gestureState = STATE_HIGH;
+        } else if (angle >= 80) {
+            gestureState = STATE_POSE;
+        } else {
+            gestureState = STATE_RAISING;
+        }
     }
 
     @Override

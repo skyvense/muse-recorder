@@ -77,6 +77,7 @@ public class MainActivity extends Activity {
     private RecordButtonView recordButton;
     private WaveformView waveform;
     private TextView statusText, lastEventText, filesTitle, uploadStatusText;
+    private TextView snapshotStatusText;
     private LinearLayout convCard, meetingCard, pendingContainer;
     private TextView convCardTitle, convCardState, meetingCardTitle, meetingCardState;
     private Button selfNoteButton, retryUploadButton;
@@ -122,6 +123,63 @@ public class MainActivity extends Activity {
         }
     };
 
+    // Faster ticker for the snapshot practice line only: the gesture
+    // feedback feels broken at the 1 s status cadence.
+    private final Runnable snapTick = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                updateSnapshotStatusLine();
+            } catch (Exception ignored) {}
+            ui.postDelayed(this, 300);
+        }
+    };
+
+    /**
+     * The snapshot-detection practice line under the record status
+     * (v1.20.0): hidden unless auto-snapshot is on; otherwise mirrors
+     * SnapshotWatcher's live state so the user can rehearse the raise
+     * gesture — waiting / raising / pose / capturing / cooldown.
+     */
+    private void updateSnapshotStatusLine() {
+        if (snapshotStatusText == null) return;
+        if (!Prefs.snapshotEnabled(this)) {
+            snapshotStatusText.setVisibility(View.GONE);
+            return;
+        }
+        snapshotStatusText.setVisibility(View.VISIBLE);
+        if (checkSelfPermission(Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            snapshotStatusText.setText(R.string.snap_status_no_permission);
+            return;
+        }
+        if (Snapshotter.isCapturing()) {
+            snapshotStatusText.setText(R.string.snap_status_capturing);
+            return;
+        }
+        long remainMs = SnapshotWatcher.cooldownEndsMs - System.currentTimeMillis();
+        if (remainMs > 0) {
+            snapshotStatusText.setText(getString(R.string.snap_status_cooldown,
+                    (int) Math.ceil(remainMs / 1000.0)));
+            return;
+        }
+        int angle = SnapshotWatcher.angleDeg;
+        switch (SnapshotWatcher.gestureState) {
+            case SnapshotWatcher.STATE_RAISING:
+                snapshotStatusText.setText(getString(R.string.snap_status_raising, angle));
+                break;
+            case SnapshotWatcher.STATE_POSE:
+                snapshotStatusText.setText(getString(R.string.snap_status_pose, angle));
+                break;
+            case SnapshotWatcher.STATE_HIGH:
+                snapshotStatusText.setText(R.string.snap_status_high);
+                break;
+            default:
+                snapshotStatusText.setText(getString(R.string.snap_status_waiting, angle));
+                break;
+        }
+    }
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(LocaleHelper.wrap(newBase));
@@ -141,6 +199,7 @@ public class MainActivity extends Activity {
         recordButton = findViewById(R.id.recordButton);
         waveform = findViewById(R.id.waveform);
         statusText = findViewById(R.id.statusText);
+        snapshotStatusText = findViewById(R.id.snapshotStatusText);
         lastEventText = findViewById(R.id.lastEventText);
         filesTitle = findViewById(R.id.filesTitle);
         uploadStatusText = findViewById(R.id.uploadStatusText);
@@ -519,6 +578,8 @@ public class MainActivity extends Activity {
         SnapshotWatcher.start(this);
         Uploader.kick(this);
         refresh.run();
+        ui.removeCallbacks(snapTick);
+        snapTick.run();
     }
 
     @Override
@@ -528,6 +589,7 @@ public class MainActivity extends Activity {
         if (r2Browser != null) r2Browser.onHide();
         stopSelfNote();
         ui.removeCallbacks(refresh);
+        ui.removeCallbacks(snapTick);
         waveform.stopAnimating();
     }
 

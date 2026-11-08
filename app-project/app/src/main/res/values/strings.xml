@@ -69,6 +69,13 @@
     <string name="reports_analyses_failed">Window reports could not be loaded (read policy may be missing)</string>
 
     <string name="snapshot_camera_label">Snapshot cameras (applies immediately)</string>
+    <string name="snap_status_waiting">📸 Snapshot detection: waiting for a raise (now %1$d°, fires past 80°)</string>
+    <string name="snap_status_raising">📸 Raising detected at %1$d° — keep going to 80°</string>
+    <string name="snap_status_pose">📸 Pose detected at %1$d° — hold it…</string>
+    <string name="snap_status_high">📸 Snapshot done — lower the phone to get ready again</string>
+    <string name="snap_status_capturing">📸 Taking snapshot…</string>
+    <string name="snap_status_cooldown">📸 Cooldown — %1$d s left</string>
+    <string name="snap_status_no_permission">📸 Snapshot detection: camera permission needed</string>
     <string name="snapshot_filter_label">Filter out blank snapshots on this phone</string>
     <string name="snapshot_filter_hint">On by default. Each photo is scored on the phone (a few ms); near-black or detail-free frames (lens covered, in a pocket) are not saved or uploaded — only a count is recorded. Turn off to upload every frame.</string>
     <string name="snapshot_test_button">📸 Test snapshot now</string>

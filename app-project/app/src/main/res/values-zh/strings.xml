@@ -66,6 +66,13 @@
     <string name="reports_analyses_failed">分段报告没读到（可能还没开只读策略）</string>
 
     <string name="snapshot_camera_label">拍照用哪个摄像头（改完立即生效）</string>
+    <string name="snap_status_waiting">📸 拍照检测：等待抬起（当前 %1$d°，抬过 80° 触发）</string>
+    <string name="snap_status_raising">📸 检测到抬起 %1$d°，继续抬到 80°</string>
+    <string name="snap_status_pose">📸 已检测到姿势 %1$d°，保持住…</string>
+    <string name="snap_status_high">📸 已拍摄，把手机放低后可再次抬起</string>
+    <string name="snap_status_capturing">📸 正在拍照…</string>
+    <string name="snap_status_cooldown">📸 冷却中，还剩 %1$d 秒</string>
+    <string name="snap_status_no_permission">📸 拍照检测：需要相机权限</string>
     <string name="snapshot_filter_label">在本机过滤无内容快照</string>
     <string name="snapshot_filter_hint">默认开启。每张照片先在本机打分（几毫秒）；近乎全黑或没有细节的帧（镜头被遮挡、在口袋里）不保存也不上传，只记录一个计数。关掉则每张都上传。</string>
     <string name="snapshot_test_button">📸 立即测试拍一次</string>
