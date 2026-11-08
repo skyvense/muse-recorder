@@ -17,10 +17,13 @@ import android.util.Log;
  * Geometry: the trigger angle is the angle between the gravity vector and
  * the device's z axis (out of the screen). Lying flat, screen up, it is
  * ~0°; held upright in portrait it is ~90°. The watcher arms after the
- * phone has been below 60° (flat on a desk, or held low in the hand),
- * then fires when the angle stays in 72°–108° ("close to 90°") for
- * ~500 ms. After firing it disarms until the phone goes low again, and a
- * 15 s cooldown applies, so normal handling
+ * phone has been below 50° (flat on a desk, or held low in the hand),
+ * then fires once the raise crosses 60° and holds there for ~250 ms
+ * (v1.18.0: firing at 60° instead of near 90° — holding a phone bolt
+ * upright looks conspicuous, and the camera's own startup latency means
+ * the phone has kept rising towards upright by the time the still is
+ * actually taken). After firing it disarms until the phone goes low
+ * again, and a 15 s cooldown applies, so normal handling
  * cannot produce a burst of snapshots. With the screen off it fires only
  * while the recording service holds the camera foreground-service type;
  * otherwise the system would block the camera and the attempt could only
@@ -106,12 +109,13 @@ public final class SnapshotWatcher implements SensorEventListener {
         double angle = Math.toDegrees(Math.acos(cos));
         long now = System.currentTimeMillis();
 
-        if (angle < 60) {
+        if (angle < 50) {
+            // Low again: (re)arm and forget any raise in progress.
             armed = true;
             uprightSinceMs = 0;
             return;
         }
-        if (armed && angle >= 72 && angle <= 108) {
+        if (armed && angle >= 60) {
             if (uprightSinceMs == 0) uprightSinceMs = now;
             // Firing with the screen off only works while the recording
             // service runs with the CAMERA foreground type (v1.9.3+);
@@ -122,7 +126,7 @@ public final class SnapshotWatcher implements SensorEventListener {
             boolean screenOn = pm == null || pm.isInteractive();
             boolean allowed = screenOn || RecordingService.cameraFgsActive;
             if (allowed
-                    && now - uprightSinceMs >= 500
+                    && now - uprightSinceMs >= 250
                     && now - lastFiredMs >= 15_000
                     && !Snapshotter.isCapturing()) {
                 lastFiredMs = now;
@@ -131,9 +135,9 @@ public final class SnapshotWatcher implements SensorEventListener {
                 Log.i(TAG, "Raise gesture detected (angle " + (int) angle + "°); taking snapshot pair");
                 Snapshotter.capturePair(app);
             }
-        } else {
-            uprightSinceMs = 0;
         }
+        // 50°–60° is a hysteresis band: keep the current state so a raise
+        // passing slowly through it neither arms nor resets the timer.
     }
 
     @Override
