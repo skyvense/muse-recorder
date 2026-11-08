@@ -140,7 +140,7 @@ public class MainActivity extends Activity {
      * The snapshot-detection practice line under the record status
      * (v1.20.0): hidden unless auto-snapshot is on; otherwise mirrors
      * SnapshotWatcher's live state so the user can rehearse the raise
-     * gesture — waiting / raising / pose / capturing / cooldown.
+     * gesture — waiting / raising / pose / capturing / locked / held.
      */
     private void updateSnapshotStatusLine() {
         if (snapshotStatusText == null) return;
@@ -158,12 +158,6 @@ public class MainActivity extends Activity {
             snapshotStatusText.setText(R.string.snap_status_capturing);
             return;
         }
-        long remainMs = SnapshotWatcher.cooldownEndsMs - System.currentTimeMillis();
-        if (remainMs > 0) {
-            snapshotStatusText.setText(getString(R.string.snap_status_cooldown,
-                    (int) Math.ceil(remainMs / 1000.0)));
-            return;
-        }
         int angle = SnapshotWatcher.angleDeg;
         switch (SnapshotWatcher.gestureState) {
             case SnapshotWatcher.STATE_RAISING:
@@ -172,6 +166,9 @@ public class MainActivity extends Activity {
             case SnapshotWatcher.STATE_POSE:
                 snapshotStatusText.setText(getString(R.string.snap_status_pose, angle));
                 break;
+            case SnapshotWatcher.STATE_LOCKED:
+                snapshotStatusText.setText(R.string.snap_status_locked);
+                break;
             case SnapshotWatcher.STATE_HIGH: {
                 long nextMs = SnapshotWatcher.nextRepeatAtMs;
                 long leftMs = nextMs - System.currentTimeMillis();
@@ -179,7 +176,7 @@ public class MainActivity extends Activity {
                     snapshotStatusText.setText(getString(R.string.snap_status_held,
                             (int) Math.ceil(leftMs / 1000.0)));
                 } else {
-                    snapshotStatusText.setText(R.string.snap_status_high);
+                    snapshotStatusText.setText(R.string.snap_status_locked);
                 }
                 break;
             }
